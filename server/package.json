@@ -1,0 +1,20 @@
+{
+  "name": "prexup-server",
+  "version": "1.0.0",
+  "description": "Backend para integracion de Meta WhatsApp Cloud API y Asistentes IA con PostgreSQL y pgvector",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.11.5",
+    "zod": "^4.4.3"
+  }
+}

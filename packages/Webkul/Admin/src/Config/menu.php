@@ -127,13 +127,45 @@ return [
     ],
 
     /**
+     * Management.
+     */
+    [
+        'key' => 'management',
+        'name' => 'admin::app.layouts.management',
+        'route' => 'admin.management.users.index',
+        'sort' => 8,
+        'icon-class' => 'icon-settings-group',
+    ], [
+        'key' => 'management.users',
+        'name' => 'admin::app.layouts.users',
+        'info' => 'admin::app.layouts.users-info',
+        'route' => 'admin.management.users.index',
+        'sort' => 1,
+        'icon-class' => 'icon-user',
+    ], [
+        'key' => 'management.pipelines',
+        'name' => 'admin::app.layouts.pipelines',
+        'info' => 'admin::app.layouts.pipelines-info',
+        'route' => 'admin.management.pipelines.index',
+        'sort' => 2,
+        'icon-class' => 'icon-settings-pipeline',
+    ], [
+        'key' => 'management.sources',
+        'name' => 'admin::app.layouts.sources',
+        'info' => 'admin::app.layouts.sources-info',
+        'route' => 'admin.management.sources.index',
+        'sort' => 3,
+        'icon-class' => 'icon-settings-sources',
+    ],
+
+    /**
      * Settings.
      */
     [
         'key' => 'settings',
         'name' => 'admin::app.layouts.settings',
         'route' => 'admin.settings.index',
-        'sort' => 8,
+        'sort' => 9,
         'icon-class' => 'icon-setting',
     ], [
         'key' => 'settings.user',
@@ -157,33 +189,12 @@ return [
         'sort' => 2,
         'icon-class' => 'icon-role',
     ], [
-        'key' => 'settings.user.users',
-        'name' => 'admin::app.layouts.users',
-        'info' => 'admin::app.layouts.users-info',
-        'route' => 'admin.settings.users.index',
-        'sort' => 3,
-        'icon-class' => 'icon-user',
-    ], [
         'key' => 'settings.lead',
         'name' => 'admin::app.layouts.lead',
         'info' => 'admin::app.layouts.lead-info',
-        'route' => 'admin.settings.pipelines.index',
+        'route' => 'admin.settings.types.index',
         'sort' => 2,
         'icon-class' => '',
-    ], [
-        'key' => 'settings.lead.pipelines',
-        'name' => 'admin::app.layouts.pipelines',
-        'info' => 'admin::app.layouts.pipelines-info',
-        'route' => 'admin.settings.pipelines.index',
-        'sort' => 1,
-        'icon-class' => 'icon-settings-pipeline',
-    ], [
-        'key' => 'settings.lead.sources',
-        'name' => 'admin::app.layouts.sources',
-        'info' => 'admin::app.layouts.sources-info',
-        'route' => 'admin.settings.sources.index',
-        'sort' => 2,
-        'icon-class' => 'icon-settings-sources',
     ], [
         'key' => 'settings.lead.types',
         'name' => 'admin::app.layouts.types',
@@ -284,7 +295,7 @@ return [
         'key' => 'configuration',
         'name' => 'admin::app.layouts.configuration',
         'route' => 'admin.configuration.index',
-        'sort' => 9,
+        'sort' => 10,
         'icon-class' => 'icon-configuration',
     ],
 
@@ -295,7 +306,6 @@ return [
         'key' => 'help',
         'name' => 'admin::app.layouts.help',
         'route' => 'admin.help.index',
-        'sort' => 10,
+        'sort' => 11,
         'icon-class' => 'icon-help',
-    ],
-];
+    ];

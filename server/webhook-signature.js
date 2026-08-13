@@ -1,0 +1,28 @@
+import crypto from 'crypto';
+
+/**
+ * Verify the HMAC-SHA256 signature Meta attaches to webhook POSTs.
+ */
+export function verifyMetaWebhookSignature(rawBody, signatureHeader, appSecret) {
+  const secret = appSecret || process.env.META_APP_SECRET;
+  if (!secret) {
+    console.error(
+      '[webhook] META_APP_SECRET is not set — rejecting request. ' +
+      'Set it in your env or database settings.'
+    );
+    return false;
+  }
+
+  if (!signatureHeader) return false;
+  if (!signatureHeader.startsWith('sha256=')) return false;
+
+  const expected =
+    'sha256=' +
+    crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+
+  const a = Buffer.from(signatureHeader);
+  const b = Buffer.from(expected);
+  
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}

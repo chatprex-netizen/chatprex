@@ -152,6 +152,60 @@ Breadcrumbs::for('products.edit', function (BreadcrumbTrail $trail, $product) {
     $trail->push(trans('admin::app.products.edit.title'), route('admin.products.edit', $product->id));
 });
 
+// Management
+Breadcrumbs::for('management', function (BreadcrumbTrail $trail) {
+    $trail->parent('dashboard');
+    $trail->push(menu()->getLabel('management', 'admin::app.layouts.management'), route('admin.management.users.index'));
+});
+
+// Management > Users
+Breadcrumbs::for('management.users', function (BreadcrumbTrail $trail) {
+    $trail->parent('management');
+    $trail->push(menu()->getLabel('management.users', 'admin::app.layouts.users'), route('admin.management.users.index'));
+});
+
+// Dashboard > Management Users > Create
+Breadcrumbs::for('management.users.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('management.users');
+    $trail->push(trans('admin::app.management.users.create-title'), route('admin.management.users.create'));
+});
+
+// Dashboard > Management Users > Edit
+Breadcrumbs::for('management.users.edit', function (BreadcrumbTrail $trail, $user) {
+    $trail->parent('management.users');
+    $trail->push(trans('admin::app.management.users.edit-title'), route('admin.management.users.edit', $user->id));
+});
+
+// Management > Pipelines
+Breadcrumbs::for('management.pipelines', function (BreadcrumbTrail $trail) {
+    $trail->parent('management');
+    $trail->push(menu()->getLabel('management.pipelines', 'admin::app.layouts.pipelines'), route('admin.management.pipelines.index'));
+});
+
+// Dashboard > Management Pipelines > Create Pipeline
+Breadcrumbs::for('management.pipelines.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('management.pipelines');
+    $trail->push(trans('admin::app.management.pipelines.create.title'), route('admin.management.pipelines.create'));
+});
+
+// Dashboard > Management Pipelines > Edit Pipeline
+Breadcrumbs::for('management.pipelines.edit', function (BreadcrumbTrail $trail, $pipeline) {
+    $trail->parent('management.pipelines');
+    $trail->push(trans('admin::app.management.pipelines.edit.title'), route('admin.management.pipelines.edit', $pipeline->id));
+});
+
+// Management > Sources
+Breadcrumbs::for('management.sources', function (BreadcrumbTrail $trail) {
+    $trail->parent('management');
+    $trail->push(menu()->getLabel('management.sources', 'admin::app.layouts.sources'), route('admin.management.sources.index'));
+});
+
+// Dashboard > Management Sources > Edit Source
+Breadcrumbs::for('management.sources.edit', function (BreadcrumbTrail $trail, $source) {
+    $trail->parent('management.sources');
+    $trail->push(trans('admin::app.management.sources.edit-title'), route('admin.management.sources.edit', $source->id));
+});
+
 // Settings
 Breadcrumbs::for('settings', function (BreadcrumbTrail $trail) {
     $trail->parent('dashboard');

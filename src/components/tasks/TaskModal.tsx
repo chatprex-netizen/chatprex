@@ -1,0 +1,240 @@
+import React, { useState, useEffect } from 'react';
+import { Modal } from '../common/Modal';
+import { Task, TaskType, TaskStatus } from '../../types';
+import { useCRM } from '../../context/CRMContext';
+
+interface TaskModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  taskToEdit?: Task | null;
+}
+
+const TASK_TYPES: { id: TaskType; label: string; icon: string }[] = [
+  { id: 'llamada', label: 'Llamada telefónica', icon: '📞' },
+  { id: 'whatsapp', label: 'Mensaje WhatsApp', icon: '💬' },
+  { id: 'visita', label: 'Visita a inmueble', icon: '🏡' },
+  { id: 'documentacion', label: 'Documentos / Notaría', icon: '📄' },
+  { id: 'firma_contrato', label: 'Firma de contrato', icon: '✍️' },
+  { id: 'correo', label: 'Enviar correo', icon: '📧' },
+  { id: 'seguimiento_general', label: 'Seguimiento general', icon: '📌' },
+];
+
+export const TaskModal: React.FC<TaskModalProps> = ({
+  isOpen,
+  onClose,
+  taskToEdit,
+}) => {
+  const { addTask, updateTask, contacts, properties, currentAgent } = useCRM();
+
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    type: 'llamada' as TaskType,
+    priority: 'media' as 'alta' | 'media' | 'baja',
+    status: 'pendiente' as TaskStatus,
+    dueDate: new Date().toISOString().split('T')[0],
+    dueTime: '11:00',
+    agentId: currentAgent.id,
+    contactId: '',
+    propertyId: '',
+    dealId: '',
+  });
+
+  useEffect(() => {
+    if (taskToEdit) {
+      setFormData({
+        title: taskToEdit.title,
+        description: taskToEdit.description || '',
+        type: taskToEdit.type,
+        priority: taskToEdit.priority,
+        status: taskToEdit.status,
+        dueDate: taskToEdit.dueDate,
+        dueTime: taskToEdit.dueTime || '11:00',
+        agentId: taskToEdit.agentId,
+        contactId: taskToEdit.contactId || '',
+        propertyId: taskToEdit.propertyId || '',
+        dealId: taskToEdit.dealId || '',
+      });
+    } else {
+      setFormData({
+        title: '',
+        description: '',
+        type: 'llamada',
+        priority: 'media',
+        status: 'pendiente',
+        dueDate: new Date().toISOString().split('T')[0],
+        dueTime: '11:00',
+        agentId: currentAgent.id,
+        contactId: contacts[0]?.id || '',
+        propertyId: '',
+        dealId: '',
+      });
+    }
+  }, [taskToEdit, isOpen, currentAgent, contacts]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title.trim()) return;
+
+    if (taskToEdit) {
+      updateTask(taskToEdit.id, formData);
+    } else {
+      addTask(formData);
+    }
+    onClose();
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={taskToEdit ? 'Editar tarea' : 'Nueva tarea'}
+      subtitle="Programa una actividad con fecha límite"
+      maxWidth="md"
+    >
+      <form onSubmit={handleSubmit} className="space-y-3 text-xs">
+        <div>
+          <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+            Título de la tarea *
+          </label>
+          <input
+            type="text"
+            required
+            placeholder="Ej: Llamar a cliente para coordinar visita"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className="w-full px-3 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5">
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+              Tipo de actividad
+            </label>
+            <select
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as TaskType })}
+              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            >
+              {TASK_TYPES.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.icon} {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+              Prioridad
+            </label>
+            <select
+              value={formData.priority}
+              onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            >
+              <option value="alta">Alta</option>
+              <option value="media">Media</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5">
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+              Fecha límite
+            </label>
+            <input
+              type="date"
+              required
+              value={formData.dueDate}
+              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            />
+          </div>
+
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+              Hora límite
+            </label>
+            <input
+              type="time"
+              value={formData.dueTime}
+              onChange={(e) => setFormData({ ...formData, dueTime: e.target.value })}
+              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5">
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+              Cliente asociado
+            </label>
+            <select
+              value={formData.contactId}
+              onChange={(e) => setFormData({ ...formData, contactId: e.target.value })}
+              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            >
+              <option value="">-- Sin cliente --</option>
+              {contacts.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+              Propiedad asociada
+            </label>
+            <select
+              value={formData.propertyId}
+              onChange={(e) => setFormData({ ...formData, propertyId: e.target.value })}
+              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            >
+              <option value="">-- Sin propiedad --</option>
+              {properties.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.code} - {p.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+            Descripción / Notas
+          </label>
+          <textarea
+            rows={2}
+            placeholder="Detalles sobre la actividad..."
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full px-3 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 resize-none"
+          />
+        </div>
+
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-medium"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-1.5 rounded-lg bg-[#004aad] hover:bg-[#003b8a] text-white font-medium shadow-xs transition-all"
+          >
+            {taskToEdit ? 'Guardar cambios' : 'Crear tarea'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+};

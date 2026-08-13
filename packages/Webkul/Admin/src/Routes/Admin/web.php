@@ -16,6 +16,11 @@ require 'leads-routes.php';
 require 'mail-routes.php';
 
 /**
+ * Management routes.
+ */
+require 'management-routes.php';
+
+/**
  * Settings routes.
  */
 require 'settings-routes.php';

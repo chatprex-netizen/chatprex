@@ -2,7 +2,13 @@
 
 This changelog consists of the bug & security fixes and new features being included in the releases listed below.
 
+## **v2.2.6 (Upcoming)**
+
+* [fixed] Fixed the "Contratos" sidebar menu item doing nothing when clicked; it now opens the Contracts page.
+
 ## **v2.2.5 (4th of Aug 2026)**
+
+* [feature] Added a new Management menu section with CRUD pages for Users, Pipeline Stages and Lead Sources, moved from Settings.
 
 * [feature] Added Chinese (Simplified) `zh_CN` translation for the Admin, Installer, DataTransfer, WebForm and Core packages.
 
