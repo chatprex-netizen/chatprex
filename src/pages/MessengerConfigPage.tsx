@@ -1,3 +1,4 @@
+const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
 import React, { useState, useEffect } from 'react';
 import {
   MessageSquareText,
@@ -341,7 +342,7 @@ export const MessengerConfigPage: React.FC = () => {
                     http://localhost:5000/api/messenger/webhook
                   </code>
                   <button
-                    onClick={() => handleCopy('http://localhost:5000/api/messenger/webhook', 'url')}
+                    onClick={() => handleCopy(`${BACKEND_URL}/api/messenger/webhook`, 'url')}
                     className="p-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-[#004aad] text-slate-400 hover:text-[#004aad] transition-all"
                     title="Copiar URL"
                   >

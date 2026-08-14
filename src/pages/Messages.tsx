@@ -1,3 +1,4 @@
+const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useCRM } from '../context/CRMContext';
 import { 
@@ -69,7 +70,7 @@ export const MessagesPage: React.FC = () => {
   // 1. Fetch conversations from local Express / SQLite server
   const fetchBackendConversations = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/whatsapp/conversations');
+      const res = await fetch(`${BACKEND_URL}/api/whatsapp/conversations`);
       if (res.ok) {
         const data = await res.json();
         setServerConversations(data);

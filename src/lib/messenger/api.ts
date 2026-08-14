@@ -1,4 +1,4 @@
-const BACKEND_API_BASE = (import.meta as any).env?.VITE_BACKEND_API_BASE ?? 'http://localhost:5000/api/messenger';
+const BACKEND_API_BASE = ((import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000') + '/api/messenger';
 
 export async function saveIntegrationConfig(config: {
   page_id: string;
