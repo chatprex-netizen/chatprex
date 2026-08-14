@@ -1,5 +1,5 @@
 // Base URL configurable via variable de entorno de Vite
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/crm';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_URL}/api/crm` : '/api/crm');
 
 interface FetchOptions extends Omit<RequestInit, 'body'> {
   body?: any;
