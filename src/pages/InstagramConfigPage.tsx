@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Instagram,
+  Camera as Instagram,
   ShieldCheck,
   Database,
   CheckCircle2,
