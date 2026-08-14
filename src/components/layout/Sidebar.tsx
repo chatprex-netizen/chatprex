@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
   KanbanSquare, 
@@ -17,7 +17,11 @@ import {
   X,
   Sun,
   Moon,
-  Smartphone
+  Smartphone,
+  ChevronDown,
+  ChevronRight,
+  Workflow,
+  Link
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useCRM } from '../../context/CRMContext';
@@ -37,37 +41,79 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose,
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const { currentAgent, conversations, tasks } = useCRM();
+  const { currentAgent, conversations, tasks, appBranding } = useCRM();
+  
+  // Keep track of which collapsible menus are open
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
+    'Automatización': true,
+    'Integraciones': true
+  });
+
+  const toggleMenu = (title: string) => {
+    setExpandedMenus(prev => ({
+      ...prev,
+      [title]: !prev[title]
+    }));
+  };
 
   const totalUnreadMessages = conversations.reduce((acc, c) => acc + c.unreadCount, 0);
   const todayStr = new Date().toISOString().split('T')[0];
   const todayPendingTasks = tasks.filter(t => t.dueDate === todayStr && t.status !== 'completada').length;
 
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { 
-      id: 'messages', 
-      label: 'Mensajes', 
-      icon: MessageSquareText,
-      badge: totalUnreadMessages > 0 ? totalUnreadMessages : undefined 
+  const navGroups = [
+    {
+      title: '',
+      isCollapsible: false,
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { 
+          id: 'messages', 
+          label: 'Mensajes', 
+          icon: MessageSquareText,
+          badge: totalUnreadMessages > 0 ? totalUnreadMessages : undefined 
+        },
+        { id: 'pipeline', label: 'Pipeline', icon: KanbanSquare },
+        { id: 'contacts', label: 'Contactos', icon: Users2 },
+        { 
+          id: 'tasks', 
+          label: 'Tareas', 
+          icon: CheckSquare,
+          badge: todayPendingTasks > 0 ? `${todayPendingTasks}` : undefined 
+        },
+        { id: 'calendar', label: 'Agenda', icon: CalendarDays },
+        { id: 'properties', label: 'Unidades', icon: Home },
+        { id: 'contracts', label: 'Contratos', icon: FileText },
+        { id: 'finances', label: 'Finanzas', icon: Wallet },
+      ]
     },
-    { id: 'pipeline', label: 'Pipeline', icon: KanbanSquare },
-    { id: 'contacts', label: 'Contactos', icon: Users2 },
-    { 
-      id: 'tasks', 
-      label: 'Tareas', 
-      icon: CheckSquare,
-      badge: todayPendingTasks > 0 ? `${todayPendingTasks}` : undefined 
+    {
+      title: 'Automatización',
+      isCollapsible: true,
+      icon: Workflow,
+      items: [
+        { id: 'ai-assistants', label: 'Asistentes IA', icon: Bot, highlight: true },
+        { id: 'campaigns', label: 'Campañas', icon: Megaphone },
+        { id: 'ai-copilot', label: 'Copiloto IA', icon: Sparkles, highlight: true },
+      ]
     },
-    { id: 'calendar', label: 'Agenda', icon: CalendarDays },
-    { id: 'properties', label: 'Unidades', icon: Home },
-    { id: 'contracts', label: 'Contratos', icon: FileText },
-    { id: 'finances', label: 'Finanzas', icon: Wallet },
-    { id: 'campaigns', label: 'Campañas', icon: Megaphone },
-    { id: 'ai-copilot', label: 'Copilot IA', icon: Sparkles, highlight: true },
-    { id: 'ai-assistants', label: 'Asistentes IA', icon: Bot, highlight: true },
-    { id: 'whatsapp-config', label: 'Config. WhatsApp', icon: Smartphone },
-    { id: 'settings', label: 'Configuración', icon: Settings },
+    {
+      title: 'Integraciones',
+      isCollapsible: true,
+      icon: Link,
+      items: [
+        { id: 'whatsapp-config', label: 'WhatsApp', icon: Smartphone },
+        { id: 'messenger-config', label: 'Messenger', icon: MessageSquareText },
+        { id: 'instagram-config', label: 'Instagram', icon: Smartphone },
+        { id: 'hubspot-config', label: 'HubSpot / Otros', icon: LayoutDashboard },
+      ]
+    },
+    {
+      title: '',
+      isCollapsible: false,
+      items: [
+        { id: 'settings', label: 'Configuración', icon: Settings },
+      ]
+    }
   ];
 
   return (
@@ -87,19 +133,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }`}
       >
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-slate-800">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#004aad] flex items-center justify-center text-white font-bold text-xs shadow-xs">
-              IN
-            </div>
-            <div>
-              <div className="font-bold text-sm text-white leading-tight">
-                Inmobiliaria CRM
-              </div>
-              <div className="text-[11px] text-slate-400 font-normal">
-                Gestión comercial
-              </div>
-            </div>
+            {appBranding?.logoUrl ? (
+              <img src={appBranding.logoUrl} alt="Logo" className="h-8 max-w-[120px] object-contain" />
+            ) : (
+              <>
+                <div className="w-8 h-8 rounded-lg bg-[#004aad] flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                  CP
+                </div>
+                <div>
+                  <div className="font-bold text-sm text-white leading-tight">
+                    {appBranding?.appName || 'ChatPrex'}
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-normal">
+                    {appBranding?.appDescription || 'Gestión comercial'}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <button 
@@ -111,44 +163,76 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation List */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentPage === item.id;
-
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 no-scrollbar">
+          {navGroups.map((group, idx) => {
+            const isExpanded = expandedMenus[group.title];
+            const GroupIcon = group.icon;
+            
             return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  onNavigate(item.id);
-                  onClose();
-                }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                  isActive
-                    ? 'bg-[#004aad] text-white font-semibold shadow-xs'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                  <span>{item.label}</span>
-                </div>
+              <div key={idx} className="space-y-1">
+                {/* Main Menu / Category Header */}
+                {group.title && group.isCollapsible && (
+                  <button
+                    onClick={() => toggleMenu(group.title)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {GroupIcon && <GroupIcon className="w-4 h-4 text-slate-400" />}
+                      <span className="text-xs font-semibold">{group.title}</span>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                    ) : (
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                    )}
+                  </button>
+                )}
 
-                <div className="flex items-center gap-1.5">
-                  {item.badge && (
-                    <span className={`px-1.5 py-0.2 text-[10px] font-bold rounded-full ${
-                      isActive ? 'bg-white text-[#004aad]' : 'bg-slate-700 text-slate-300'
-                    }`}>
-                      {item.badge}
-                    </span>
-                  )}
-                  {item.highlight && !isActive && (
-                    <span className="px-1 py-0.2 text-[9px] font-bold rounded bg-purple-950 text-purple-300">
-                      IA
-                    </span>
-                  )}
-                </div>
-              </button>
+                {/* Sub Menu Items */}
+                {(!group.isCollapsible || isExpanded) && (
+                  <div className={group.isCollapsible ? "pl-3 space-y-1 border-l border-slate-800 ml-5 mt-1" : "space-y-1"}>
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = currentPage === item.id;
+
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            onNavigate(item.id);
+                            onClose();
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                            isActive
+                              ? 'bg-[#004aad] text-white font-semibold shadow-xs'
+                              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                            <span>{item.label}</span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            {item.badge && (
+                              <span className={`px-1.5 py-0.2 text-[10px] font-bold rounded-full ${
+                                isActive ? 'bg-white text-[#004aad]' : 'bg-slate-700 text-slate-300'
+                              }`}>
+                                {item.badge}
+                              </span>
+                            )}
+                            {item.highlight && !isActive && (
+                              <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-md bg-indigo-500/20 text-indigo-300">
+                                IA
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>

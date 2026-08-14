@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Settings,
+  MessageSquareText,
   ShieldCheck,
   Database,
   CheckCircle2,
@@ -12,14 +12,13 @@ import {
   Info,
   Server,
 } from 'lucide-react';
-import { getIntegrationConfig, saveIntegrationConfig, testBackendConnection } from '../lib/whatsapp/meta-api';
+import { getIntegrationConfig, saveIntegrationConfig, testBackendConnection } from '../lib/messenger/api';
 
-export const WhatsAppConfigPage: React.FC = () => {
+export const MessengerConfigPage: React.FC = () => {
   // Config form state
-  const [phoneNumberId, setPhoneNumberId] = useState('');
+  const [pageId, setPageId] = useState('');
   const [accessToken, setAccessToken] = useState('');
-  const [wabaId, setWabaId] = useState('');
-  const [verifyToken, setVerifyToken] = useState('krayin_crm_verify_token');
+  const [verifyToken, setVerifyToken] = useState('krayin_crm_messenger_verify_token');
   const [appSecret, setAppSecret] = useState('');
   const [appId, setAppId] = useState('');
 
@@ -38,9 +37,8 @@ export const WhatsAppConfigPage: React.FC = () => {
       const data = await getIntegrationConfig();
       if (data.configured) {
         setIsConfigured(true);
-        setPhoneNumberId(data.phone_number_id || '');
-        setWabaId(data.waba_id || '');
-        setVerifyToken(data.verify_token || 'krayin_crm_verify_token');
+        setPageId(data.page_id || '');
+        setVerifyToken(data.verify_token || 'krayin_crm_messenger_verify_token');
         setAppId(data.app_id || '');
         setAccessToken('••••••••••••••••••••••••••••••••');
       } else {
@@ -65,8 +63,8 @@ export const WhatsAppConfigPage: React.FC = () => {
 
   const handleTestConnection = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phoneNumberId || !accessToken) {
-      setTestResult({ success: false, message: 'Ingrese el Phone Number ID y el Access Token para realizar la prueba.' });
+    if (!pageId || !accessToken) {
+      setTestResult({ success: false, message: 'Ingrese el Page ID y el Access Token para realizar la prueba.' });
       return;
     }
 
@@ -81,13 +79,13 @@ export const WhatsAppConfigPage: React.FC = () => {
       }
 
       await testBackendConnection({
-        phone_number_id: phoneNumberId,
+        page_id: pageId,
         access_token: sendToken,
       });
 
       setTestResult({
         success: true,
-        message: '¡Conexión Exitosa! Las credenciales fueron validadas correctamente contra Meta WhatsApp Cloud API.',
+        message: '¡Conexión Exitosa! Las credenciales fueron validadas correctamente contra Meta Messenger API.',
       });
     } catch (err) {
       setTestResult({
@@ -100,7 +98,7 @@ export const WhatsAppConfigPage: React.FC = () => {
   };
 
   const handleSaveConfig = async () => {
-    if (!phoneNumberId || !accessToken) {
+    if (!pageId || !accessToken) {
       setSaveStatus({ success: false, message: 'Por favor, complete los campos obligatorios.' });
       return;
     }
@@ -112,8 +110,7 @@ export const WhatsAppConfigPage: React.FC = () => {
       const sendToken = accessToken === '••••••••••••••••••••••••••••••••' ? '' : accessToken;
       
       await saveIntegrationConfig({
-        phone_number_id: phoneNumberId,
-        waba_id: wabaId || undefined,
+        page_id: pageId,
         access_token: sendToken,
         verify_token: verifyToken || undefined,
         app_secret: appSecret || undefined,
@@ -136,11 +133,11 @@ export const WhatsAppConfigPage: React.FC = () => {
       <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-            <Settings className="w-4 h-4 text-[#004aad]" />
-            Integración de Meta WhatsApp Cloud API
+            <MessageSquareText className="w-4 h-4 text-[#004aad]" />
+            Integración con Facebook Messenger
           </h2>
           <p className="text-[11px] text-slate-400 font-normal">
-            Configura el API oficial de Meta para enviar y recibir mensajes masivos o plantillas.
+            Configura la conexión con tu página de Facebook para recibir y responder mensajes.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -164,7 +161,7 @@ export const WhatsAppConfigPage: React.FC = () => {
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
               <h3 className="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
                 <Database className="w-4 h-4 text-[#004aad]" />
-                Credenciales de WhatsApp
+                Credenciales de Messenger
               </h3>
               <span className="text-[10px] text-slate-400 font-normal">PostgreSQL Backend Local (Puerto 5000)</span>
             </div>
@@ -176,16 +173,16 @@ export const WhatsAppConfigPage: React.FC = () => {
               </div>
             ) : (
               <form onSubmit={handleTestConnection} className="space-y-4">
-                {/* Phone Number ID */}
+                {/* Page ID */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2">
                   <label className="block text-[11px] text-slate-700 dark:text-slate-300 font-semibold">
-                    Phone Number ID <span className="text-red-500">*</span>
+                    Facebook Page ID <span className="text-red-500">*</span>
                   </label>
                   <div className="sm:col-span-2">
                     <input
                       type="text"
-                      value={phoneNumberId}
-                      onChange={(e) => setPhoneNumberId(e.target.value)}
+                      value={pageId}
+                      onChange={(e) => setPageId(e.target.value)}
                       placeholder="Ej. 104849301298492"
                       className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none hover:border-[#004aad] transition-colors"
                       required
@@ -196,7 +193,7 @@ export const WhatsAppConfigPage: React.FC = () => {
                 {/* Access Token */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2">
                   <label className="block text-[11px] text-slate-700 dark:text-slate-300 font-semibold">
-                    Access Token (System User) <span className="text-red-500">*</span>
+                    Page Access Token <span className="text-red-500">*</span>
                   </label>
                   <div className="sm:col-span-2">
                     <input
@@ -206,22 +203,6 @@ export const WhatsAppConfigPage: React.FC = () => {
                       placeholder="EAAGb..."
                       className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none hover:border-[#004aad] transition-colors"
                       required
-                    />
-                  </div>
-                </div>
-
-                {/* WABA ID */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2">
-                  <label className="block text-[11px] text-slate-700 dark:text-slate-300 font-semibold">
-                    WhatsApp Business Account ID
-                  </label>
-                  <div className="sm:col-span-2">
-                    <input
-                      type="text"
-                      value={wabaId}
-                      onChange={(e) => setWabaId(e.target.value)}
-                      placeholder="Ej. 1029481930291"
-                      className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none hover:border-[#004aad] transition-colors"
                     />
                   </div>
                 </div>
@@ -245,7 +226,7 @@ export const WhatsAppConfigPage: React.FC = () => {
                 {/* App Secret */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2">
                   <label className="block text-[11px] text-slate-700 dark:text-slate-300 font-semibold">
-                    Meta App Secret (HMAC Validation)
+                    Meta App Secret
                   </label>
                   <div className="sm:col-span-2">
                     <input
@@ -346,10 +327,10 @@ export const WhatsAppConfigPage: React.FC = () => {
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-card p-6 space-y-4">
             <h3 className="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-3">
               <Server className="w-4 h-4 text-[#004aad]" />
-              Endpoints Webhook para Meta Manager
+              Endpoints Webhook para Messenger
             </h3>
             <p className="text-[11px] text-slate-400">
-              Copia y pega este webhook en la consola de **Meta for Developers → WhatsApp → Configuración de Webhooks** para recibir mensajes entrantes de clientes.
+              Copia y pega este webhook en la consola de **Meta for Developers → Messenger → Configuración de Webhooks** para recibir mensajes.
             </p>
 
             <div className="space-y-3">
@@ -357,10 +338,10 @@ export const WhatsAppConfigPage: React.FC = () => {
                 <label className="block text-[10px] text-slate-450 font-bold mb-1">Callback URL (Webhook)</label>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 bg-slate-50 dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-350 truncate">
-                    http://localhost:5000/api/whatsapp/webhook
+                    http://localhost:5000/api/messenger/webhook
                   </code>
                   <button
-                    onClick={() => handleCopy('http://localhost:5000/api/whatsapp/webhook', 'url')}
+                    onClick={() => handleCopy('http://localhost:5000/api/messenger/webhook', 'url')}
                     className="p-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-[#004aad] text-slate-400 hover:text-[#004aad] transition-all"
                     title="Copiar URL"
                   >
@@ -373,10 +354,10 @@ export const WhatsAppConfigPage: React.FC = () => {
                 <label className="block text-[10px] text-slate-450 font-bold mb-1">Verify Token</label>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 bg-slate-50 dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-350 truncate">
-                    {verifyToken || 'chatprex_crm_whatsapp_verify_token_2024'}
+                    {verifyToken || 'chatprex_messenger_verify_token_2024'}
                   </code>
                   <button
-                    onClick={() => handleCopy(verifyToken || 'chatprex_crm_whatsapp_verify_token_2024', 'token')}
+                    onClick={() => handleCopy(verifyToken || 'chatprex_messenger_verify_token_2024', 'token')}
                     className="p-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-[#004aad] text-slate-400 hover:text-[#004aad] transition-all"
                     title="Copiar Token"
                   >
@@ -401,23 +382,23 @@ export const WhatsAppConfigPage: React.FC = () => {
                 <span className="w-5 h-5 rounded-full bg-[#004aad]/10 text-[#004aad] flex items-center justify-center font-bold flex-shrink-0">1</span>
                 <div>
                   <strong className="text-slate-900 dark:text-white">Crea tu App de Desarrollador</strong>
-                  <p className="mt-0.5">Ingresa a [developers.facebook.com](https://developers.facebook.com/), crea una App de tipo **Negocios** (Business) y añade el producto **WhatsApp**.</p>
+                  <p className="mt-0.5">Ingresa a Meta for Developers, crea una App y añade el producto **Messenger**.</p>
                 </div>
               </div>
 
               <div className="flex gap-2">
                 <span className="w-5 h-5 rounded-full bg-[#004aad]/10 text-[#004aad] flex items-center justify-center font-bold flex-shrink-0">2</span>
                 <div>
-                  <strong className="text-slate-900 dark:text-white">Obtén el ID de Teléfono</strong>
-                  <p className="mt-0.5">Ve a **WhatsApp → Configuración de API**. Copia el **Identificador del número de teléfono** (Phone Number ID) y pégalo a la izquierda.</p>
+                  <strong className="text-slate-900 dark:text-white">Obtén el Page ID</strong>
+                  <p className="mt-0.5">Ve a Información de la página en Facebook para obtener el Identificador de la página.</p>
                 </div>
               </div>
 
               <div className="flex gap-2">
                 <span className="w-5 h-5 rounded-full bg-[#004aad]/10 text-[#004aad] flex items-center justify-center font-bold flex-shrink-0">3</span>
                 <div>
-                  <strong className="text-slate-900 dark:text-white">Token de Acceso Permanente</strong>
-                  <p className="mt-0.5">Para producción, crea un **Usuario del Sistema** en tu Administrador Comercial de Meta con permisos de `whatsapp_business_messaging`. Genera un Token de Acceso permanente y pégalo arriba.</p>
+                  <strong className="text-slate-900 dark:text-white">Token de Acceso de Página</strong>
+                  <p className="mt-0.5">Genera un Token en la consola de Messenger seleccionando tu página de Facebook.</p>
                 </div>
               </div>
 
@@ -425,7 +406,7 @@ export const WhatsAppConfigPage: React.FC = () => {
                 <span className="w-5 h-5 rounded-full bg-[#004aad]/10 text-[#004aad] flex items-center justify-center font-bold flex-shrink-0">4</span>
                 <div>
                   <strong className="text-slate-900 dark:text-white">Configura el Webhook</strong>
-                  <p className="mt-0.5">Copia los campos Webhook de abajo. En Meta, ve a **WhatsApp → Configuración**. Edita el Webhook, ingresa la URL y el Token. Luego suscríbete a los campos **messages**.</p>
+                  <p className="mt-0.5">Suscríbete a los campos **messages**, **messaging_postbacks** y **messaging_optins** en la configuración del Webhook de Messenger.</p>
                 </div>
               </div>
             </div>
@@ -433,7 +414,7 @@ export const WhatsAppConfigPage: React.FC = () => {
             <div className="mt-4 p-3 bg-blue-50/50 dark:bg-slate-800 rounded-lg border border-blue-100 dark:border-slate-700 flex gap-2 text-[10px]">
               <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
               <p className="text-slate-500 dark:text-slate-400">
-                La base de datos PostgreSQL mantendrá la persistencia de las conversaciones. Asegúrate de ejecutar tu servidor local backend en el puerto 5000 para procesar los envíos en tiempo real.
+                La base de datos mantendrá la persistencia de las conversaciones de Messenger. El servidor en el puerto 5000 debe estar activo.
               </p>
             </div>
           </div>

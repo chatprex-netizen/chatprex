@@ -26,20 +26,20 @@ export const StatCard: React.FC<StatCardProps> = ({
   };
 
   return (
-    <div className="p-3 sm:p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-card flex items-center gap-2.5 sm:gap-3.5 transition-all">
-      <div className={`p-2 sm:p-2.5 rounded-lg border shrink-0 ${colorMap[color] || colorMap.primary}`}>
-        <Icon className="w-4 h-4 sm:w-5 h-5" />
+    <div className="p-2.5 sm:p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-card flex items-center gap-2 sm:gap-2.5 transition-all">
+      <div className={`p-1.5 sm:p-2 rounded-lg border shrink-0 ${colorMap[color] || colorMap.primary}`}>
+        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-normal truncate">
+        <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-semibold truncate">
           {title}
         </div>
-        <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate mt-0.5">
+        <div className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate">
           {value}
         </div>
         {subtitle && (
-          <div className="text-[10px] sm:text-[11px] text-slate-400 font-normal truncate mt-0.5">
+          <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium truncate">
             {subtitle}
           </div>
         )}

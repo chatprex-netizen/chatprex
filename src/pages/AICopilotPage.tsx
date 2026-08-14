@@ -3,14 +3,18 @@ import { useCRM } from '../context/CRMContext';
 import { 
   Sparkles, 
   Copy, 
-  Check
+  Check,
+  TrendingUp,
+  Target,
+  BarChart3,
+  LineChart
 } from 'lucide-react';
 import { Badge } from '../components/common/Badge';
 
 export const AICopilotPage: React.FC = () => {
   const { properties } = useCRM();
 
-  const [activeTab, setActiveTab] = useState<'copywriter' | 'matching' | 'objections'>('copywriter');
+  const [activeTab, setActiveTab] = useState<'copywriter' | 'matching' | 'objections' | 'predictive'>('predictive');
 
   // Copywriter State
   const [selectedPropertyId, setSelectedPropertyId] = useState(properties[0]?.id || '');
@@ -103,9 +107,10 @@ export const AICopilotPage: React.FC = () => {
         {/* Tab Switcher */}
         <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
           {[
+            { id: 'predictive', label: 'Análisis Predictivo' },
             { id: 'copywriter', label: 'Redactor de fichas' },
-            { id: 'matching', label: 'Emparejador de clientes' },
-            { id: 'objections', label: 'Manejo de objeciones' },
+            { id: 'matching', label: 'Emparejador' },
+            { id: 'objections', label: 'Objeciones' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -257,6 +262,94 @@ export const AICopilotPage: React.FC = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Tab 4: Predictive Analysis */}
+      {activeTab === 'predictive' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          
+          {/* Sales Forecast */}
+          <div className="lg:col-span-2 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card space-y-4">
+            <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-2">
+              <BarChart3 className="w-4 h-4 text-[#004aad]" />
+              Pronóstico de Ingresos (Próximos 90 días)
+            </h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div className="text-[10px] font-semibold text-slate-500 uppercase">30 Días (Alta prob.)</div>
+                <div className="text-lg font-bold text-slate-900 dark:text-white mt-1">$45,200</div>
+                <div className="text-[10px] text-emerald-600 font-medium flex items-center gap-1 mt-1">
+                  <TrendingUp className="w-3 h-3" /> +12% vs mes anterior
+                </div>
+              </div>
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div className="text-[10px] font-semibold text-slate-500 uppercase">60 Días (Media prob.)</div>
+                <div className="text-lg font-bold text-slate-900 dark:text-white mt-1">$128,500</div>
+                <div className="text-[10px] text-slate-500 mt-1">Basado en 8 prospectos</div>
+              </div>
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div className="text-[10px] font-semibold text-slate-500 uppercase">90 Días (Total pipeline)</div>
+                <div className="text-lg font-bold text-slate-900 dark:text-white mt-1">$315,000</div>
+                <div className="text-[10px] text-slate-500 mt-1">Valor potencial bruto</div>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <div className="flex justify-between text-[10px] font-medium text-slate-500 mb-1">
+                <span>Progreso hacia meta trimestral ($500k)</span>
+                <span>63%</span>
+              </div>
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                <div className="h-full bg-[#004aad] w-[45%]" title="Cerrado" />
+                <div className="h-full bg-blue-300 w-[18%]" title="Pronosticado (30d)" />
+              </div>
+            </div>
+          </div>
+
+          {/* Market Trends */}
+          <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card space-y-4">
+            <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-2">
+              <LineChart className="w-4 h-4 text-[#004aad]" />
+              Tendencias del Mercado
+            </h3>
+            
+            <div className="space-y-3">
+              <div className="p-2.5 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                <div className="text-[11px] font-semibold text-blue-900 dark:text-blue-300">Pico de interés en "San Isidro"</div>
+                <div className="text-[10px] text-blue-700 dark:text-blue-400 mt-0.5">Las búsquedas de departamentos 2 dorm. aumentaron un 34% esta semana.</div>
+              </div>
+              <div className="p-2.5 bg-amber-50/50 dark:bg-amber-900/10 rounded-lg border border-amber-100 dark:border-amber-900/30">
+                <div className="text-[11px] font-semibold text-amber-900 dark:text-amber-300">Estancamiento en Casas</div>
+                <div className="text-[10px] text-amber-700 dark:text-amber-400 mt-0.5">El tiempo promedio en mercado subió a 45 días. Sugerimos revisar precios.</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Lead Scoring Predictivo */}
+          <div className="lg:col-span-3 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card space-y-3">
+             <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-2">
+              <Target className="w-4 h-4 text-[#004aad]" />
+              Leads con mayor probabilidad de cierre (Top 3)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+               {[
+                 { name: 'Carlos Mendoza', score: 92, reason: 'Abrió 4 correos recientes, presupuestos alineados, visita completada.' },
+                 { name: 'Elena Ramírez', score: 87, reason: 'Interacción alta en WhatsApp, solicitó contrato borrador.' },
+                 { name: 'Roberto Díaz', score: 81, reason: 'Cliente recurrente (inversionista), revisó portafolio ayer.' }
+               ].map((lead, i) => (
+                 <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex justify-between items-start mb-1.5">
+                      <div className="font-semibold text-slate-900 dark:text-white">{lead.name}</div>
+                      <Badge variant="emerald" size="sm">Score: {lead.score}</Badge>
+                    </div>
+                    <div className="text-[10px] text-slate-500">{lead.reason}</div>
+                 </div>
+               ))}
+            </div>
+          </div>
+
         </div>
       )}
     </div>

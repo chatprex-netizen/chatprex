@@ -14,6 +14,9 @@ import { CampaignsPage } from './pages/CampaignsPage';
 import { FinancesPage } from './pages/FinancesPage';
 import { AdministrationPage } from './pages/AdministrationPage';
 import { WhatsAppConfigPage } from './pages/WhatsAppConfigPage';
+import { MessengerConfigPage } from './pages/MessengerConfigPage';
+import { InstagramConfigPage } from './pages/InstagramConfigPage';
+import { HubspotConfigPage } from './pages/HubspotConfigPage';
 import { PropertyModal } from './components/properties/PropertyModal';
 import { DealModal } from './components/pipeline/DealModal';
 import { ContactModal } from './components/contacts/ContactModal';
@@ -54,6 +57,12 @@ const PAGE_ALIASES: Record<string, Page> = {
   ajustes: 'settings',
   'whatsapp': 'whatsapp-config',
   'config-whatsapp': 'whatsapp-config',
+  'messenger': 'messenger-config',
+  'config-messenger': 'messenger-config',
+  'instagram': 'instagram-config',
+  'config-instagram': 'instagram-config',
+  'hubspot': 'hubspot-config',
+  'config-hubspot': 'hubspot-config',
   'leads': 'pipeline',
 };
 
@@ -70,6 +79,9 @@ const VALID_PAGES: Page[] = [
   'ai-assistants',
   'campaigns',
   'whatsapp-config',
+  'messenger-config',
+  'instagram-config',
+  'hubspot-config',
   'finances',
   'settings',
 ];
@@ -169,6 +181,12 @@ export const App: React.FC = () => {
         return <CampaignsPage />;
       case 'whatsapp-config':
         return <WhatsAppConfigPage />;
+      case 'messenger-config':
+        return <MessengerConfigPage />;
+      case 'instagram-config':
+        return <InstagramConfigPage />;
+      case 'hubspot-config':
+        return <HubspotConfigPage />;
       case 'settings':
         return <AdministrationPage />;
       default:

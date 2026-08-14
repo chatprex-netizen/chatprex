@@ -370,67 +370,72 @@ export const CampaignsPage: React.FC = () => {
           </div>
 
           {/* Campaigns table */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card overflow-hidden">
-            {/* Table header */}
-            <div className="grid grid-cols-10 sm:grid-cols-12 gap-1 sm:gap-2 px-3 sm:px-5 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              <div className="col-span-4 sm:col-span-3">Nombre</div>
-              <div className="hidden sm:block sm:col-span-3">Plantilla</div>
-              <div className="col-span-2">Destinatarios</div>
-              <div className="col-span-2">Estado</div>
-              <div className="col-span-1">Fecha</div>
-              <div className="col-span-1 text-right">Acciones</div>
-            </div>
-
-            {/* Table body */}
-            {filteredCampaigns.length === 0 ? (
-              <div className="py-16 text-center">
-                <Megaphone className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm font-medium text-slate-400">No hay campañas</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Crea tu primera transmisión para enviar mensajes masivos
-                </p>
-              </div>
-            ) : (
-              filteredCampaigns.map((camp) => {
-                const st = statusConfig[camp.status];
-                return (
-                  <div
-                    key={camp.id}
-                    className="grid grid-cols-10 sm:grid-cols-12 gap-1 sm:gap-2 items-center px-3 sm:px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 last:border-none hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
-                  >
-                    <div className="col-span-4 sm:col-span-3 font-semibold text-slate-900 dark:text-white truncate">
-                      {camp.name}
-                    </div>
-                    <div className="hidden sm:block sm:col-span-3 text-slate-600 dark:text-slate-400 font-mono text-[10px] truncate">
-                      {camp.templateName}
-                    </div>
-                    <div className="col-span-2 text-slate-600 dark:text-slate-400">
-                      {camp.recipientCount} contactos
-                    </div>
-                    <div className="col-span-2">
-                      <span className={`inline-flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-full text-[9px] sm:text-[10px] font-bold border ${st.bg} ${st.color}`}>
-                        {st.icon}
-                        {st.label.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="col-span-1 text-slate-500 dark:text-slate-400 text-[10px]">
-                      {camp.date}
-                    </div>
-                    <div className="col-span-1 flex justify-end gap-0.5 sm:gap-1">
-                      <button className="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-[#004aad] hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCampaign(camp.id)}
-                        className="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[768px]">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <th className="px-5 py-3">Nombre</th>
+                  <th className="px-5 py-3">Plantilla</th>
+                  <th className="px-5 py-3">Destinatarios</th>
+                  <th className="px-5 py-3">Estado</th>
+                  <th className="px-5 py-3">Fecha</th>
+                  <th className="px-5 py-3 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredCampaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-16 text-center">
+                      <Megaphone className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-slate-400">No hay campañas</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Crea tu primera transmisión para enviar mensajes masivos
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCampaigns.map((camp) => {
+                    const st = statusConfig[camp.status];
+                    return (
+                      <tr
+                        key={camp.id}
+                        className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                        <td className="px-5 py-3.5 font-semibold text-slate-900 dark:text-white max-w-[200px] truncate">
+                          {camp.name}
+                        </td>
+                        <td className="px-5 py-3.5 text-slate-600 dark:text-slate-400 font-mono text-[10px] max-w-[150px] truncate">
+                          {camp.templateName}
+                        </td>
+                        <td className="px-5 py-3.5 text-slate-600 dark:text-slate-400">
+                          {camp.recipientCount} contactos
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border ${st.bg} ${st.color} whitespace-nowrap`}>
+                            {st.icon}
+                            {st.label.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-slate-500 dark:text-slate-400 text-[10px] whitespace-nowrap">
+                          {camp.date}
+                        </td>
+                        <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                          <button className="p-1.5 rounded-lg text-slate-400 hover:text-[#004aad] hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all mr-1">
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCampaign(camp.id)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
 
           {/* Summary footer */}

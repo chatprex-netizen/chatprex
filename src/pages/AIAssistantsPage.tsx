@@ -220,9 +220,9 @@ export const AIAssistantsPage: React.FC = () => {
   /* ─── RENDER ──────────────────────────────────── */
 
   return (
-    <div className="flex h-full animate-fade-in text-xs min-h-[calc(100vh-120px)]">
+    <div className="flex flex-col md:flex-row h-full animate-fade-in text-xs min-h-[calc(100vh-120px)]">
       {/* ───── LEFT PANEL: Bot List ───── */}
-      <div className="w-[260px] flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+      <div className="w-full md:w-[260px] h-64 md:h-auto flex-shrink-0 bg-white dark:bg-slate-900 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 flex flex-col">
         {/* Panel header */}
         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">

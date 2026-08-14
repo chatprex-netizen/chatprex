@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Base de Datos PostgreSQL
+  pgsql:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: '${DB_DATABASE:-krayin_crm}'
+      POSTGRES_USER: '${DB_USERNAME:-krayin_user}'
+      POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+    volumes:
+      - krayin-pgsql:/var/lib/postgresql/data
+    networks:
+      - krayin-net
+
+  # Aplicación Frontend / Servidor
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - VITE_HOST=0.0.0.0
+    command: npm run dev -- --host 0.0.0.0
+    networks:
+      - krayin-net
+    depends_on:
+      - pgsql
+
+networks:
+  krayin-net:
+    driver: bridge
+
+volumes:
+  krayin-pgsql:
+    driver: local

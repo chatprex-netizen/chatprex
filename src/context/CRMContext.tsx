@@ -20,7 +20,8 @@ import {
   LeadChannelConfig,
   Project,
   PropertyStatus,
-  PaginatedResponse
+  PaginatedResponse,
+  AppBranding
 } from '../types';
 import { apiClient } from '../lib/api-client';
 import { 
@@ -74,6 +75,8 @@ interface CRMContextType {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   isLoading: boolean;
+  appBranding: AppBranding;
+  updateBranding: (branding: Partial<AppBranding>) => void;
   
   // Acciones de Etapas, Canales y Proyectos
   addPipelineStage: (stage: Omit<PipelineStageConfig, 'id'>) => Promise<void>;
@@ -206,6 +209,34 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  const [appBranding, setAppBranding] = useState<AppBranding>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'appBranding');
+    return saved ? JSON.parse(saved) : {
+      logoUrl: null,
+      faviconUrl: null,
+      appName: 'ChatPrex',
+      appDescription: 'Gestión inteligente para tu negocio',
+    };
+  });
+
+  const updateBranding = (branding: Partial<AppBranding>) => {
+    setAppBranding((prev) => {
+      const updated = { ...prev, ...branding };
+      localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'appBranding', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  useEffect(() => {
+    if (appBranding.faviconUrl) {
+      const link: HTMLLinkElement = document.querySelector("link[rel~='icon']") || document.createElement('link');
+      link.rel = 'icon';
+      link.href = appBranding.faviconUrl;
+      document.getElementsByTagName('head')[0].appendChild(link);
+    }
+    document.title = appBranding.appName;
+  }, [appBranding]);
+
   const [notifications, setNotifications] = useState<NotificationItem[]>([
     {
       id: 'notif-1',
@@ -310,7 +341,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       let url = '/tasks';
       if (startDate && endDate) url += `?startDate=${startDate}&endDate=${endDate}`;
       const data = await apiClient.get<Task[]>(url);
-      setTasks(data);
+      setTasks(Array.isArray(data) ? data : []);
     } catch(e) {}
   };
 
@@ -319,7 +350,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       let url = '/appointments';
       if (startDate && endDate) url += `?startDate=${startDate}&endDate=${endDate}`;
       const data = await apiClient.get<Appointment[]>(url);
-      setAppointments(data);
+      setAppointments(Array.isArray(data) ? data : []);
     } catch(e) {}
   };
 
@@ -930,7 +961,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deleteAgent,
       isAuthenticated,
       login,
-      logout
+      logout,
+      appBranding,
+      updateBranding
     }}>
       {children}
     </CRMContext.Provider>
@@ -939,6 +972,8 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 export const useCRM = () => {
   const context = useContext(CRMContext);
-  if (!context) throw new Error('useCRM must be used within a CRMProvider');
+  if (context === undefined) {
+    throw new Error('useCRM must be used within a CRMProvider');
+  }
   return context;
 };

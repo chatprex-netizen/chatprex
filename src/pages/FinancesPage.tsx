@@ -8,19 +8,14 @@ import {
   Filter,
   TrendingUp,
   RefreshCw,
-  Settings
+  Settings,
+  Clock
 } from 'lucide-react';
 import { useCRM } from '../context/CRMContext';
 import { FinanceTransactionModal } from '../components/finances/FinanceTransactionModal';
 import { FinanceTransaction } from '../types';
-import {
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend
-} from 'recharts';
+import { StatCard } from '../components/common/StatCard';
+
 
 type DisplayCurrency = 'USD' | 'PEN' | 'MXN';
 
@@ -31,6 +26,12 @@ export const FinancesPage: React.FC = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'todos' | 'ingreso' | 'egreso'>('todos');
+  
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+  const [startDate, setStartDate] = useState(firstDay);
+  const [endDate, setEndDate] = useState(lastDay);
   
   // Settings
   const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>('USD');
@@ -74,41 +75,38 @@ export const FinancesPage: React.FC = () => {
       const matchSearch = desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           cat.toLowerCase().includes(searchTerm.toLowerCase());
       const matchType = filterType === 'todos' || tx.type === filterType;
-      return matchSearch && matchType;
+      
+      const txDate = tx.date; // assuming YYYY-MM-DD
+      const matchDate = (!startDate || txDate >= startDate) && (!endDate || txDate <= endDate);
+
+      return matchSearch && matchType && matchDate;
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [financeTransactions, searchTerm, filterType]);
+  }, [financeTransactions, searchTerm, filterType, startDate, endDate]);
 
   const stats = useMemo(() => {
     let totalIncome = 0;
     let totalExpense = 0;
+    let pendingIncome = 0;
     
     financeTransactions.forEach(tx => {
-      if (tx.status !== 'pagado') return; // Only count paid
       const val = convertToDisplay(tx.amount, tx.currency);
-      if (tx.type === 'ingreso') totalIncome += val;
-      if (tx.type === 'egreso') totalExpense += val;
+      if (tx.status === 'pagado') {
+        if (tx.type === 'ingreso') totalIncome += val;
+        if (tx.type === 'egreso') totalExpense += val;
+      } else {
+        if (tx.type === 'ingreso') pendingIncome += val;
+      }
     });
 
     return {
       totalIncome,
       totalExpense,
+      pendingIncome,
       net: totalIncome - totalExpense
     };
   }, [financeTransactions, displayCurrency, exchangeRatePEN, exchangeRateMXN]);
 
-  // Chart Data: Category Breakdown
-  const categoryData = useMemo(() => {
-    const expensesByCategory: Record<string, number> = {};
-    financeTransactions.forEach(tx => {
-      if (tx.type === 'egreso' && tx.status === 'pagado') {
-        const val = convertToDisplay(tx.amount, tx.currency);
-        expensesByCategory[tx.category] = (expensesByCategory[tx.category] || 0) + val;
-      }
-    });
-    return Object.entries(expensesByCategory).map(([name, value]) => ({ name, value }));
-  }, [financeTransactions, displayCurrency, exchangeRatePEN, exchangeRateMXN]);
 
-  const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#06b6d4'];
 
   const handleEdit = (tx: FinanceTransaction) => {
     setSelectedTx(tx);
@@ -127,15 +125,15 @@ export const FinancesPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-card">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Wallet className="w-6 h-6 text-[#004aad]" />
-            Finanzas Inmobiliarias
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Wallet className="w-4 h-4 text-[#004aad]" />
+            <span>Finanzas Inmobiliarias</span>
+          </h2>
+          <p className="text-[11px] text-slate-400 font-normal">
             Gestiona ingresos, egresos, comisiones compartidas y métricas.
           </p>
         </div>
@@ -144,40 +142,42 @@ export const FinancesPage: React.FC = () => {
           <div className="relative">
             <button 
               onClick={() => setShowSettings(!showSettings)}
-              className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+              className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 transition-colors"
             >
-              <Settings className="w-4 h-4" />
-              Ver en: {displayCurrency}
+              <Settings className="w-3.5 h-3.5" />
+              Vista: {displayCurrency}
             </button>
             {showSettings && (
-              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-4 z-10 animate-fade-in">
-                <h3 className="font-semibold text-slate-800 dark:text-white text-sm mb-3">Configuración de Moneda</h3>
-                <div className="space-y-3">
+              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-3 z-10 animate-fade-in">
+                <h3 className="font-semibold text-slate-800 dark:text-white text-xs mb-2">Configuración Moneda</h3>
+                <div className="space-y-2">
                   <div>
-                    <label className="text-xs text-slate-500 dark:text-slate-400">Moneda Base</label>
+                    <label className="text-[10px] uppercase font-semibold text-slate-500">Base</label>
                     <select 
                       value={displayCurrency}
                       onChange={e => setDisplayCurrency(e.target.value as DisplayCurrency)}
-                      className="w-full mt-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1 text-sm text-slate-700 dark:text-slate-300"
+                      className="w-full mt-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1 text-xs text-slate-700 dark:text-slate-300"
                     >
                       <option value="USD">USD ($)</option>
                       <option value="PEN">PEN (S/)</option>
                       <option value="MXN">MXN ($)</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="text-xs text-slate-500 dark:text-slate-400">Tasa de Cambio PEN</label>
-                    <input 
-                      type="number" step="0.01" value={exchangeRatePEN} onChange={e => setExchangeRatePEN(Number(e.target.value))}
-                      className="w-full mt-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1 text-sm text-slate-700 dark:text-slate-300"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500 dark:text-slate-400">Tasa de Cambio MXN</label>
-                    <input 
-                      type="number" step="0.01" value={exchangeRateMXN} onChange={e => setExchangeRateMXN(Number(e.target.value))}
-                      className="w-full mt-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1 text-sm text-slate-700 dark:text-slate-300"
-                    />
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="text-[10px] uppercase font-semibold text-slate-500">TC PEN</label>
+                      <input 
+                        type="number" step="0.01" value={exchangeRatePEN} onChange={e => setExchangeRatePEN(Number(e.target.value))}
+                        className="w-full mt-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1 text-xs text-slate-700 dark:text-slate-300"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-[10px] uppercase font-semibold text-slate-500">TC MXN</label>
+                      <input 
+                        type="number" step="0.01" value={exchangeRateMXN} onChange={e => setExchangeRateMXN(Number(e.target.value))}
+                        className="w-full mt-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1 text-xs text-slate-700 dark:text-slate-300"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -185,147 +185,105 @@ export const FinancesPage: React.FC = () => {
           </div>
           <button 
             onClick={handleOpenNew}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-[#004aad] hover:bg-[#003c8b] text-white rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#004aad] hover:bg-[#003b8a] text-white text-xs font-medium shadow-xs transition-all active:scale-95"
           >
-            <Plus className="w-4 h-4" />
-            Nueva Transacción
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nueva Transacción</span>
           </button>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 flex items-start gap-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center shrink-0">
-            <ArrowUpRight className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Ingresos (Pagados)</p>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-              {formatCurrency(stats.totalIncome)}
-            </h3>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+        <StatCard
+          title="Ingresos"
+          value={formatCurrency(stats.totalIncome)}
+          subtitle="Pagados"
+          icon={ArrowUpRight}
+          color="emerald"
+        />
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 flex items-start gap-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center shrink-0">
-            <ArrowDownRight className="w-6 h-6 text-rose-600 dark:text-rose-400" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Egresos (Pagados)</p>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-              {formatCurrency(stats.totalExpense)}
-            </h3>
-          </div>
-        </div>
+        <StatCard
+          title="Egresos"
+          value={formatCurrency(stats.totalExpense)}
+          subtitle="Pagados"
+          icon={ArrowDownRight}
+          color="rose"
+        />
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 flex items-start gap-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
-            stats.net >= 0 ? 'bg-blue-100 dark:bg-blue-500/20' : 'bg-orange-100 dark:bg-orange-500/20'
-          }`}>
-            <TrendingUp className={`w-6 h-6 ${stats.net >= 0 ? 'text-[#004aad] dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'}`} />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Saldo Neto</p>
-            <h3 className={`text-2xl font-bold mt-1 ${stats.net >= 0 ? 'text-slate-900 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`}>
-              {formatCurrency(stats.net)}
-            </h3>
-          </div>
-        </div>
+        <StatCard
+          title="Saldo Neto"
+          value={formatCurrency(stats.net)}
+          subtitle="Balance actual"
+          icon={TrendingUp}
+          color="blue"
+        />
+
+        <StatCard
+          title="Cuentas x Cobrar"
+          value={formatCurrency(stats.pendingIncome)}
+          subtitle="Ingresos pendientes"
+          icon={Clock}
+          color="amber"
+        />
       </div>
 
-      {/* Charts section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4">Egresos por Categoría</h3>
-          {categoryData.length > 0 ? (
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {categoryData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => formatCurrency(value)}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
-              No hay egresos registrados
-            </div>
-          )}
-        </div>
 
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex flex-col justify-center items-center text-center">
-          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
-            <RefreshCw className="w-8 h-8 text-slate-400" />
-          </div>
-          <h3 className="text-slate-700 dark:text-slate-300 font-medium">Motor Multimoneda Activo</h3>
-          <p className="text-sm text-slate-500 mt-2 max-w-sm">
-            Tus transacciones se unifican automáticamente a {displayCurrency} para los reportes, 
-            pero mantienen su moneda original en el registro detallado.
-          </p>
-        </div>
-      </div>
 
-      {/* Transactions List */}
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              type="text"
-              placeholder="Buscar transacción..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#004aad] focus:border-transparent outline-none"
-            />
+      {/* Filter Tabs & Selectors */}
+      <div className="p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+        <div className="relative w-full lg:w-64 shrink-0">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+          <input 
+            type="text"
+            placeholder="Buscar transacción..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full pl-8 pr-3 py-1.5 border border-slate-200/90 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-[#004aad] focus:border-[#004aad] outline-none"
+          />
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-lg px-2 py-1">
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="text-[11px] bg-transparent border-none text-slate-700 dark:text-slate-300 focus:ring-0 p-0 cursor-pointer" />
+            <span className="text-slate-400 text-[9px] font-bold uppercase mx-0.5">a</span>
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="text-[11px] bg-transparent border-none text-slate-700 dark:text-slate-300 focus:ring-0 p-0 cursor-pointer" />
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Filter className="w-4 h-4 text-slate-400" />
+          
+          <div className="flex items-center bg-slate-50 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-lg px-2 py-1">
+            <Filter className="w-3 h-3 text-slate-400 mr-1" />
             <select
               value={filterType}
               onChange={e => setFilterType(e.target.value as any)}
-              className="text-sm bg-transparent border-none text-slate-700 dark:text-slate-300 focus:ring-0 cursor-pointer"
+              className="text-[11px] font-semibold bg-transparent border-none text-slate-700 dark:text-slate-300 focus:ring-0 cursor-pointer p-0 pr-4"
             >
-              <option value="todos">Todos los tipos</option>
+              <option value="todos">Todos</option>
               <option value="ingreso">Ingresos</option>
               <option value="egreso">Egresos</option>
             </select>
           </div>
         </div>
+      </div>
 
+      {/* Transactions List Wrapper */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-medium">
-                <th className="px-6 py-3 border-b border-slate-200 dark:border-slate-700">Fecha</th>
-                <th className="px-6 py-3 border-b border-slate-200 dark:border-slate-700">Descripción</th>
-                <th className="px-6 py-3 border-b border-slate-200 dark:border-slate-700">Categoría</th>
-                <th className="px-6 py-3 border-b border-slate-200 dark:border-slate-700 text-right">Monto Original</th>
-                <th className="px-6 py-3 border-b border-slate-200 dark:border-slate-700 text-right">Valor ({displayCurrency})</th>
-                <th className="px-6 py-3 border-b border-slate-200 dark:border-slate-700 text-center">Estado</th>
-                <th className="px-6 py-3 border-b border-slate-200 dark:border-slate-700"></th>
+              <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[9px] uppercase font-bold tracking-wider">
+                <th className="px-3 py-2 border-b border-slate-200 dark:border-slate-700">Fecha</th>
+                <th className="px-3 py-2 border-b border-slate-200 dark:border-slate-700">Descripción</th>
+                <th className="px-3 py-2 border-b border-slate-200 dark:border-slate-700">Categoría</th>
+                <th className="px-3 py-2 border-b border-slate-200 dark:border-slate-700 text-right">Monto Orig.</th>
+                <th className="px-3 py-2 border-b border-slate-200 dark:border-slate-700 text-right">Valor ({displayCurrency})</th>
+                <th className="px-3 py-2 border-b border-slate-200 dark:border-slate-700 text-center">Estado</th>
+                <th className="px-3 py-2 border-b border-slate-200 dark:border-slate-700"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-sm">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-[11px]">
               {filteredTx.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
+                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
                     No se encontraron transacciones.
                   </td>
                 </tr>
@@ -334,36 +292,36 @@ export const FinancesPage: React.FC = () => {
                   const convertedAmount = convertToDisplay(tx.amount, tx.currency);
                   return (
                     <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-400">
+                      <td className="px-3 py-2 whitespace-nowrap text-slate-500 dark:text-slate-400">
                         {new Date(tx.date).toLocaleDateString('es-ES')}
                       </td>
-                      <td className="px-6 py-4 text-slate-900 dark:text-white font-medium">
+                      <td className="px-3 py-2 text-slate-900 dark:text-white font-semibold text-[11px]">
                         {tx.description}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                      <td className="px-3 py-2">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                           {tx.category}
                         </span>
                       </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-right font-medium ${tx.type === 'ingreso' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                      <td className={`px-3 py-2 whitespace-nowrap text-right font-bold text-[11px] ${tx.type === 'ingreso' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                         {tx.type === 'ingreso' ? '+' : '-'} {formatCurrency(tx.amount, tx.currency)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-slate-500 dark:text-slate-400">
+                      <td className="px-3 py-2 whitespace-nowrap text-right text-slate-600 dark:text-slate-300 font-semibold text-[11px]">
                         {formatCurrency(convertedAmount)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                      <td className="px-3 py-2 whitespace-nowrap text-center">
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                           tx.status === 'pagado'
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
-                            : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
+                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
+                            : 'bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
                         }`}>
                           {tx.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <td className="px-3 py-2 whitespace-nowrap text-right">
                         <button 
                           onClick={() => handleEdit(tx)}
-                          className="text-slate-400 hover:text-[#004aad] p-1 transition-colors mr-2"
+                          className="text-slate-400 hover:text-[#004aad] p-1 transition-colors mr-1"
                         >
                           Editar
                         </button>

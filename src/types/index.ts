@@ -11,6 +11,9 @@ export type Page =
   | 'ai-assistants'
   | 'campaigns'
   | 'whatsapp-config'
+  | 'messenger-config'
+  | 'instagram-config'
+  | 'hubspot-config'
   | 'settings'
   | 'finances';
 
@@ -330,4 +333,11 @@ export interface FinanceTransaction {
   status: FinanceStatus;
   agentId?: string;
   createdAt: string;
+}
+
+export interface AppBranding {
+  logoUrl: string | null;
+  faviconUrl: string | null;
+  appName: string;
+  appDescription: string;
 }
