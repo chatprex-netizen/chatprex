@@ -84,6 +84,13 @@ export const App: React.FC = () => {
   const { isAuthenticated, login, isLoading } = useCRM();
   const [currentPage, setCurrentPage] = useState<Page>(readPageFromHash);
 
+  // Modales globales
+  const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
   useEffect(() => {
     const onHashChange = () => setCurrentPage(readPageFromHash());
     window.addEventListener('hashchange', onHashChange);
@@ -107,13 +114,6 @@ export const App: React.FC = () => {
   if (!isAuthenticated) {
     return <LoginPage onLogin={login} />;
   }
-
-  // Modales globales
-  const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);
-  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   const renderPage = () => {
     switch (currentPage) {
