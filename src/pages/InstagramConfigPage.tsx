@@ -1,4 +1,4 @@
-const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || '';
+import { BACKEND_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import {
   Camera as Instagram,

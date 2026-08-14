@@ -1,4 +1,6 @@
-const BACKEND_API_BASE = ((import.meta as any).env?.VITE_BACKEND_URL || '') + '/api/instagram';
+import { INSTAGRAM_API_BASE } from '../../config';
+
+const BACKEND_API_BASE = INSTAGRAM_API_BASE;
 
 export async function saveIntegrationConfig(config: {
   ig_account_id: string;

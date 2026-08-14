@@ -1,4 +1,6 @@
-const BACKEND_API_BASE = ((import.meta as any).env?.VITE_BACKEND_URL || '') + '/api/whatsapp';
+import { WHATSAPP_API_BASE } from '../../config';
+
+const BACKEND_API_BASE = WHATSAPP_API_BASE;
 
 /**
  * Save configuration to the backend database.

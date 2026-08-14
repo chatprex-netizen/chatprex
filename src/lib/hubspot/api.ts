@@ -1,4 +1,6 @@
-const BACKEND_API_BASE = ((import.meta as any).env?.VITE_BACKEND_URL || '') + '/api/hubspot';
+import { HUBSPOT_API_BASE } from '../../config';
+
+const BACKEND_API_BASE = HUBSPOT_API_BASE;
 
 export async function saveIntegrationConfig(config: {
   hubspot_portal_id: string;
