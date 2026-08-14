@@ -121,7 +121,7 @@ export const validateData = (schema) => {
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Formatear errores para el cliente
-        const errorMessages = error.errors.map(err => \`\${err.path.join('.')}: \${err.message}\`);
+        const errorMessages = error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
         return res.status(400).json({ error: 'Validación fallida', details: errorMessages });
       }
       next(error);
