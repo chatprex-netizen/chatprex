@@ -33,7 +33,11 @@ import {
   INITIAL_CONVERSATIONS,
   INITIAL_COMMISSIONS,
   INITIAL_LEAD_ACTIVITIES,
-  INITIAL_MESSAGES
+  INITIAL_MESSAGES,
+  INITIAL_AGENTS,
+  INITIAL_PROJECTS,
+  INITIAL_LEAD_CHANNELS,
+  INITIAL_PIPELINE_STAGES
 } from '../data/initialData';
 
 export interface NotificationItem {
@@ -254,6 +258,10 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setConversations(INITIAL_CONVERSATIONS);
         setMessages(INITIAL_MESSAGES);
         setCommissions(INITIAL_COMMISSIONS);
+        setAgents(INITIAL_AGENTS);
+        setProjects(INITIAL_PROJECTS);
+        setLeadChannels(INITIAL_LEAD_CHANNELS);
+        setPipelineStages(INITIAL_PIPELINE_STAGES);
         
         setIsAuthenticated(true);
         setIsLoading(false);
@@ -382,6 +390,10 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setConversations(INITIAL_CONVERSATIONS);
       setMessages(INITIAL_MESSAGES);
       setCommissions(INITIAL_COMMISSIONS);
+      setAgents(INITIAL_AGENTS);
+      setProjects(INITIAL_PROJECTS);
+      setLeadChannels(INITIAL_LEAD_CHANNELS);
+      setPipelineStages(INITIAL_PIPELINE_STAGES);
       
       setIsAuthenticated(true);
       return;
