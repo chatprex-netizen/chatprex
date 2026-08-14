@@ -8,7 +8,12 @@ const { Pool } = pg;
 // Pool de conexión a PostgreSQL
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/krayin_crm',
-  ssl: process.env.DATABASE_URL?.includes('render.com') || process.env.DATABASE_URL?.includes('neon.tech') 
+  ssl: (process.env.DATABASE_URL?.includes('render.com') ||
+        process.env.DATABASE_URL?.includes('neon.tech') ||
+        process.env.DATABASE_URL?.includes('supabase.co') ||
+        process.env.DATABASE_URL?.includes('pooler.supabase.com') ||
+        process.env.DATABASE_URL?.includes('sslmode=require') ||
+        process.env.DB_SSL === 'true')
     ? { rejectUnauthorized: false } 
     : false
 });

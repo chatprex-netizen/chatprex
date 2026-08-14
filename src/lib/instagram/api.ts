@@ -1,4 +1,4 @@
-const BACKEND_API_BASE = ((import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000') + '/api/instagram';
+const BACKEND_API_BASE = ((import.meta as any).env?.VITE_BACKEND_URL || '') + '/api/instagram';
 
 export async function saveIntegrationConfig(config: {
   ig_account_id: string;

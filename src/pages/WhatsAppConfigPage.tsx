@@ -1,4 +1,4 @@
-const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || '';
 import React, { useState, useEffect } from 'react';
 import {
   Settings,
@@ -358,10 +358,10 @@ export const WhatsAppConfigPage: React.FC = () => {
                 <label className="block text-[10px] text-slate-450 font-bold mb-1">Callback URL (Webhook)</label>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 bg-slate-50 dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-350 truncate">
-                    http://localhost:5000/api/whatsapp/webhook
+                    {BACKEND_URL ? `${BACKEND_URL}/api/whatsapp/webhook` : (typeof window !== 'undefined' ? `${window.location.origin}/api/whatsapp/webhook` : '/api/whatsapp/webhook')}
                   </code>
                   <button
-                    onClick={() => handleCopy(`${BACKEND_URL}/api/whatsapp/webhook`, 'url')}
+                    onClick={() => handleCopy(BACKEND_URL ? `${BACKEND_URL}/api/whatsapp/webhook` : `${window.location.origin}/api/whatsapp/webhook`, 'url')}
                     className="p-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-[#004aad] text-slate-400 hover:text-[#004aad] transition-all"
                     title="Copiar URL"
                   >

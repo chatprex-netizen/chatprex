@@ -1,4 +1,4 @@
-const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || '';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useCRM } from '../context/CRMContext';
 import { 
@@ -89,7 +89,7 @@ export const MessagesPage: React.FC = () => {
     if (!convId) return;
     setLoadingMessages(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/whatsapp/conversations/${convId}/messages`);
+      const res = await fetch(`${BACKEND_URL}/api/whatsapp/conversations/${convId}/messages`);
       if (res.ok) {
         const data = await res.json();
         setServerMessages(data);

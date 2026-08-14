@@ -1,4 +1,4 @@
-const BACKEND_API_BASE = ((import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000') + '/api/hubspot';
+const BACKEND_API_BASE = ((import.meta as any).env?.VITE_BACKEND_URL || '') + '/api/hubspot';
 
 export async function saveIntegrationConfig(config: {
   hubspot_portal_id: string;

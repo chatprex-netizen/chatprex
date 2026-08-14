@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { initDb, query } from './db.js';
 import crmRouter from './api-crm.js';
 import { encrypt, decrypt } from './encryption.js';
@@ -16,6 +19,9 @@ import {
 } from './meta-api.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,9 +39,6 @@ app.use(cors());
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', db: 'postgresql', timestamp: new Date() });
 });
-
-// Initialize database
-await initDb();
 
 // Mount CRM API Router
 app.use(crmRouter);
@@ -514,12 +517,37 @@ app.get('/api/ai/knowledge', async (_req, res) => {
 });
 
 // ------------------------------------------------------------------
+// SERVE FRONTEND STATIC FILES (SPA)
+// ------------------------------------------------------------------
+const distPath = fs.existsSync(path.resolve(__dirname, '../dist'))
+  ? path.resolve(__dirname, '../dist')
+  : path.resolve(__dirname, 'dist');
+
+if (fs.existsSync(distPath)) {
+  console.log(`📁 Sirviendo frontend desde: ${distPath}`);
+  app.use(express.static(distPath));
+
+  // SPA fallback para rutas que no sean /api ni /health
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/health')) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
+// ------------------------------------------------------------------
 // START SERVER
 // ------------------------------------------------------------------
 
-app.listen(PORT, () => {
-  console.log(`\n🚀 Servidor WhatsApp + IA ejecutándose en http://localhost:${PORT}`);
-  console.log(`🐘 Base de datos: PostgreSQL con pgvector`);
-  console.log(`🔗 Webhook URL: http://localhost:${PORT}/api/whatsapp/webhook`);
-  console.log(`🧠 Knowledge API: http://localhost:${PORT}/api/ai/knowledge\n`);
+app.listen(PORT, '0.0.0.0', async () => {
+  console.log(`\n🚀 Servidor Prexup CRM ejecutándose en http://0.0.0.0:${PORT}`);
+  console.log(`🔗 Webhook URL: http://0.0.0.0:${PORT}/api/whatsapp/webhook`);
+  console.log(`🧠 Knowledge API: http://0.0.0.0:${PORT}/api/ai/knowledge`);
+
+  try {
+    await initDb();
+  } catch (err) {
+    console.error('⚠️ Error al inicializar base de datos PostgreSQL:', err.message);
+  }
 });

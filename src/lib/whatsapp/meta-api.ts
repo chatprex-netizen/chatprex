@@ -1,5 +1,4 @@
-// The address of our lightweight SQLite Express backend
-const BACKEND_API_BASE = ((import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000') + '/api/whatsapp';
+const BACKEND_API_BASE = ((import.meta as any).env?.VITE_BACKEND_URL || '') + '/api/whatsapp';
 
 /**
  * Save configuration to the backend database.
