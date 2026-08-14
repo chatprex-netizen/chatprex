@@ -57,6 +57,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         {/* Tarjeta del formulario */}
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Demo Notice */}
+            <div className="bg-blue-500/10 border border-blue-500/20 text-blue-200 text-xs rounded-xl p-3.5 space-y-1 text-left">
+              <p className="font-semibold flex items-center gap-1.5">
+                <span>💡</span> Modo Demo disponible offline:
+              </p>
+              <p>Email: <code className="bg-slate-900/40 px-1 py-0.5 rounded text-blue-300 font-mono select-all">demo@prexup.com</code></p>
+              <p>Pass: <code className="bg-slate-900/40 px-1 py-0.5 rounded text-blue-300 font-mono select-all">demo123</code></p>
+            </div>
+
             {/* Error */}
             {error && (
               <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-300 text-sm rounded-xl px-4 py-3 animate-fade-in">

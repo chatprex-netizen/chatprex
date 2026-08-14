@@ -230,6 +230,35 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsLoading(false);
         return;
       }
+      if (token === 'demo-token') {
+        const demoAgent: Agent = {
+          id: 'agent-admin',
+          name: 'Administrador Demo',
+          email: 'demo@prexup.com',
+          phone: '+51999999999',
+          role: 'admin',
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+          active: true,
+          active_deals_count: 0,
+          sales_volume: 0
+        };
+        setCurrentAgent(demoAgent);
+        
+        // Cargar datos estáticos locales para el modo demo
+        setProperties(INITIAL_PROPERTIES);
+        setDeals(INITIAL_DEALS);
+        setContacts(INITIAL_CONTACTS);
+        setContracts(INITIAL_CONTRACTS);
+        setTasks(INITIAL_TASKS);
+        setAppointments(INITIAL_APPOINTMENTS);
+        setConversations(INITIAL_CONVERSATIONS);
+        setMessages(INITIAL_MESSAGES);
+        setCommissions(INITIAL_COMMISSIONS);
+        
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return;
+      }
       try {
         const data = await apiClient.get<{agent: Agent}>('/auth/me');
         setCurrentAgent(data.agent);
@@ -239,6 +268,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         localStorage.removeItem('prexup_auth_token');
         setIsAuthenticated(false);
       }
+      setIsLoading(false);
     };
     checkAuth();
   }, []);
@@ -327,6 +357,35 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Manejo de Etapas, Canales y Proyectos
   const login = async (email: string, pass: string) => {
+    if (email === 'demo@prexup.com' && pass === 'demo123') {
+      localStorage.setItem('prexup_auth_token', 'demo-token');
+      const demoAgent: Agent = {
+        id: 'agent-admin',
+        name: 'Administrador Demo',
+        email: 'demo@prexup.com',
+        phone: '+51999999999',
+        role: 'admin',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+        active: true,
+        active_deals_count: 0,
+        sales_volume: 0
+      };
+      setCurrentAgent(demoAgent);
+      
+      // Cargar datos locales de prueba
+      setProperties(INITIAL_PROPERTIES);
+      setDeals(INITIAL_DEALS);
+      setContacts(INITIAL_CONTACTS);
+      setContracts(INITIAL_CONTRACTS);
+      setTasks(INITIAL_TASKS);
+      setAppointments(INITIAL_APPOINTMENTS);
+      setConversations(INITIAL_CONVERSATIONS);
+      setMessages(INITIAL_MESSAGES);
+      setCommissions(INITIAL_COMMISSIONS);
+      
+      setIsAuthenticated(true);
+      return;
+    }
     const res = await apiClient.post<{token: string, agent: Agent}>('/auth/login', { email, password: pass });
     localStorage.setItem('prexup_auth_token', res.token);
     setCurrentAgent(res.agent);
