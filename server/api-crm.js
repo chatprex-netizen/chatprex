@@ -274,20 +274,29 @@ router.post('/api/crm/contacts', validateData(contactSchema), async (req, res) =
   try {
     const { id, name, email, phone, type, channel, budgetMin, budgetMax, budget, currency, pipelineStage,
       interestedProperty, preferredZones, preferredTypes, leadScore, notes, assignedAgentId,
-      nextFollowUpDate, statusFollowUp } = req.body;
+      nextFollowUpDate, statusFollowUp, avatar } = req.body;
 
     const contactId = id || `cont-${Date.now()}`;
+    const contactName = name && name.trim() ? name.trim() : 'Nuevo Prospecto';
+    const contactPhone = phone && phone.trim() ? phone.trim() : `sin-tel-${Date.now()}`;
+
     await query(`
       INSERT INTO contacts (id, name, email, phone, type, channel, budget_min, budget_max, budget, currency,
         pipeline_stage, interested_property, preferred_zones, preferred_types, lead_score, notes,
-        assigned_agent_id, last_contact_date, next_follow_up_date, status_follow_up)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,NOW(),$18,$19)
-    `, [contactId, name, email, phone, type, channel, budgetMin, budgetMax, budget, currency,
-      pipelineStage, interestedProperty, preferredZones || [], preferredTypes || [],
-      leadScore || 0, notes, assignedAgentId, nextFollowUpDate, statusFollowUp || 'al_dia']);
+        assigned_agent_id, last_contact_date, next_follow_up_date, status_follow_up, avatar)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,NOW(),$18,$19,$20)
+      ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        email = EXCLUDED.email,
+        phone = EXCLUDED.phone
+    `, [contactId, contactName, email || null, contactPhone, type || 'comprador', channel || 'whatsapp',
+      budgetMin || 0, budgetMax || 0, budget || 0, currency || 'USD',
+      pipelineStage || 'nuevo_prospecto', interestedProperty || '', preferredZones || [], preferredTypes || [],
+      leadScore || 0, notes || '', assignedAgentId || null, nextFollowUpDate || null, statusFollowUp || 'al_dia', avatar || '']);
 
     res.status(201).json({ id: contactId, message: 'Contacto creado' });
   } catch (err) {
+    console.error('Error al crear contacto:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -399,23 +408,34 @@ router.get('/api/crm/properties/:id', async (req, res) => {
 
 router.post('/api/crm/properties', validateData(propertySchema), async (req, res) => {
   try {
-    const { code, title, description, type, operation, price, currency, areaTotal, areaBuilt,
+    const { id: reqId, code, title, description, type, operation, price, currency, areaTotal, areaBuilt,
       bedrooms, bathrooms, parkingSpots, address, zone, city, features, status, images,
       agentId, commissionPct, featured, projectName, developer } = req.body;
 
-    const id = `prop-${Date.now()}`;
+    const id = reqId || `prop-${Date.now()}`;
+    const propCode = code && code.trim() ? code.trim() : `PRP-${Date.now().toString().slice(-4)}`;
+    const propTitle = title && title.trim() ? title.trim() : 'Nueva Propiedad';
+    const propType = type && type.trim() ? type.trim() : 'departamento';
+    const propOperation = operation && operation.trim() ? operation.trim() : 'venta';
+
     await query(`
       INSERT INTO properties (id, code, title, description, type, operation, price, currency,
         area_total, area_built, bedrooms, bathrooms, parking_spots, address, zone, city,
         features, status, images, agent_id, commission_pct, featured, project_name, developer)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
-    `, [id, code, title, description, type, operation, price, currency || 'USD',
-      areaTotal, areaBuilt, bedrooms, bathrooms, parkingSpots, address, zone, city,
-      features || [], status || 'disponible', images || [], agentId, commissionPct || 0,
-      featured || false, projectName, developer]);
+      ON CONFLICT (id) DO UPDATE SET
+        title = EXCLUDED.title,
+        price = EXCLUDED.price,
+        status = EXCLUDED.status
+    `, [id, propCode, propTitle, description || '', propType, propOperation, Number(price) || 0, currency || 'USD',
+      Number(areaTotal) || 0, Number(areaBuilt) || 0, Number(bedrooms) || 0, Number(bathrooms) || 0, Number(parkingSpots) || 0,
+      address || '', zone || '', city || 'Ciudad de México',
+      features || [], status || 'disponible', images || [], agentId || null, Number(commissionPct) || 0,
+      featured || false, projectName || '', developer || '']);
 
     res.status(201).json({ id, message: 'Propiedad creada' });
   } catch (err) {
+    console.error('Error al crear propiedad:', err);
     res.status(500).json({ error: err.message });
   }
 });
