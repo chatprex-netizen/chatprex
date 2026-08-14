@@ -468,7 +468,7 @@ export async function initDb() {
     const { rows: agentsWithPass } = await client.query("SELECT COUNT(*) as count FROM agents WHERE password_hash IS NOT NULL AND password_hash != ''");
     if (parseInt(agentsWithPass[0].count, 10) === 0) {
       try {
-        const bcrypt = await import('bcrypt');
+        const bcrypt = await import('bcryptjs');
         const defaultPasswordHash = await bcrypt.hash('admin123', 12);
         await client.query(
           `INSERT INTO agents (id, name, email, password_hash, phone, role, avatar, active, active_deals_count, sales_volume)
