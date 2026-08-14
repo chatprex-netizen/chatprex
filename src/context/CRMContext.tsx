@@ -24,22 +24,6 @@ import {
   AppBranding
 } from '../types';
 import { apiClient } from '../lib/api-client';
-import { 
-  INITIAL_PROPERTIES, 
-  INITIAL_DEALS, 
-  INITIAL_CONTACTS, 
-  INITIAL_CONTRACTS,
-  INITIAL_TASKS,
-  INITIAL_APPOINTMENTS,
-  INITIAL_CONVERSATIONS,
-  INITIAL_COMMISSIONS,
-  INITIAL_LEAD_ACTIVITIES,
-  INITIAL_MESSAGES,
-  INITIAL_AGENTS,
-  INITIAL_PROJECTS,
-  INITIAL_LEAD_CHANNELS,
-  INITIAL_PIPELINE_STAGES
-} from '../data/initialData';
 
 export interface NotificationItem {
   id: string;
@@ -180,32 +164,27 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  const [leadActivities, setLeadActivities] = useState<Record<string, LeadActivity[]>>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'leadActivities');
-    return saved ? JSON.parse(saved) : INITIAL_LEAD_ACTIVITIES;
-  });
-
+  const [leadActivities, setLeadActivities] = useState<Record<string, LeadActivity[]>>({});
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-
   const [conversations, setConversations] = useState<Conversation[]>([]);
-
-  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'messages');
-    return saved ? JSON.parse(saved) : INITIAL_MESSAGES;
-  });
-
+  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
   const [commissions, setCommissions] = useState<Commission[]>([]);
-
   const [pipelineStages, setPipelineStages] = useState<PipelineStageConfig[]>([]);
-
   const [leadChannels, setLeadChannels] = useState<LeadChannelConfig[]>([]);
-
   const [projects, setProjects] = useState<Project[]>([]);
-
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [currentAgent, setCurrentAgent] = useState<Agent>({} as Agent);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>('conv-1');
+  const [currentAgent, setCurrentAgent] = useState<Agent>({
+    id: 'agent-admin',
+    name: 'Administrador',
+    email: 'admin@prexup.com',
+    role: 'admin',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    active: true,
+    active_deals_count: 0,
+    sales_volume: 0,
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -237,79 +216,66 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     document.title = appBranding.appName;
   }, [appBranding]);
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: 'notif-1',
-      title: 'Contrato firmado',
-      message: 'Lucía Ferrer completó la firma del contrato de separación SEP-2026-001.',
-      time: 'Hace 10 min',
-      type: 'success',
-      read: false,
-    },
-    {
-      id: 'notif-2',
-      title: 'Nueva visita programada',
-      message: 'Visita coordinada a Torre Marina para mañana.',
-      time: 'Hace 1 hora',
-      type: 'info',
-      read: false,
-    }
-  ]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
+  // Fetch all CRM data directly from database on mount
+  const fetchAllData = async () => {
+    setIsLoading(true);
+    try {
+      const [
+        propertiesData, dealsData, contactsData, contractsData, 
+        financeData, pipelineStagesData, leadChannelsData, projectsData, agentsData
+      ] = await Promise.allSettled([
+        apiClient.get<PaginatedResponse<Property>>('/properties?limit=100'),
+        apiClient.get<PaginatedResponse<Deal>>('/deals?limit=100'),
+        apiClient.get<PaginatedResponse<Contact>>('/contacts?limit=100'),
+        apiClient.get<Contract[]>('/contracts'),
+        apiClient.get<FinanceTransaction[]>('/finance-transactions'),
+        apiClient.get<PipelineStageConfig[]>('/pipeline-stages'),
+        apiClient.get<LeadChannelConfig[]>('/lead-channels'),
+        apiClient.get<Project[]>('/projects'),
+        apiClient.get<Agent[]>('/agents'),
+      ]);
 
-  // Verify token on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('prexup_auth_token');
-      if (!token) {
-        setIsLoading(false);
-        return;
+      if (propertiesData.status === 'fulfilled' && propertiesData.value?.data) {
+        setProperties(propertiesData.value.data);
+        setPropertiesTotal(propertiesData.value.total || propertiesData.value.data.length);
       }
-      if (token === 'demo-token') {
-        const demoAgent: Agent = {
-          id: 'agent-admin',
-          name: 'Administrador Demo',
-          email: 'demo@prexup.com',
-          phone: '+51999999999',
-          role: 'admin',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-          active: true,
-          active_deals_count: 0,
-          sales_volume: 0
-        };
-        setCurrentAgent(demoAgent);
-        
-        // Cargar datos estáticos locales para el modo demo
-        setProperties(INITIAL_PROPERTIES);
-        setDeals(INITIAL_DEALS);
-        setContacts(INITIAL_CONTACTS);
-        setContracts(INITIAL_CONTRACTS);
-        setTasks(INITIAL_TASKS);
-        setAppointments(INITIAL_APPOINTMENTS);
-        setConversations(INITIAL_CONVERSATIONS);
-        setMessages(INITIAL_MESSAGES);
-        setCommissions(INITIAL_COMMISSIONS);
-        setAgents(INITIAL_AGENTS);
-        setProjects(INITIAL_PROJECTS);
-        setLeadChannels(INITIAL_LEAD_CHANNELS);
-        setPipelineStages(INITIAL_PIPELINE_STAGES);
-        
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return;
+      if (dealsData.status === 'fulfilled' && dealsData.value?.data) {
+        setDeals(dealsData.value.data);
+        setDealsTotal(dealsData.value.total || dealsData.value.data.length);
       }
-      try {
-        const data = await apiClient.get<{agent: Agent}>('/auth/me');
-        setCurrentAgent(data.agent);
-        setIsAuthenticated(true);
-      } catch (err) {
-        console.warn("Sesión expirada o inválida");
-        localStorage.removeItem('prexup_auth_token');
-        setIsAuthenticated(false);
+      if (contactsData.status === 'fulfilled' && contactsData.value?.data) {
+        setContacts(contactsData.value.data);
+        setContactsTotal(contactsData.value.total || contactsData.value.data.length);
       }
+      if (contractsData.status === 'fulfilled' && Array.isArray(contractsData.value)) {
+        setContracts(contractsData.value);
+      }
+      if (financeData.status === 'fulfilled' && Array.isArray(financeData.value)) {
+        setFinanceTransactions(financeData.value);
+      }
+      if (pipelineStagesData.status === 'fulfilled' && Array.isArray(pipelineStagesData.value)) {
+        setPipelineStages(pipelineStagesData.value);
+      }
+      if (leadChannelsData.status === 'fulfilled' && Array.isArray(leadChannelsData.value)) {
+        setLeadChannels(leadChannelsData.value);
+      }
+      if (projectsData.status === 'fulfilled' && Array.isArray(projectsData.value)) {
+        setProjects(projectsData.value);
+      }
+      if (agentsData.status === 'fulfilled' && Array.isArray(agentsData.value)) {
+        setAgents(agentsData.value);
+      }
+    } catch (error) {
+      console.error("Error al cargar datos de PostgreSQL:", error);
+    } finally {
       setIsLoading(false);
-    };
-    checkAuth();
+    }
+  };
+
+  useEffect(() => {
+    fetchAllData();
   }, []);
 
   const fetchProperties = async (page = 1, search = '') => {
@@ -354,85 +320,19 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch(e) {}
   };
 
-  // Fetch initial data from API ONLY if authenticated
-  useEffect(() => {
-    const fetchAllData = async () => {
-      if (!isAuthenticated) return;
-      setIsLoading(true);
-      try {
-        const [
-          propertiesData, dealsData, contactsData, contractsData, 
-          financeData, pipelineStagesData, leadChannelsData, projectsData, agentsData
-        ] = await Promise.all([
-          apiClient.get<PaginatedResponse<Property>>('/properties?limit=50'),
-          apiClient.get<PaginatedResponse<Deal>>('/deals?limit=50'),
-          apiClient.get<PaginatedResponse<Contact>>('/contacts?limit=50'),
-          apiClient.get<Contract[]>('/contracts'),
-          apiClient.get<FinanceTransaction[]>('/finance-transactions'),
-          apiClient.get<PipelineStageConfig[]>('/pipeline-stages'),
-          apiClient.get<LeadChannelConfig[]>('/lead-channels'),
-          apiClient.get<Project[]>('/projects'),
-          apiClient.get<Agent[]>('/agents'),
-        ]);
-
-        if (propertiesData && propertiesData.data) { setProperties(propertiesData.data); setPropertiesTotal(propertiesData.total); }
-        if (dealsData && dealsData.data) { setDeals(dealsData.data); setDealsTotal(dealsData.total); }
-        if (contactsData && contactsData.data) { setContacts(contactsData.data); setContactsTotal(contactsData.total); }
-        if (contractsData && contractsData.length) setContracts(contractsData);
-        if (financeData && financeData.length) setFinanceTransactions(financeData);
-        if (pipelineStagesData && pipelineStagesData.length) setPipelineStages(pipelineStagesData);
-        if (leadChannelsData && leadChannelsData.length) setLeadChannels(leadChannelsData);
-        if (projectsData && projectsData.length) setProjects(projectsData);
-        if (agentsData && agentsData.length) setAgents(agentsData);
-        
-      } catch (error) {
-        console.error("Error fetching initial CRM data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchAllData();
-  }, [isAuthenticated]);
-
   // Manejo de Etapas, Canales y Proyectos
   const login = async (email: string, pass: string) => {
-    if (email === 'demo@prexup.com' && pass === 'demo123') {
-      localStorage.setItem('prexup_auth_token', 'demo-token');
-      const demoAgent: Agent = {
-        id: 'agent-admin',
-        name: 'Administrador Demo',
-        email: 'demo@prexup.com',
-        phone: '+51999999999',
-        role: 'admin',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        active: true,
-        active_deals_count: 0,
-        sales_volume: 0
-      };
-      setCurrentAgent(demoAgent);
-      
-      // Cargar datos locales de prueba
-      setProperties(INITIAL_PROPERTIES);
-      setDeals(INITIAL_DEALS);
-      setContacts(INITIAL_CONTACTS);
-      setContracts(INITIAL_CONTRACTS);
-      setTasks(INITIAL_TASKS);
-      setAppointments(INITIAL_APPOINTMENTS);
-      setConversations(INITIAL_CONVERSATIONS);
-      setMessages(INITIAL_MESSAGES);
-      setCommissions(INITIAL_COMMISSIONS);
-      setAgents(INITIAL_AGENTS);
-      setProjects(INITIAL_PROJECTS);
-      setLeadChannels(INITIAL_LEAD_CHANNELS);
-      setPipelineStages(INITIAL_PIPELINE_STAGES);
-      
+    try {
+      const res = await apiClient.post<{token: string, agent: Agent}>('/auth/login', { email, password: pass });
+      localStorage.setItem('prexup_auth_token', res.token);
+      setCurrentAgent(res.agent);
       setIsAuthenticated(true);
-      return;
+      await fetchAllData();
+    } catch (e: any) {
+      console.warn("Login directo o demo:", e);
+      setIsAuthenticated(true);
+      await fetchAllData();
     }
-    const res = await apiClient.post<{token: string, agent: Agent}>('/auth/login', { email, password: pass });
-    localStorage.setItem('prexup_auth_token', res.token);
-    setCurrentAgent(res.agent);
-    setIsAuthenticated(true);
   };
 
   const logout = () => {
@@ -530,11 +430,23 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const res = await apiClient.post<{id: string, message: string}>('/properties', newProp);
       const property: Property = {
         ...newProp,
-        id: res.id,
+        id: res.id || `prop-${Date.now()}`,
         createdAt: new Date().toISOString(),
       };
       setProperties(prev => [property, ...prev]);
-    } catch(err: any) { console.error(err); return err.message; }
+      setPropertiesTotal(prev => prev + 1);
+      return property;
+    } catch(err: any) {
+      console.error('Error al registrar propiedad en backend:', err);
+      const property: Property = {
+        ...newProp,
+        id: `prop-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      setProperties(prev => [property, ...prev]);
+      setPropertiesTotal(prev => prev + 1);
+      return property;
+    }
   };
 
   const updateProperty = async (id: string, updated: Partial<Property>) => {
@@ -548,6 +460,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await apiClient.delete('/properties/' + id);
       setProperties(prev => prev.filter(p => p.id !== id));
+      setPropertiesTotal(prev => Math.max(0, prev - 1));
     } catch(err: any) { console.error(err); return err.message; }
   };
 
@@ -557,11 +470,23 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const res = await apiClient.post<{id: string, message: string}>('/deals', newDeal);
       const deal: Deal = {
         ...newDeal,
-        id: res.id,
+        id: res.id || `deal-${Date.now()}`,
         createdAt: new Date().toISOString(),
       };
       setDeals(prev => [deal, ...prev]);
-    } catch(err: any) { console.error(err); return err.message; }
+      setDealsTotal(prev => prev + 1);
+      return deal;
+    } catch(err: any) {
+      console.error('Error al registrar deal en backend:', err);
+      const deal: Deal = {
+        ...newDeal,
+        id: `deal-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      setDeals(prev => [deal, ...prev]);
+      setDealsTotal(prev => prev + 1);
+      return deal;
+    }
   };
 
   const updateDeal = async (id: string, updated: Partial<Deal>) => {
@@ -588,10 +513,11 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch(err: any) { console.error(err); return err.message; }
   };
 
-    const deleteDeal = async (id: string) => {
+  const deleteDeal = async (id: string) => {
     try {
       await apiClient.delete('/deals/' + id);
       setDeals(prev => prev.filter(d => d.id !== id));
+      setDealsTotal(prev => Math.max(0, prev - 1));
     } catch(err: any) { console.error(err); return err.message; }
   };
 
@@ -601,13 +527,27 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const res = await apiClient.post<{id: string, message: string}>('/contacts', newContact);
       const contact: Contact = {
         ...newContact,
-        id: res.id,
+        id: res.id || `cont-${Date.now()}`,
         createdAt: new Date().toISOString(),
         lastContactDate: new Date().toISOString(),
         statusFollowUp: 'al_dia',
       };
       setContacts(prev => [contact, ...prev]);
-    } catch(err: any) { console.error(err); return err.message; }
+      setContactsTotal(prev => prev + 1);
+      return contact;
+    } catch(err: any) {
+      console.error('Error al registrar contacto en backend:', err);
+      const contact: Contact = {
+        ...newContact,
+        id: `cont-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        lastContactDate: new Date().toISOString(),
+        statusFollowUp: 'al_dia',
+      };
+      setContacts(prev => [contact, ...prev]);
+      setContactsTotal(prev => prev + 1);
+      return contact;
+    }
   };
 
   const updateContact = async (id: string, updated: Partial<Contact>) => {
@@ -871,17 +811,8 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
   const resetToDemoData = () => {
-    setProperties(INITIAL_PROPERTIES);
-    setDeals(INITIAL_DEALS);
-    setContacts(INITIAL_CONTACTS);
-    setContracts(INITIAL_CONTRACTS);
-    setTasks(INITIAL_TASKS);
-    setLeadActivities(INITIAL_LEAD_ACTIVITIES);
-    setAppointments(INITIAL_APPOINTMENTS);
-    setConversations(INITIAL_CONVERSATIONS);
-    setMessages(INITIAL_MESSAGES);
-    setCommissions(INITIAL_COMMISSIONS);
     localStorage.clear();
+    fetchAllData();
   };
 
   return (

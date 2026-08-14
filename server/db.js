@@ -425,32 +425,6 @@ export async function initDb() {
       console.log('🌱 Seed: Lead channels insertados.');
     }
 
-    // Seed: Contactos iniciales (WhatsApp + CRM)
-    const { rows: contactCount } = await client.query('SELECT COUNT(*) as count FROM contacts');
-    if (parseInt(contactCount[0].count, 10) === 0) {
-      const defaultContacts = [
-        { id: 'cont-1', name: 'Carlos Mendoza', phone: '51987654321', email: 'carlos@example.com', type: 'comprador', channel: 'Portal Web', lead_score: 75 },
-        { id: 'cont-2', name: 'Ana Rodríguez', phone: '51912345678', email: 'ana@example.com', type: 'inversionista', channel: 'Referido', lead_score: 90 },
-        { id: 'cont-3', name: 'Luis Peralta', phone: '51955554444', email: 'luis@example.com', type: 'comprador', channel: 'WhatsApp', lead_score: 60 },
-      ];
-
-      for (const c of defaultContacts) {
-        await client.query(
-          `INSERT INTO contacts (id, name, phone, email, type, channel, lead_score, status_follow_up, last_contact_date)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, 'al_dia', NOW()) ON CONFLICT DO NOTHING`,
-          [c.id, c.name, c.phone, c.email, c.type, c.channel, c.lead_score]
-        );
-
-        // Crear conversación WhatsApp por defecto
-        const convId = `conv-${c.id}`;
-        await client.query(
-          'INSERT INTO conversations (id, contact_id, last_message_text, last_message_at) VALUES ($1, $2, $3, NOW()) ON CONFLICT DO NOTHING',
-          [convId, c.id, 'Conversación iniciada']
-        );
-      }
-      console.log('🌱 Seed: Contactos iniciales insertados en PostgreSQL.');
-    }
-
     // Migración: Añadir columnas nuevas a agents (para bases de datos existentes)
     const agentMigrationCols = [
       { name: 'password_hash', type: 'TEXT' },
