@@ -78,6 +78,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     e.preventDefault();
     if (!formData.name.trim()) return;
 
+    const phoneExists = contacts.some(c => c.phone === formData.phone && (!contactToEdit || c.id !== contactToEdit.id));
+    if (phoneExists) {
+      alert('Este número de teléfono ya está registrado para otro cliente.');
+      return;
+    }
+
     try {
       if (contactToEdit) {
         await updateContact(contactToEdit.id, formData as Partial<Contact>);
@@ -220,11 +226,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({
               className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100"
             >
               <option value="">-- Sin propiedad fija --</option>
-              {properties.filter(p => p.status === 'disponible' || p.status === 'en_negociacion' || p.id === formData.interestedProperty).map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.code} - {p.title}
-                </option>
-              ))}
+              {properties
+                .filter(p => p.status === 'disponible' || p.status === 'en_negociacion' || p.id === formData.interestedProperty)
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.projectName ? `${p.projectName} - ` : ''}{p.title}
+                  </option>
+                ))}
             </select>
           </div>
 
