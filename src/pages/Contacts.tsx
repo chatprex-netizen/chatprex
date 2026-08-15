@@ -43,9 +43,9 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
     deleteContact, 
     agents, 
     conversations, 
-    setActiveConversationId,
     searchQuery,
-    setSearchQuery
+    setSearchQuery,
+    properties
   } = useCRM();
 
   const [page, setPage] = useState(1);
@@ -494,20 +494,27 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                         <span className="truncate">{contact.phone}</span>
                       </div>
 
-                      {contact.budgetMax && (
+                      {(contact.budget !== undefined && contact.budget !== null) && (
                         <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium truncate">
                           <DollarSign className="w-3 h-3 shrink-0" />
                           <span className="truncate">
-                            ${contact.budgetMin?.toLocaleString()} - ${contact.budgetMax?.toLocaleString()}
+                            ${contact.budget.toLocaleString()} {contact.currency || 'USD'}
                           </span>
                         </div>
                       )}
 
-                      {contact.preferredZones && contact.preferredZones.length > 0 && (
-                        <div className="flex items-center gap-1 text-slate-400 truncate">
-                          <Building className="w-3 h-3 shrink-0" />
-                          <span className="truncate">{contact.preferredZones.join(', ')}</span>
-                        </div>
+                      {contact.interestedProperty && (
+                        (() => {
+                          const prop = properties.find(p => p.id === contact.interestedProperty);
+                          return prop ? (
+                            <div className="flex items-center gap-1 text-slate-400 truncate">
+                              <Building className="w-3 h-3 shrink-0" />
+                              <span className="truncate" title={prop.projectName ? `${prop.projectName} - ${prop.title}` : prop.title}>
+                                {prop.projectName ? prop.projectName : prop.title}
+                              </span>
+                            </div>
+                          ) : null;
+                        })()
                       )}
                     </div>
                   </div>
@@ -630,16 +637,23 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
 
                       {/* Presupuesto */}
                       <td className="py-2.5 px-3">
-                        {contact.budgetMax ? (
+                        {contact.budget !== undefined && contact.budget !== null ? (
                           <div className="font-medium text-emerald-600 dark:text-emerald-400">
-                            ${contact.budgetMin?.toLocaleString()} - ${contact.budgetMax?.toLocaleString()} USD
+                            ${contact.budget.toLocaleString()} {contact.currency || 'USD'}
                           </div>
                         ) : (
                           <span className="text-slate-400">Sin definir</span>
                         )}
-                        <div className="text-[10px] text-slate-400 truncate max-w-[150px]">
-                          {contact.preferredZones?.join(', ') || 'Cualquier zona'}
-                        </div>
+                        {contact.interestedProperty && (
+                          (() => {
+                            const prop = properties.find(p => p.id === contact.interestedProperty);
+                            return prop ? (
+                              <div className="text-[10px] text-slate-400 truncate max-w-[150px]" title={prop.projectName ? `${prop.projectName} - ${prop.title}` : prop.title}>
+                                {prop.projectName ? prop.projectName : prop.title}
+                              </div>
+                            ) : null;
+                          })()
+                        )}
                       </td>
 
                       {/* Score */}
