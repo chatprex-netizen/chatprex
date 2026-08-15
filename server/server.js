@@ -35,6 +35,14 @@ app.use(express.json({
 }));
 app.use(cors());
 
+process.on('uncaughtException', (err) => {
+  console.error('💥 Uncaught Exception:', err.message, err.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 // Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', db: 'postgresql', timestamp: new Date() });
