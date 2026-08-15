@@ -438,14 +438,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return property;
     } catch(err: any) {
       console.error('Error al registrar propiedad en backend:', err);
-      const property: Property = {
-        ...newProp,
-        id: `prop-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-      };
-      setProperties(prev => [property, ...prev]);
-      setPropertiesTotal(prev => prev + 1);
-      return property;
+      throw err;
     }
   };
 
@@ -453,7 +446,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await apiClient.put('/properties/' + id, updated);
       setProperties(prev => prev.map(p => p.id === id ? { ...p, ...updated } : p));
-    } catch(err: any) { console.error(err); return err.message; }
+    } catch(err: any) { console.error(err); throw err; }
   };
 
   const deleteProperty = async (id: string) => {
@@ -461,7 +454,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await apiClient.delete('/properties/' + id);
       setProperties(prev => prev.filter(p => p.id !== id));
       setPropertiesTotal(prev => Math.max(0, prev - 1));
-    } catch(err: any) { console.error(err); return err.message; }
+    } catch(err: any) { console.error(err); throw err; }
   };
 
   // Manejo de Deals
@@ -478,14 +471,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return deal;
     } catch(err: any) {
       console.error('Error al registrar deal en backend:', err);
-      const deal: Deal = {
-        ...newDeal,
-        id: `deal-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-      };
-      setDeals(prev => [deal, ...prev]);
-      setDealsTotal(prev => prev + 1);
-      return deal;
+      throw err;
     }
   };
 
@@ -493,7 +479,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await apiClient.put('/deals/' + id, updated);
       setDeals(prev => prev.map(d => d.id === id ? { ...d, ...updated } : d));
-    } catch(err: any) { console.error(err); return err.message; }
+    } catch(err: any) { console.error(err); throw err; }
   };
 
   const moveDealStage = async (dealId: string, newStage: DealStage) => {
@@ -510,7 +496,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return deal;
         });
       });
-    } catch(err: any) { console.error(err); return err.message; }
+    } catch(err: any) { console.error(err); throw err; }
   };
 
   const deleteDeal = async (id: string) => {
@@ -518,7 +504,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await apiClient.delete('/deals/' + id);
       setDeals(prev => prev.filter(d => d.id !== id));
       setDealsTotal(prev => Math.max(0, prev - 1));
-    } catch(err: any) { console.error(err); return err.message; }
+    } catch(err: any) { console.error(err); throw err; }
   };
 
   // Manejo de Contactos
@@ -537,16 +523,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return contact;
     } catch(err: any) {
       console.error('Error al registrar contacto en backend:', err);
-      const contact: Contact = {
-        ...newContact,
-        id: `cont-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        lastContactDate: new Date().toISOString(),
-        statusFollowUp: 'al_dia',
-      };
-      setContacts(prev => [contact, ...prev]);
-      setContactsTotal(prev => prev + 1);
-      return contact;
+      throw err;
     }
   };
 

@@ -156,16 +156,20 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
 
-    if (propertyToEdit) {
-      updateProperty(propertyToEdit.id, formData);
-    } else {
-      addProperty(formData);
+    try {
+      if (propertyToEdit) {
+        await updateProperty(propertyToEdit.id, formData);
+      } else {
+        await addProperty(formData);
+      }
+      onClose();
+    } catch (err: any) {
+      alert('Error al guardar propiedad: ' + (err.message || 'Error del servidor'));
     }
-    onClose();
   };
 
   return (

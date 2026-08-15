@@ -74,16 +74,20 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     }
   }, [contactToEdit, isOpen, agents]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
 
-    if (contactToEdit) {
-      updateContact(contactToEdit.id, formData as Partial<Contact>);
-    } else {
-      addContact(formData as any);
+    try {
+      if (contactToEdit) {
+        await updateContact(contactToEdit.id, formData as Partial<Contact>);
+      } else {
+        await addContact(formData as any);
+      }
+      onClose();
+    } catch (err: any) {
+      alert('Error al guardar contacto: ' + (err.message || 'Error del servidor'));
     }
-    onClose();
   };
 
   return (
