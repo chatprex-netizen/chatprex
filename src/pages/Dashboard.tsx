@@ -12,6 +12,7 @@ import { StatCard } from '../components/common/StatCard';
 import { Badge } from '../components/common/Badge';
 import { useCRM } from '../context/CRMContext';
 import { Page } from '../types';
+import { exportToCSV } from '../lib/exportUtils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 interface DashboardProps {
@@ -129,9 +130,6 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     }));
   }, [deals, contacts]);
 
-import { exportToCSV } from '../lib/exportUtils';
-
-  // ... (inside component)
   const handleExport = () => {
     const exportData = deals.map(d => {
       const contact = contacts.find(c => c.id === d.leadId);
