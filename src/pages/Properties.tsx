@@ -42,7 +42,7 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Paginación y Filtrado delegados al Servidor
-  const filteredProperties = properties;
+  const filteredProperties = properties.filter(p => p.type !== 'proyecto_preventa');
   const totalPages = Math.ceil(propertiesTotal / limit);
 
   const [showFilters, setShowFilters] = useState(false);
@@ -187,7 +187,6 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
               <option value="penthouse">Penthouse</option>
               <option value="terreno">Terreno</option>
               <option value="oficina">Oficina</option>
-              <option value="proyecto_preventa">Preventa</option>
             </select>
 
             <select
