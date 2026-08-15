@@ -179,19 +179,21 @@ export const ContractModal: React.FC<ContractModalProps> = ({
               }
             </select>
           </div>
-          <div className="sm:col-span-2">
-            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
-              Unidad / Inmueble (Detalle) *
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="Ej: T1-A-302 · Departamento 302 interior"
-              value={formData.unit}
-              onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-              className="w-full px-3 py-1.5 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
-            />
-          </div>
+          {!formData.propertyId && (
+            <div className="sm:col-span-2">
+              <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+                Unidad / Inmueble (Detalle) *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Ej: T1-A-302 · Departamento 302 interior"
+                value={formData.unit}
+                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              />
+            </div>
+          )}
         </div>
 
         <div>
