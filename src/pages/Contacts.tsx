@@ -45,7 +45,8 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
     conversations, 
     searchQuery,
     setSearchQuery,
-    properties
+    properties,
+    leadChannels
   } = useCRM();
 
   const [page, setPage] = useState(1);
@@ -462,8 +463,11 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                           <h3 className="font-semibold text-xs text-slate-900 dark:text-white truncate">
                             {contact.name}
                           </h3>
-                          <span className="text-[10px] text-slate-400 capitalize block truncate">
-                            vía {contact.channel}
+                          <span className="text-[10px] text-slate-400 block truncate">
+                            vía {(() => {
+                              const ch = leadChannels?.find(c => c.id === contact.channel);
+                              return ch ? ch.name : contact.channel;
+                            })()}
                           </span>
                         </div>
                       </div>
@@ -496,9 +500,8 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
 
                       {(contact.budget !== undefined && contact.budget !== null) && (
                         <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium truncate">
-                          <DollarSign className="w-3 h-3 shrink-0" />
                           <span className="truncate">
-                            ${contact.budget.toLocaleString()} {contact.currency || 'USD'}
+                            {contact.currency || 'USD'} {(parseFloat(contact.budget as any) || 0).toLocaleString()}
                           </span>
                         </div>
                       )}
@@ -623,8 +626,11 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                       {/* Teléfono & Canal */}
                       <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300">
                         <div>{contact.phone}</div>
-                        <span className="text-[10px] text-slate-400 capitalize">
-                          vía {contact.channel}
+                        <span className="text-[10px] text-slate-400">
+                          vía {(() => {
+                            const ch = leadChannels?.find(c => c.id === contact.channel);
+                            return ch ? ch.name : contact.channel;
+                          })()}
                         </span>
                       </td>
 
@@ -639,7 +645,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                       <td className="py-2.5 px-3">
                         {contact.budget !== undefined && contact.budget !== null ? (
                           <div className="font-medium text-emerald-600 dark:text-emerald-400">
-                            ${contact.budget.toLocaleString()} {contact.currency || 'USD'}
+                            {contact.currency || 'USD'} {(parseFloat(contact.budget as any) || 0).toLocaleString()}
                           </div>
                         ) : (
                           <span className="text-slate-400">Sin definir</span>
