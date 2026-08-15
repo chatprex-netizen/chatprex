@@ -487,15 +487,37 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const moveDealStage = async (dealId: string, newStage: DealStage) => {
     try {
       await apiClient.put('/deals/' + dealId, { stage: newStage });
+      
+      const deal = deals.find(d => d.id === dealId);
+      
+      if (deal) {
+        // 1. Sincronizar Contacto
+        if (deal.leadId) {
+          updateContact(deal.leadId, { pipelineStage: newStage }).catch(console.error);
+        }
+        
+        // 2. Sincronizar Propiedad
+        if (deal.propertyId) {
+          if (newStage === 'reserva') {
+            updateProperty(deal.propertyId, { status: 'reservada' }).catch(console.error);
+          } else if (newStage === 'ganado') {
+            updateProperty(deal.propertyId, { status: 'vendida' }).catch(console.error);
+          } else if (deal.stage === 'reserva' || deal.stage === 'ganado') {
+            // Si regresa de ganado o reserva a una etapa anterior, la marcamos como en_negociacion
+            updateProperty(deal.propertyId, { status: 'en_negociacion' }).catch(console.error);
+          }
+        }
+      }
+
       setDeals(prev => {
-        return prev.map(deal => {
-          if (deal.id === dealId) {
-            if (newStage === 'ganado' && deal.stage !== 'ganado') {
+        return prev.map(d => {
+          if (d.id === dealId) {
+            if (newStage === 'ganado' && d.stage !== 'ganado') {
               try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); } catch (e) {}
             }
-            return { ...deal, stage: newStage };
+            return { ...d, stage: newStage };
           }
-          return deal;
+          return d;
         });
       });
     } catch(err: any) { console.error(err); throw err; }
