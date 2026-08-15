@@ -41,7 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose,
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const { currentAgent, conversations, tasks, appBranding } = useCRM();
+  const { currentAgent, conversations, tasks, appBranding, logout } = useCRM();
   
   // Keep track of which collapsible menus are open
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
@@ -253,7 +253,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           <button
-            onClick={() => alert('Sesión cerrada')}
+            onClick={() => logout()}
             className="flex items-center gap-2 text-[11px] text-slate-400 hover:text-rose-400 transition-colors w-full text-left"
           >
             <LogOut className="w-3.5 h-3.5" />

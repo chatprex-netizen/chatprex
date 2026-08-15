@@ -114,16 +114,19 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
       return matchesSearch && matchesType && matchesChannel && matchesStatusFollowUp && matchesAgent && matchesBudget;
     })
     .sort((a, b) => {
+      const nameA = a.name || '';
+      const nameB = b.name || '';
+      
       if (sortBy === 'name-asc') {
-        return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+        return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
       }
       if (sortBy === 'name-desc') {
-        return b.name.localeCompare(a.name, 'es', { sensitivity: 'base' });
+        return nameB.localeCompare(nameA, 'es', { sensitivity: 'base' });
       }
       if (sortBy === 'score-desc') {
-        return b.leadScore - a.leadScore;
+        return (b.leadScore || 0) - (a.leadScore || 0);
       }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
     });
 
   const handleEdit = (contact: Contact) => {
