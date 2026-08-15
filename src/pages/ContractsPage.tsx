@@ -23,8 +23,8 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
     contracts, 
     deleteContract, 
     searchQuery, 
-    setSearchQuery 
-  } = useCRM();
+    setSearchQuery,
+    properties
 
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -48,7 +48,7 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
   ].filter(Boolean).length;
 
   // Totales
-  const totalAmount = contracts.reduce((sum, c) => sum + c.amount, 0);
+  const totalAmount = contracts.reduce((sum, c) => sum + (parseFloat(c.amount as any) || 0), 0);
 
   const filteredContracts = contracts.filter((c) => {
     const matchesSearch = !searchQuery ||
@@ -229,14 +229,22 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
                     {contract.type}
                   </h3>
                   <div className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                    {contract.currency} {contract.amount.toLocaleString()}
+                    {contract.currency} {(parseFloat(contract.amount as any) || 0).toLocaleString()}
                   </div>
                 </div>
 
                 {/* Bottom Details Row */}
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">
-                  <div className="font-normal truncate">
-                    {contract.unit}
+                  <div className="font-normal truncate" title={contract.unit}>
+                    {(() => {
+                      if (contract.propertyId) {
+                        const prop = properties?.find(p => p.id === contract.propertyId);
+                        if (prop && prop.projectName) {
+                          return `${prop.projectName} - ${contract.unit}`;
+                        }
+                      }
+                      return contract.unit;
+                    })()}
                   </div>
                   <div className="flex items-center justify-between text-slate-400">
                     <span className="truncate">
@@ -307,13 +315,21 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
                         {contract.type}
                       </td>
                       <td className="py-3 px-4 max-w-[200px] truncate" title={contract.unit}>
-                        {contract.unit}
+                        {(() => {
+                          if (contract.propertyId) {
+                            const prop = properties?.find(p => p.id === contract.propertyId);
+                            if (prop && prop.projectName) {
+                              return `${prop.projectName} - ${contract.unit}`;
+                            }
+                          }
+                          return contract.unit;
+                        })()}
                       </td>
                       <td className="py-3 px-4 font-medium">
                         {contract.client}
                       </td>
                       <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">
-                        {contract.currency} {contract.amount.toLocaleString()}
+                        {contract.currency} {(parseFloat(contract.amount as any) || 0).toLocaleString()}
                       </td>
                       <td className="py-3 px-4 text-slate-400">
                         {contract.createdDate}
