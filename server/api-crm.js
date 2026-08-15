@@ -518,8 +518,14 @@ router.get('/api/crm/deals', async (req, res) => {
     const countRes = await query(`SELECT COUNT(*) FROM deals ${whereClause}`, params);
     const total = parseInt(countRes.rows[0].count);
 
+    const processedRows = rowsToCamel(rows).map(deal => ({
+      ...deal,
+      value: parseFloat(deal.value) || 0,
+      probability: parseInt(deal.probability) || 0
+    }));
+
     res.json({
-      data: rowsToCamel(rows),
+      data: processedRows,
       total,
       page,
       limit,
@@ -534,7 +540,10 @@ router.get('/api/crm/deals/:id', async (req, res) => {
   try {
     const { rows } = await query('SELECT * FROM deals WHERE id = $1', [req.params.id]);
     if (!rows[0]) return res.status(404).json({ error: 'Deal no encontrado' });
-    res.json(rowToCamel(rows[0]));
+    const deal = rowToCamel(rows[0]);
+    deal.value = parseFloat(deal.value) || 0;
+    deal.probability = parseInt(deal.probability) || 0;
+    res.json(deal);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

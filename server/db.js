@@ -406,14 +406,14 @@ export async function initDb() {
     const { rows: stageCount } = await client.query('SELECT COUNT(*) as count FROM pipeline_stages');
     if (parseInt(stageCount[0].count, 10) === 0) {
       const stages = [
-        { id: 'stage-1', name: 'Nuevo Prospecto', color: '#6366f1', sort_order: 1 },
-        { id: 'stage-2', name: 'Contactado', color: '#3b82f6', sort_order: 2 },
-        { id: 'stage-3', name: 'Visita Programada', color: '#f59e0b', sort_order: 3 },
-        { id: 'stage-4', name: 'Visita Realizada', color: '#f97316', sort_order: 4 },
-        { id: 'stage-5', name: 'Negociación', color: '#8b5cf6', sort_order: 5 },
-        { id: 'stage-6', name: 'Reserva', color: '#06b6d4', sort_order: 6 },
-        { id: 'stage-7', name: 'Ganado', color: '#10b981', sort_order: 7 },
-        { id: 'stage-8', name: 'Perdido', color: '#ef4444', sort_order: 8 },
+        { id: 'nuevo_prospecto', name: 'Nuevo Prospecto', color: '#6366f1', sort_order: 1 },
+        { id: 'contactado', name: 'Contactado', color: '#3b82f6', sort_order: 2 },
+        { id: 'visita_programada', name: 'Visita Programada', color: '#f59e0b', sort_order: 3 },
+        { id: 'visita_realizada', name: 'Visita Realizada', color: '#f97316', sort_order: 4 },
+        { id: 'negociacion', name: 'Negociación', color: '#8b5cf6', sort_order: 5 },
+        { id: 'reserva', name: 'Reserva', color: '#06b6d4', sort_order: 6 },
+        { id: 'ganado', name: 'Ganado', color: '#10b981', sort_order: 7 },
+        { id: 'perdido', name: 'Perdido', color: '#ef4444', sort_order: 8 },
       ];
       for (const s of stages) {
         await client.query(
@@ -423,6 +423,22 @@ export async function initDb() {
         );
       }
       console.log('🌱 Seed: Pipeline stages insertados.');
+    } else {
+      // Migración para bases de datos existentes: corregir IDs si están en formato stage-X
+      const { rows: oldStages } = await client.query("SELECT id FROM pipeline_stages WHERE id LIKE 'stage-%'");
+      if (oldStages.length > 0) {
+        await client.query(`
+          UPDATE pipeline_stages SET id = 'nuevo_prospecto' WHERE id = 'stage-1';
+          UPDATE pipeline_stages SET id = 'contactado' WHERE id = 'stage-2';
+          UPDATE pipeline_stages SET id = 'visita_programada' WHERE id = 'stage-3';
+          UPDATE pipeline_stages SET id = 'visita_realizada' WHERE id = 'stage-4';
+          UPDATE pipeline_stages SET id = 'negociacion' WHERE id = 'stage-5';
+          UPDATE pipeline_stages SET id = 'reserva' WHERE id = 'stage-6';
+          UPDATE pipeline_stages SET id = 'ganado' WHERE id = 'stage-7';
+          UPDATE pipeline_stages SET id = 'perdido' WHERE id = 'stage-8';
+        `);
+        console.log('🔧 Migración: IDs de pipeline_stages corregidos al formato DealStage.');
+      }
     }
 
     // Seed: Lead Channels
