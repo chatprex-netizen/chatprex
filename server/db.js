@@ -75,16 +75,24 @@ export async function initDb() {
       CREATE TABLE IF NOT EXISTS contacts (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        phone TEXT UNIQUE NOT NULL,
+        phone TEXT,
         email TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
+    // Asegurar que phone no sea NOT NULL ni bloquee nulos
+    try {
+      await client.query('ALTER TABLE contacts ALTER COLUMN phone DROP NOT NULL;');
+    } catch (e) {}
+    try {
+      await client.query('ALTER TABLE contacts DROP CONSTRAINT IF EXISTS contacts_phone_key;');
+    } catch (e) {}
+
     // Extender contacts con columnas CRM si no existen
     const contactCrmColumns = [
       { name: 'avatar', type: 'TEXT' },
-      { name: 'type', type: "TEXT CHECK(type IN ('comprador', 'propietario', 'inversionista', 'inquilino'))" },
+      { name: 'type', type: 'TEXT' },
       { name: 'channel', type: 'TEXT' },
       { name: 'budget_min', type: 'NUMERIC(14,2)' },
       { name: 'budget_max', type: 'NUMERIC(14,2)' },
@@ -99,7 +107,7 @@ export async function initDb() {
       { name: 'assigned_agent_id', type: 'TEXT' },
       { name: 'last_contact_date', type: 'TIMESTAMP' },
       { name: 'next_follow_up_date', type: 'TEXT' },
-      { name: 'status_follow_up', type: "TEXT CHECK(status_follow_up IN ('al_dia', 'proximo', 'urgente', 'sin_contacto'))" },
+      { name: 'status_follow_up', type: 'TEXT' },
     ];
 
     for (const col of contactCrmColumns) {

@@ -1118,6 +1118,53 @@ router.get('/api/crm/dashboard/stats', async (_req, res) => {
         total: parseFloat(revenueRes.rows[0].total),
       },
     });
+// ══════════════════════════════════════════════════
+// DEBUG & DATABASE HEALTH
+// ══════════════════════════════════════════════════
+
+router.get('/api/crm/debug/db', async (_req, res) => {
+  try {
+    const tableRes = await query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      ORDER BY table_name;
+    `);
+    const tables = tableRes.rows.map(r => r.table_name);
+
+    let propCount = 0;
+    let contactCount = 0;
+    let dealCount = 0;
+    let agentCount = 0;
+
+    if (tables.includes('properties')) {
+      const r = await query('SELECT count(*) FROM properties');
+      propCount = parseInt(r.rows[0].count, 10);
+    }
+    if (tables.includes('contacts')) {
+      const r = await query('SELECT count(*) FROM contacts');
+      contactCount = parseInt(r.rows[0].count, 10);
+    }
+    if (tables.includes('deals')) {
+      const r = await query('SELECT count(*) FROM deals');
+      dealCount = parseInt(r.rows[0].count, 10);
+    }
+    if (tables.includes('agents')) {
+      const r = await query('SELECT count(*) FROM agents');
+      agentCount = parseInt(r.rows[0].count, 10);
+    }
+
+    res.json({
+      status: 'ok',
+      database: 'postgresql',
+      tables,
+      counts: {
+        properties: propCount,
+        contacts: contactCount,
+        deals: dealCount,
+        agents: agentCount
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
