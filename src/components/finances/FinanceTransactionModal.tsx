@@ -14,7 +14,7 @@ export const FinanceTransactionModal: React.FC<FinanceTransactionModalProps> = (
   onClose,
   transaction,
 }) => {
-  const { addFinanceTransaction, updateFinanceTransaction } = useCRM();
+  const { addFinanceTransaction, updateFinanceTransaction, deals, properties, agents } = useCRM();
 
   const [type, setType] = useState<FinanceTransactionType>('ingreso');
   const [category, setCategory] = useState<FinanceCategory>(INCOME_CATEGORIES[0]);
@@ -23,6 +23,10 @@ export const FinanceTransactionModal: React.FC<FinanceTransactionModalProps> = (
   const [currency, setCurrency] = useState('USD');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [status, setStatus] = useState<FinanceStatus>('pagado');
+
+  const [selectedDealId, setSelectedDealId] = useState('');
+  const [selectedAgentId, setSelectedAgentId] = useState('');
+  const [customCommissionPct, setCustomCommissionPct] = useState<number | ''>('');
 
   useEffect(() => {
     if (transaction) {
@@ -50,6 +54,30 @@ export const FinanceTransactionModal: React.FC<FinanceTransactionModalProps> = (
       setCategory(type === 'ingreso' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
     }
   }, [type, transaction]);
+
+  useEffect(() => {
+    if (!selectedDealId) return;
+    
+    const deal = deals.find(d => d.id === selectedDealId);
+    if (!deal) return;
+
+    if (category === 'Comisión por venta') {
+      const property = properties.find(p => p.id === deal.propertyId);
+      const defaultPct = property ? property.commissionPct : 5;
+      const pct = customCommissionPct !== '' ? Number(customCommissionPct) : defaultPct;
+      setAmount((deal.value * pct) / 100);
+      setCurrency(deal.currency);
+      setDescription(`Comisión por venta - ${deal.title} (${pct}%)`);
+    } else if (category === 'Comisión a agente') {
+      // Por defecto, asumamos que el agente gana la mitad de la comisión de la empresa, es decir, el 50% del ingreso,
+      // o un porcentaje directo del valor de la propiedad. Asumiremos un 2.5% por defecto si no hay input.
+      const pct = customCommissionPct !== '' ? Number(customCommissionPct) : 2.5;
+      setAmount((deal.value * pct) / 100);
+      setCurrency(deal.currency);
+      const agent = agents.find(a => a.id === selectedAgentId);
+      setDescription(`Pago a asesor ${agent ? agent.name : ''} - ${deal.title} (${pct}%)`);
+    }
+  }, [selectedDealId, selectedAgentId, customCommissionPct, category, deals, properties, agents]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,6 +159,80 @@ export const FinanceTransactionModal: React.FC<FinanceTransactionModalProps> = (
                 </select>
               </div>
             </div>
+
+            {(category === 'Comisión por venta' || category === 'Comisión a agente') && (
+              <div className="grid grid-cols-1 gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Propiedad Vendida (Deal)
+                    </label>
+                    <select
+                      value={selectedDealId}
+                      onChange={(e) => setSelectedDealId(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
+                    >
+                      <option value="">Selecciona una oportunidad</option>
+                      {deals.filter(d => d.stage === 'ganado' || d.stage === 'cierre' || d.stage === 'negociacion').map(deal => (
+                        <option key={deal.id} value={deal.id}>{deal.title} ({deal.currency} {deal.value.toLocaleString()})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {category === 'Comisión a agente' ? (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Agente / Asesor
+                      </label>
+                      <select
+                        value={selectedAgentId}
+                        onChange={(e) => setSelectedAgentId(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
+                      >
+                        <option value="">Selecciona un agente</option>
+                        {agents.map(agent => (
+                          <option key={agent.id} value={agent.id}>{agent.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        % de Comisión
+                      </label>
+                      <input
+                        type="number"
+                        value={customCommissionPct}
+                        onChange={(e) => setCustomCommissionPct(e.target.value ? Number(e.target.value) : '')}
+                        placeholder="Ej. 5"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
+                      />
+                    </div>
+                  )}
+
+                  {category === 'Comisión a agente' && (
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        % de Comisión (Asesor)
+                      </label>
+                      <input
+                        type="number"
+                        value={customCommissionPct}
+                        onChange={(e) => setCustomCommissionPct(e.target.value ? Number(e.target.value) : '')}
+                        placeholder="Ej. 2.5"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
