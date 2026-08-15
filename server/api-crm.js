@@ -1118,6 +1118,11 @@ router.get('/api/crm/dashboard/stats', async (_req, res) => {
         total: parseFloat(revenueRes.rows[0].total),
       },
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ══════════════════════════════════════════════════
 // DEBUG & DATABASE HEALTH
 // ══════════════════════════════════════════════════
