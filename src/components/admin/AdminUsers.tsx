@@ -47,35 +47,38 @@ export const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim()) return;
 
-    if (editingAgent) {
-      updateAgent(editingAgent.id, { 
-        name, 
-        email,
-        password,
-        phone,
-        role,
-        avatar,
-        active
-      });
-    } else {
-      addAgent({ 
-        name, 
-        email,
-        password,
-        phone,
-        role,
-        avatar,
-        active,
-        activeDealsCount: 0,
-        salesVolume: 0
-      });
+    try {
+      if (editingAgent) {
+        await updateAgent(editingAgent.id, { 
+          name, 
+          email,
+          password: password.trim() || undefined,
+          phone,
+          role,
+          avatar,
+          active
+        });
+      } else {
+        await addAgent({ 
+          name, 
+          email,
+          password: password.trim() || undefined,
+          phone,
+          role,
+          avatar,
+          active,
+          activeDealsCount: 0,
+          salesVolume: 0
+        });
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      alert('Error al guardar usuario: ' + (err.message || 'Error del servidor'));
     }
-    
-    setIsModalOpen(false);
   };
 
   const formatRole = (role: string) => {

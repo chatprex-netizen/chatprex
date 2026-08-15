@@ -407,21 +407,21 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const res = await apiClient.post<{id: string}>('/agents', newAgent);
       setAgents(prev => [...prev, { ...newAgent, id: res.id }]);
-    } catch(err: any) { console.error(err); return err.message; }
+    } catch(err: any) { console.error(err); throw err; }
   };
 
   const updateAgent = async (id: string, updated: Partial<Agent>) => {
     try {
       await apiClient.put('/agents/' + id, updated);
       setAgents(prev => prev.map(a => a.id === id ? { ...a, ...updated } : a));
-    } catch(err: any) { console.error(err); return err.message; }
+    } catch(err: any) { console.error(err); throw err; }
   };
 
   const deleteAgent = async (id: string) => {
     try {
       await apiClient.delete('/agents/' + id);
       setAgents(prev => prev.filter(a => a.id !== id));
-    } catch(err: any) { console.error(err); return err.message; }
+    } catch(err: any) { console.error(err); throw err; }
   };
 
   // Manejo de Propiedades
