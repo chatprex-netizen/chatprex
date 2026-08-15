@@ -40,11 +40,12 @@ export const FinancesPage: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
 
   const convertToDisplay = (amount: number, currency: string): number => {
+    const numAmount = parseFloat(amount as any) || 0;
     // 1. Convert to USD first
-    let inUSD = amount;
-    if (currency === 'PEN') inUSD = amount / exchangeRatePEN;
-    if (currency === 'MXN') inUSD = amount / exchangeRateMXN;
-    if (currency === 'EUR') inUSD = amount * 1.08; // Fixed approx EUR for simplicity
+    let inUSD = numAmount;
+    if (currency === 'PEN') inUSD = numAmount / exchangeRatePEN;
+    if (currency === 'MXN') inUSD = numAmount / exchangeRateMXN;
+    if (currency === 'EUR') inUSD = numAmount * 1.08; // Fixed approx EUR for simplicity
 
     // 2. Convert from USD to displayCurrency
     if (displayCurrency === 'USD') return inUSD;
@@ -56,15 +57,16 @@ export const FinancesPage: React.FC = () => {
   const formatCurrency = (amount: number, curr: string = displayCurrency) => {
     let validCurr = curr;
     if (validCurr === 'S/') validCurr = 'PEN';
+    const num = parseFloat(amount as any) || 0;
     
     try {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: validCurr,
         minimumFractionDigits: 2
-      }).format(amount);
+      }).format(num);
     } catch (e) {
-      return `${validCurr} ${amount.toFixed(2)}`;
+      return `${validCurr} ${num.toFixed(2)}`;
     }
   };
 
