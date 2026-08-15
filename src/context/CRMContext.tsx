@@ -90,18 +90,18 @@ interface CRMContextType {
   dealsTotal: number;
   
   // Acciones de Propiedades
-  addProperty: (property: Omit<Property, 'id' | 'createdAt'>) => Promise<void>;
+  addProperty: (property: Omit<Property, 'id' | 'createdAt'>) => Promise<Property>;
   updateProperty: (id: string, property: Partial<Property>) => Promise<void>;
   deleteProperty: (id: string) => Promise<void>;
   
   // Acciones de Pipeline / Deals
-  addDeal: (deal: Omit<Deal, 'id' | 'createdAt'>) => Promise<string | void>;
+  addDeal: (deal: Omit<Deal, 'id' | 'createdAt'>) => Promise<Deal>;
   updateDeal: (id: string, deal: Partial<Deal>) => Promise<string | void>;
   moveDealStage: (dealId: string, newStage: DealStage) => Promise<void>;
   deleteDeal: (id: string) => Promise<void>;
   
   // Acciones de Contactos / Leads
-  addContact: (contact: Omit<Contact, 'id' | 'createdAt' | 'lastContactDate'>) => Promise<void>;
+  addContact: (contact: Omit<Contact, 'id' | 'createdAt' | 'lastContactDate'>) => Promise<Contact>;
   updateContact: (id: string, contact: Partial<Contact>) => Promise<void>;
   deleteContact: (id: string) => Promise<void>;
   
@@ -178,11 +178,12 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     id: 'agent-admin',
     name: 'Administrador',
     email: 'admin@prexup.com',
-    role: 'admin',
+    role: 'propietario',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
     active: true,
-    active_deals_count: 0,
-    sales_volume: 0,
+    activeDealsCount: 0,
+    salesVolume: 0,
+    phone: '',
   });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);

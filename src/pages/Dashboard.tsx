@@ -309,7 +309,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     <span className="text-xs font-semibold text-slate-800 dark:text-white truncate">
                       {app.title}
                     </span>
-                    <Badge variant={app.status === 'completada' ? 'confirmada' : 'pendiente'} size="sm">
+                    <Badge variant={app.status === 'realizada' ? 'confirmada' : 'pendiente'} size="sm">
                       {app.status}
                     </Badge>
                   </div>

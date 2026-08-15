@@ -60,7 +60,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const todayStr = new Date().toISOString().split('T')[0];
   const todayPendingTasks = tasks.filter(t => t.dueDate === todayStr && t.status !== 'completada').length;
 
-  const navGroups = [
+  type NavItem = {
+    id: string;
+    label: string;
+    icon: React.ElementType;
+    badge?: number | string;
+    highlight?: boolean;
+  };
+
+  type NavGroup = {
+    title: string;
+    isCollapsible: boolean;
+    icon?: React.ElementType;
+    items: NavItem[];
+  };
+
+  const navGroups: NavGroup[] = [
     {
       title: '',
       isCollapsible: false,

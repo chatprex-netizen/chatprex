@@ -78,17 +78,15 @@ export const DealModal: React.FC<DealModalProps> = ({
     setErrorMsg(null);
     if (!formData.title.trim() || !formData.leadId) return;
 
-    let err;
-    if (dealToEdit) {
-      err = await updateDeal(dealToEdit.id, formData);
-    } else {
-      err = await addDeal(formData);
-    }
-    
-    if (err) {
-      setErrorMsg(err);
-    } else {
+    try {
+      if (dealToEdit) {
+        await updateDeal(dealToEdit.id, formData);
+      } else {
+        await addDeal(formData);
+      }
       onClose();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error al guardar');
     }
   };
 

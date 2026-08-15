@@ -173,7 +173,7 @@ export const FinanceTransactionModal: React.FC<FinanceTransactionModalProps> = (
                       className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
                     >
                       <option value="">Selecciona una oportunidad</option>
-                      {deals.filter(d => d.stage === 'ganado' || d.stage === 'cierre' || d.stage === 'negociacion').map(deal => (
+                      {deals.filter(d => d.stage === 'ganado' || d.stage === 'reserva' || d.stage === 'negociacion').map(deal => (
                         <option key={deal.id} value={deal.id}>{deal.title} ({deal.currency} {deal.value.toLocaleString()})</option>
                       ))}
                     </select>
