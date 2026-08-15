@@ -161,10 +161,11 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     if (!formData.title.trim()) return;
 
     try {
+      const { imageUrlInput, ...payload } = formData;
       if (propertyToEdit) {
-        await updateProperty(propertyToEdit.id, formData);
+        await updateProperty(propertyToEdit.id, payload);
       } else {
-        await addProperty(formData);
+        await addProperty(payload);
       }
       onClose();
     } catch (err: any) {
@@ -183,7 +184,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Basic Info */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="sm:col-span-2">
+          <div className="sm:col-span-3">
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Título del Inmueble *
             </label>
@@ -194,18 +195,6 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Código / SKU
-            </label>
-            <input
-              type="text"
-              value={formData.code}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100 font-mono"
             />
           </div>
         </div>
