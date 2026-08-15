@@ -26,7 +26,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
   onNavigate,
   onOpenNewAppointmentModal,
 }) => {
-  const { properties, deals, contacts, appointments, pipelineStages, tasks } = useCRM();
+  const { properties, deals, contacts, appointments, pipelineStages, tasks, leadChannels } = useCRM();
 
   // KPIs Generales
   const openDeals = deals.filter((d) => d.stage !== 'perdido' && d.stage !== 'ganado');
@@ -68,13 +68,17 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     }, {} as Record<string, number>);
 
     return Object.entries(counts)
-      .map(([name, value], idx) => ({
-        name: name.charAt(0).toUpperCase() + name.slice(1),
-        value,
-        color: COLORS[idx % COLORS.length]
-      }))
+      .map(([id, value], idx) => {
+        const ch = leadChannels.find(c => c.id === id);
+        const name = ch ? ch.name : (id.charAt(0).toUpperCase() + id.slice(1));
+        return {
+          name,
+          value,
+          color: ch?.color || COLORS[idx % COLORS.length]
+        };
+      })
       .sort((a, b) => b.value - a.value);
-  }, [contacts]);
+  }, [contacts, leadChannels]);
 
   // 3. Actividad reciente (Mezclando Deals, Contacts y Tasks recientes)
   const recentActivities = useMemo(() => {
@@ -124,11 +128,15 @@ export const DashboardPage: React.FC<DashboardProps> = ({
       const channel = contact?.channel || 'otros';
       data[channel] = (data[channel] || 0) + 1;
     });
-    return Object.entries(data).map(([name, count]) => ({
-      name: name.charAt(0).toUpperCase() + name.slice(1),
-      Oportunidades: count
-    }));
-  }, [deals, contacts]);
+    return Object.entries(data).map(([id, count]) => {
+      const ch = leadChannels.find(c => c.id === id);
+      const name = ch ? ch.name : (id.charAt(0).toUpperCase() + id.slice(1));
+      return {
+        name,
+        Oportunidades: count
+      };
+    });
+  }, [deals, contacts, leadChannels]);
 
   const handleExport = () => {
     const exportData = deals.map(d => {
@@ -220,134 +228,11 @@ export const DashboardPage: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Embudo y Canales */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Embudo por etapa */}
-        <div className="lg:col-span-2 p-4 sm:p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-white flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-[#004aad]" />
-              Embudo de Ventas (Pipeline)
-            </h3>
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-lg">
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider">Conversión</span>
-                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{conversionRate}%</span>
-              </div>
-              <button
-                onClick={() => onNavigate('pipeline')}
-                className="text-[11px] font-medium text-[#004aad] hover:underline"
-              >
-                Ver pipeline
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-3.5">
-            {funnelStages.map((stage) => {
-              const pct = maxStageValue > 0 ? (stage.value / maxStageValue) * 100 : 0;
-              return (
-                <div key={stage.id} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-slate-700 dark:text-slate-200">
-                      {stage.label}
-                    </span>
-                    <span className="text-[11px] text-slate-500 font-normal">
-                      {stage.count} op. · S/ {stage.value.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${pct}%`, backgroundColor: stage.color }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            {funnelStages.length === 0 && (
-              <p className="text-xs text-slate-400 text-center py-4">No hay datos en el pipeline.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Gráfico de Canales de Captación */}
-        <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card flex flex-col">
-          <h3 className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-white mb-2 flex items-center gap-2">
-            <PieChartIcon className="w-4 h-4 text-[#004aad]" />
-            Canales de Captación
-          </h3>
-          <div className="flex-1 min-h-[200px]">
-            {channelData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={channelData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={70}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {channelData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip 
-                    contentStyle={{ fontSize: '11px', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-xs text-slate-400">
-                No hay contactos registrados
-              </div>
-            )}
-          </div>
-          {/* Leyenda de canales */}
-          <div className="flex flex-wrap gap-2 justify-center mt-2">
-            {channelData.map(c => (
-              <div key={c.name} className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />
-                <span>{c.name} ({c.value})</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Row 3: Actividad y Rendimiento de Campañas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Rendimiento de Campañas (Deals por Canal) */}
-        <div className="lg:col-span-2 p-4 sm:p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card">
-          <h3 className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-white mb-4">
-            Rendimiento de Campañas (Oportunidades por Canal)
-          </h3>
-          <div className="h-[250px] w-full">
-            {dealsByChannel.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dealsByChannel} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} allowDecimals={false} />
-                  <RechartsTooltip 
-                    cursor={{ fill: '#f1f5f9' }}
-                    contentStyle={{ fontSize: '11px', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Bar dataKey="Oportunidades" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={50} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-xs text-slate-400">
-                No hay oportunidades registradas
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Actividad reciente y Próximas citas */}
-        <div className="space-y-4">
+      {/* Contenido Principal */}
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4">
+        
+        {/* LADO IZQUIERDO: Citas y Actividad (Arriba en móvil, Izquierda en PC) */}
+        <div className="lg:col-span-1 space-y-4 order-1 lg:order-1">
           <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-white">
@@ -411,6 +296,132 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               {recentActivities.length === 0 && (
                 <p className="text-[11px] text-slate-400">No hay actividad reciente.</p>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* LADO DERECHO: Gráficos (Abajo en móvil, Derecha en PC) */}
+        <div className="lg:col-span-2 space-y-4 order-2 lg:order-2">
+          {/* Embudo por etapa */}
+          <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-white flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-[#004aad]" />
+                Embudo de Ventas (Pipeline)
+              </h3>
+              <div className="flex items-center gap-3">
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-lg">
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider">Conversión</span>
+                  <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{conversionRate}%</span>
+                </div>
+                <button
+                  onClick={() => onNavigate('pipeline')}
+                  className="text-[11px] font-medium text-[#004aad] hover:underline"
+                >
+                  Ver pipeline
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3.5">
+              {funnelStages.map((stage) => {
+                const pct = maxStageValue > 0 ? (stage.value / maxStageValue) * 100 : 0;
+                return (
+                  <div key={stage.id} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium text-slate-700 dark:text-slate-200">
+                        {stage.label}
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-normal">
+                        {stage.count} op. · S/ {stage.value.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, backgroundColor: stage.color }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              {funnelStages.length === 0 && (
+                <p className="text-xs text-slate-400 text-center py-4">No hay datos en el pipeline.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Gráfico de Canales de Captación */}
+            <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card flex flex-col">
+              <h3 className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-white mb-2 flex items-center gap-2">
+                <PieChartIcon className="w-4 h-4 text-[#004aad]" />
+                Canales de Captación
+              </h3>
+              <div className="flex-1 min-h-[200px]">
+                {channelData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={channelData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={70}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {channelData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip 
+                        contentStyle={{ fontSize: '11px', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                    No hay contactos registrados
+                  </div>
+                )}
+              </div>
+              {/* Leyenda de canales */}
+              <div className="flex flex-wrap gap-2 justify-center mt-2">
+                {channelData.map(c => (
+                  <div key={c.name} className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />
+                    <span>{c.name} ({c.value})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Rendimiento de Campañas (Deals por Canal) */}
+            <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card">
+              <h3 className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-white mb-4">
+                Rendimiento de Campañas
+              </h3>
+              <div className="h-[200px] w-full">
+                {dealsByChannel.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dealsByChannel} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} allowDecimals={false} />
+                      <RechartsTooltip 
+                        cursor={{ fill: '#f1f5f9' }}
+                        contentStyle={{ fontSize: '11px', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      />
+                      <Bar dataKey="Oportunidades" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                    No hay oportunidades registradas
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
