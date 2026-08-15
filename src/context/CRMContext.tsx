@@ -514,6 +514,41 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (d.id === dealId) {
             if (newStage === 'ganado' && d.stage !== 'ganado') {
               try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); } catch (e) {}
+
+              // 3. Autogeneración de Finanzas
+              const prop = properties.find(p => p.id === d.propertyId);
+              const agent = agents.find(a => a.id === d.agentId);
+              
+              const companyCommissionPct = prop ? prop.commissionPct : 5;
+              const agentCommissionPct = companyCommissionPct / 2; // Asumimos 50% para la agencia y 50% para el agente
+
+              const companyAmount = (d.value * companyCommissionPct) / 100;
+              const agentAmount = (d.value * agentCommissionPct) / 100;
+
+              // Ingreso para la agencia
+              addFinanceTransaction({
+                type: 'ingreso',
+                category: 'Comisión por venta',
+                description: `Comisión por venta autogenerada - ${d.title} (${companyCommissionPct}%)`,
+                amount: companyAmount,
+                currency: d.currency,
+                date: new Date().toISOString().split('T')[0],
+                status: 'pendiente',
+              }).catch(console.error);
+
+              // Egreso (pago a agente)
+              if (agent) {
+                addFinanceTransaction({
+                  type: 'egreso',
+                  category: 'Comisión a agente',
+                  description: `Pago a asesor ${agent.name} autogenerado - ${d.title} (${agentCommissionPct}%)`,
+                  amount: agentAmount,
+                  currency: d.currency,
+                  date: new Date().toISOString().split('T')[0],
+                  status: 'pendiente',
+                  agentId: agent.id,
+                }).catch(console.error);
+              }
             }
             return { ...d, stage: newStage };
           }
