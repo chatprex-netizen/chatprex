@@ -953,6 +953,22 @@ router.post('/api/crm/lead-activities/:contactId', async (req, res) => {
 
 router.get('/api/crm/pipeline-stages', async (_req, res) => {
   try {
+    // Auto-Migración en caliente
+    const { rows: oldStages } = await query("SELECT id FROM pipeline_stages WHERE id LIKE 'stage-%'");
+    if (oldStages.length > 0) {
+      await query(`
+        UPDATE pipeline_stages SET id = 'nuevo_prospecto' WHERE id = 'stage-1';
+        UPDATE pipeline_stages SET id = 'contactado' WHERE id = 'stage-2';
+        UPDATE pipeline_stages SET id = 'visita_programada' WHERE id = 'stage-3';
+        UPDATE pipeline_stages SET id = 'visita_realizada' WHERE id = 'stage-4';
+        UPDATE pipeline_stages SET id = 'negociacion' WHERE id = 'stage-5';
+        UPDATE pipeline_stages SET id = 'reserva' WHERE id = 'stage-6';
+        UPDATE pipeline_stages SET id = 'ganado' WHERE id = 'stage-7';
+        UPDATE pipeline_stages SET id = 'perdido' WHERE id = 'stage-8';
+      `);
+      console.log('🔧 Auto-Migración: IDs de pipeline_stages corregidos en caliente.');
+    }
+
     const { rows } = await query('SELECT * FROM pipeline_stages ORDER BY sort_order');
     res.json(rowsToCamel(rows));
   } catch (err) {
