@@ -235,7 +235,6 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
             <table className="w-full text-left text-xs min-w-[800px]">
               <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 font-semibold text-[11px] border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="py-2.5 px-4">Código</th>
                   <th className="py-2.5 px-4">Propiedad</th>
                   <th className="py-2.5 px-4">Tipo</th>
                   <th className="py-2.5 px-4">Operación</th>
@@ -251,9 +250,6 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
                     key={prop.id}
                     className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
                   >
-                    <td className="py-3 px-4 font-mono text-[11px] text-slate-400">
-                      {prop.code}
-                    </td>
                     <td className="py-3 px-4 max-w-[200px]">
                       <div className="flex items-center gap-2.5">
                         <img
@@ -269,7 +265,7 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
                     <td className="py-3 px-4 capitalize">{prop.type.replace('_', ' ')}</td>
                     <td className="py-3 px-4 capitalize">{prop.operation}</td>
                     <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">
-                      ${prop.price.toLocaleString()} {prop.currency}
+                      {prop.currency || 'USD'} {(parseFloat(prop.price as any) || 0).toLocaleString()}
                     </td>
                     <td className="py-3 px-4 text-slate-400">
                       {[prop.zone, prop.city].filter(Boolean).join(', ')}

@@ -377,50 +377,53 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
                 className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Proyecto Asociado
-              </label>
-              <select
-                value={formData.projectName || ''}
-                onChange={(e) => {
-                  const pName = e.target.value;
-                  const proj = projects.find(p => p.name === pName);
-                  setFormData({ 
-                    ...formData, 
-                    projectName: pName,
-                    developer: proj ? proj.developer : formData.developer
-                  });
-                }}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
-              >
-                <option value="">Ninguno</option>
-                {projects.map(p => (
-                  <option key={p.id} value={p.name}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Desarrollador
-              </label>
-              <input
-                type="text"
-                value={formData.developer || ''}
-                onChange={(e) => setFormData({ ...formData, developer: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
-                placeholder="Ej: Inmobiliaria XYZ"
-                disabled={!!projects.find(p => p.name === formData.projectName)}
-              />
-            </div>
           </div>
         )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Proyecto Asociado
+            </label>
+            <select
+              value={formData.projectName || ''}
+              onChange={(e) => {
+                const pName = e.target.value;
+                const proj = projects.find(p => p.name === pName);
+                setFormData({ 
+                  ...formData, 
+                  projectName: pName,
+                  developer: proj ? proj.developer : formData.developer
+                });
+              }}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            >
+              <option value="">Ninguno</option>
+              {projects.map(p => (
+                <option key={p.id} value={p.name}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Desarrollador
+            </label>
+            <input
+              type="text"
+              value={formData.developer || ''}
+              onChange={(e) => setFormData({ ...formData, developer: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              placeholder="Ej: Inmobiliaria XYZ"
+              disabled={!!projects.find(p => p.name === formData.projectName)}
+            />
+          </div>
+        </div>
 
         {/* Location */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="sm:col-span-2">
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Dirección
+              Ubicación
             </label>
             <input
               type="text"
@@ -433,13 +436,13 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Zona / Colonia
+              Ciudad
             </label>
             <input
               type="text"
-              placeholder="Ej: Lomas Altas"
-              value={formData.zone}
-              onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
+              placeholder="Ej: Ciudad de México"
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
               className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100"
             />
           </div>

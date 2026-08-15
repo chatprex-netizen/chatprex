@@ -69,11 +69,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Price & Code on Image Bottom */}
         <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-end justify-between text-white">
           <div>
-            <span className="text-[10px] font-normal text-slate-200 block">
-              {property.code}
-            </span>
             <span className="text-lg sm:text-xl font-bold tracking-tight">
-              ${property.price.toLocaleString()} <span className="text-xs font-normal text-slate-200">{property.currency}</span>
+              {property.currency || 'USD'} {(parseFloat(property.price as any) || 0).toLocaleString()}
             </span>
           </div>
         </div>
