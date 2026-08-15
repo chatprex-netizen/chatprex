@@ -361,15 +361,33 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
             // Find or create contact
             const { rows: existingContacts } = await query('SELECT * FROM contacts WHERE phone = $1', [fromPhone]);
             let contact = existingContacts[0];
+            let isNewContact = false;
 
             if (!contact) {
+              isNewContact = true;
               const contactId = `cont-${Date.now()}`;
               const contactName = value.contacts?.[0]?.profile?.name || `WhatsApp ${fromPhone}`;
+              const now = new Date().toISOString();
+
               await query(
-                'INSERT INTO contacts (id, name, phone) VALUES ($1, $2, $3)',
-                [contactId, contactName, fromPhone]
+                `INSERT INTO contacts (id, name, phone, channel, type, pipeline_stage, status_follow_up, lead_score, currency, created_at, last_contact_date)
+                 VALUES ($1, $2, $3, 'whatsapp', 'comprador', 'nuevo_prospecto', 'al_dia', 50, 'USD', $4, $4)`,
+                [contactId, contactName, fromPhone, now]
               );
               contact = { id: contactId, name: contactName, phone: fromPhone };
+
+              // Auto-create a Deal in the pipeline for the new WhatsApp lead
+              const dealId = `deal-wa-${Date.now()}`;
+              await query(
+                `INSERT INTO deals (id, title, lead_id, stage, value, currency, probability, agent_id, priority, notes, created_at)
+                 VALUES ($1, $2, $3, 'nuevo_prospecto', 0, 'USD', 10, NULL, 'media', $4, $5)`,
+                [dealId, `WhatsApp - ${contactName}`, contactId, `Contacto ingresado automáticamente vía WhatsApp`, now]
+              );
+
+              console.log(`[Webhook] Nuevo contacto CRM creado: ${contactName} (${fromPhone}) + Deal ${dealId}`);
+            } else {
+              // Existing contact: update last contact date
+              await query('UPDATE contacts SET last_contact_date = NOW(), status_follow_up = $1 WHERE id = $2', ['al_dia', contact.id]);
             }
 
             // Find or create conversation
@@ -419,7 +437,7 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
               [contentText, conversation.id]
             );
 
-            console.log(`[Webhook] Mensaje entrante guardado. De: ${contact.name} (${fromPhone}) -> ${contentText}`);
+            console.log(`[Webhook] Mensaje entrante guardado. De: ${contact.name} (${fromPhone}) -> ${contentText}${isNewContact ? ' [NUEVO LEAD]' : ''}`);
           }
         }
       }
