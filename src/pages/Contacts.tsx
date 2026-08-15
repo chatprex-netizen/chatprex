@@ -503,7 +503,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                         </div>
                       )}
 
-                      {contact.preferredZones.length > 0 && (
+                      {contact.preferredZones && contact.preferredZones.length > 0 && (
                         <div className="flex items-center gap-1 text-slate-400 truncate">
                           <Building className="w-3 h-3 shrink-0" />
                           <span className="truncate">{contact.preferredZones.join(', ')}</span>
@@ -638,7 +638,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                           <span className="text-slate-400">Sin definir</span>
                         )}
                         <div className="text-[10px] text-slate-400 truncate max-w-[150px]">
-                          {contact.preferredZones.join(', ') || 'Cualquier zona'}
+                          {contact.preferredZones?.join(', ') || 'Cualquier zona'}
                         </div>
                       </td>
 
