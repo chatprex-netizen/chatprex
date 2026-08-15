@@ -447,28 +447,26 @@ export async function initDb() {
       }
     }
 
-    // Seed: Crear usuario admin por defecto si no existe ningún agente con contraseña
-    const { rows: agentsWithPass } = await client.query("SELECT COUNT(*) as count FROM agents WHERE password_hash IS NOT NULL AND password_hash != ''");
-    if (parseInt(agentsWithPass[0].count, 10) === 0) {
-      try {
-        const defaultPasswordHash = await bcrypt.hash('admin123', 12);
+    // Asegurar que exista admin@chatprex.com
+    try {
+      const adminCheck = await client.query(`SELECT email FROM agents WHERE id = 'agent-admin'`);
+      if (adminCheck.rows.length === 0 || adminCheck.rows[0].email !== 'admin@chatprex.com') {
+        const defaultPasswordHash = await bcrypt.hash('@ChatPrex_', 12);
         await client.query(
-          `INSERT INTO agents (id, name, email, password_hash, phone, role, avatar, active, active_deals_count, sales_volume)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, 0, 0) ON CONFLICT (id) DO UPDATE SET password_hash = $4`,
+          `INSERT INTO agents (id, name, email, password_hash, role, active, active_deals_count, sales_volume)
+           VALUES ($1, $2, $3, $4, 'propietario', true, 0, 0)
+           ON CONFLICT (id) DO UPDATE SET email = $3, password_hash = $4, role = 'propietario'`,
           [
             'agent-admin',
-            'Administrador',
-            'admin@krayin.com',
-            defaultPasswordHash,
-            '+51999999999',
-            'propietario',
-            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+            'Propietario',
+            'admin@chatprex.com',
+            defaultPasswordHash
           ]
         );
-        console.log('🔐 Seed: Usuario admin creado (admin@krayin.com / admin123)');
-      } catch (err) {
-        console.warn('⚠️ No se pudo crear el usuario admin seed:', err.message);
+        console.log('🔐 Seed: Usuario admin actualizado a (admin@chatprex.com / @ChatPrex_)');
       }
+    } catch (err) {
+      console.warn('⚠️ No se pudo crear/actualizar el usuario admin seed:', err.message);
     }
 
     client.release();
