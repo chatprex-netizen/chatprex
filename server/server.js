@@ -282,6 +282,60 @@ app.post('/api/whatsapp/send', async (req, res) => {
 });
 
 // ------------------------------------------------------------------
+// NOTIFICATIONS ENDPOINTS
+// ------------------------------------------------------------------
+
+app.get('/api/notifications', async (req, res) => {
+  try {
+    const { rows } = await query('SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50');
+    // Map to camelCase for frontend
+    const notifications = rows.map(r => ({
+      id: r.id,
+      title: r.title,
+      message: r.message,
+      type: r.type,
+      read: r.read,
+      time: r.created_at
+    }));
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/notifications', async (req, res) => {
+  try {
+    const { title, message, type } = req.body;
+    const id = `notif-${Date.now()}`;
+    await query(
+      'INSERT INTO notifications (id, title, message, type) VALUES ($1, $2, $3, $4)',
+      [id, title, message, type || 'info']
+    );
+    res.json({ id, title, message, type, read: false, time: new Date().toISOString() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/notifications/:id/read', async (req, res) => {
+  try {
+    await query('UPDATE notifications SET read = TRUE WHERE id = $1', [req.params.id]);
+    res.sendStatus(200);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/notifications/read-all', async (req, res) => {
+  try {
+    await query('UPDATE notifications SET read = TRUE');
+    res.sendStatus(200);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ------------------------------------------------------------------
 // WEBHOOK ENDPOINTS
 // ------------------------------------------------------------------
 
@@ -369,25 +423,46 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
               const contactName = value.contacts?.[0]?.profile?.name || `WhatsApp ${fromPhone}`;
               const now = new Date().toISOString();
 
+              // Find least busy agent for round-robin assignment
+              const { rows: agents } = await query('SELECT id FROM agents WHERE active = TRUE AND role IN ($1, $2, $3) ORDER BY active_deals_count ASC LIMIT 1', ['admin', 'agente_senior', 'agente']);
+              const assignedAgentId = agents.length > 0 ? agents[0].id : null;
+
               await query(
-                `INSERT INTO contacts (id, name, phone, channel, type, pipeline_stage, status_follow_up, lead_score, currency, created_at, last_contact_date)
-                 VALUES ($1, $2, $3, 'whatsapp', 'comprador', 'nuevo_prospecto', 'al_dia', 50, 'USD', $4, $4)`,
-                [contactId, contactName, fromPhone, now]
+                `INSERT INTO contacts (id, name, phone, channel, type, pipeline_stage, status_follow_up, lead_score, currency, created_at, last_contact_date, assigned_agent_id)
+                 VALUES ($1, $2, $3, 'whatsapp', 'comprador', 'nuevo_prospecto', 'al_dia', 50, 'USD', $4, $4, $5)`,
+                [contactId, contactName, fromPhone, now, assignedAgentId]
               );
-              contact = { id: contactId, name: contactName, phone: fromPhone };
+              contact = { id: contactId, name: contactName, phone: fromPhone, assigned_agent_id: assignedAgentId };
 
               // Auto-create a Deal in the pipeline for the new WhatsApp lead
               const dealId = `deal-wa-${Date.now()}`;
               await query(
                 `INSERT INTO deals (id, title, lead_id, stage, value, currency, probability, agent_id, priority, notes, created_at)
-                 VALUES ($1, $2, $3, 'nuevo_prospecto', 0, 'USD', 10, NULL, 'media', $4, $5)`,
-                [dealId, `WhatsApp - ${contactName}`, contactId, `Contacto ingresado automáticamente vía WhatsApp`, now]
+                 VALUES ($1, $2, $3, 'nuevo_prospecto', 0, 'USD', 10, $6, 'media', $4, $5)`,
+                [dealId, `WhatsApp - ${contactName}`, contactId, `Contacto ingresado automáticamente vía WhatsApp`, now, assignedAgentId]
+              );
+
+              // Update agent active deals count
+              if (assignedAgentId) {
+                await query('UPDATE agents SET active_deals_count = active_deals_count + 1 WHERE id = $1', [assignedAgentId]);
+              }
+
+              // Create notification
+              const notifId = `notif-${Date.now()}`;
+              await query(
+                `INSERT INTO notifications (id, title, message, type) VALUES ($1, $2, $3, 'success')`,
+                [notifId, 'Nuevo Lead de WhatsApp', `${contactName} se comunicó por primera vez y fue asignado.`]
               );
 
               console.log(`[Webhook] Nuevo contacto CRM creado: ${contactName} (${fromPhone}) + Deal ${dealId}`);
             } else {
-              // Existing contact: update last contact date
-              await query('UPDATE contacts SET last_contact_date = NOW(), status_follow_up = $1 WHERE id = $2', ['al_dia', contact.id]);
+              // Existing contact: update last contact date, follow up status, and +5 lead score
+              await query(
+                `UPDATE contacts 
+                 SET last_contact_date = NOW(), status_follow_up = $1, lead_score = COALESCE(lead_score, 0) + 5 
+                 WHERE id = $2`, 
+                ['al_dia', contact.id]
+              );
             }
 
             // Find or create conversation

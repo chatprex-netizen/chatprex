@@ -50,7 +50,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   return (
     <div className="flex gap-4 overflow-x-auto pb-6 pt-2 pr-6 snap-x snap-mandatory sm:snap-none">
-      {pipelineStages.filter(s => s.visible).sort((a, b) => a.order - b.order).map((column) => {
+      {pipelineStages.filter(s => s.visible && s.id !== 'ganado' && s.id !== 'perdido').sort((a, b) => a.order - b.order).map((column) => {
         const columnDeals = filteredDeals.filter((d) => d.stage === column.id);
         const columnTotal = columnDeals.reduce((sum, d) => sum + d.value, 0);
         const isDraggedOver = draggedOverStage === column.id;

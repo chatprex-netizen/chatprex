@@ -119,6 +119,7 @@ interface CRMContextType {
   // Acciones de Seguimiento de Leads
   addLeadActivity: (contactId: string, activity: Omit<LeadActivity, 'id' | 'contactId' | 'timestamp' | 'agentId' | 'agentName'>) => Promise<void>;
   updateLeadNextContact: (contactId: string, nextFollowUpDate: string, statusFollowUp?: 'al_dia' | 'proximo' | 'urgente' | 'sin_contacto') => Promise<void>;
+  updateLeadScore: (contactId: string, points: number) => Promise<void>;
   
   // Acciones de Tareas
   addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
@@ -138,6 +139,7 @@ interface CRMContextType {
   sendMessage: (conversationId: string, content: string, propertyAttachment?: Property, isPrivateNote?: boolean) => Promise<void>;
   
   // Notificaciones
+  addNotification: (title: string, message: string, type?: 'info' | 'success' | 'warning') => Promise<void>;
   markNotificationAsRead: (id: string) => void;
   clearAllNotifications: () => void;
   
@@ -227,7 +229,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const [
         propertiesData, dealsData, contactsData, contractsData, 
         financeData, pipelineStagesData, leadChannelsData, projectsData, agentsData,
-        tasksData, appointmentsData
+        tasksData, appointmentsData, notificationsData
       ] = await Promise.allSettled([
         apiClient.get<PaginatedResponse<Property>>('/properties?limit=100'),
         apiClient.get<PaginatedResponse<Deal>>('/deals?limit=100'),
@@ -240,6 +242,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiClient.get<Agent[]>('/agents'),
         apiClient.get<Task[]>('/tasks'),
         apiClient.get<Appointment[]>('/appointments'),
+        apiClient.get<NotificationItem[]>('/notifications'),
       ]);
 
       if (propertiesData.status === 'fulfilled' && propertiesData.value?.data) {
@@ -285,9 +288,14 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setAppointments(loadedAppointments);
       }
 
-      // Evaluar tareas vencidas para marcar contactos como 'urgente'
+      if (notificationsData.status === 'fulfilled' && Array.isArray(notificationsData.value)) {
+        setNotifications(notificationsData.value);
+      }
+
+      // Evaluar tareas vencidas para marcar contactos como 'urgente' y buscar leads fríos
       if (contactsData.status === 'fulfilled' && contactsData.value?.data) {
         const now = new Date();
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
         const urgentContactIds = new Set<string>();
 
         loadedTasks.forEach(t => {
@@ -302,17 +310,57 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         });
 
-        const updatedContacts = contactsData.value.data.map(c => {
-          if (urgentContactIds.has(c.id) && c.statusFollowUp !== 'urgente') {
-            // Silently update the backend for overdue contacts
-            apiClient.put('/contacts/' + c.id, { statusFollowUp: 'urgente' }).catch(() => {});
-            return { ...c, statusFollowUp: 'urgente' as const };
-          }
-          return c;
-        });
+        const updatedContacts = [...contactsData.value.data];
+        let stateChanged = false;
 
-        setContacts(updatedContacts);
-        setContactsTotal(contactsData.value.total || contactsData.value.data.length);
+        for (let i = 0; i < updatedContacts.length; i++) {
+          const c = updatedContacts[i];
+          let updated = false;
+
+          // Urgency check
+          if (urgentContactIds.has(c.id) && c.statusFollowUp !== 'urgente') {
+            c.statusFollowUp = 'urgente';
+            updated = true;
+          }
+
+          // Cold lead check
+          const lastContactDate = c.lastContactDate ? new Date(c.lastContactDate) : new Date(c.createdAt || Date.now());
+          const daysSinceContact = (now.getTime() - lastContactDate.getTime());
+          if (daysSinceContact > SEVEN_DAYS_MS && c.statusFollowUp !== 'sin_contacto' && c.pipelineStage !== 'ganado' && c.pipelineStage !== 'perdido') {
+            c.statusFollowUp = 'sin_contacto';
+            updated = true;
+            
+            // Generate auto-task for cold lead
+            const taskId = `task-auto-${Date.now()}-${c.id}`;
+            apiClient.post('/tasks', {
+              id: taskId,
+              title: `Seguimiento automático: Lead Frío (${c.name})`,
+              description: `El contacto no ha tenido interacción en más de 7 días. Último contacto: ${lastContactDate.toLocaleDateString('es-ES')}`,
+              type: 'seguimiento_general',
+              priority: 'media',
+              status: 'pendiente',
+              dueDate: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+              agentId: c.assignedAgentId || 'agent-1',
+              contactId: c.id
+            }).catch(console.error);
+
+            // Add notification
+            apiClient.post('/notifications', {
+              title: 'Lead Frío Detectado',
+              message: `El contacto ${c.name} lleva más de 7 días sin interacción. Tarea de seguimiento creada.`,
+              type: 'warning'
+            }).catch(console.error);
+          }
+
+          if (updated) {
+            apiClient.put('/contacts/' + c.id, { statusFollowUp: c.statusFollowUp }).catch(() => {});
+            stateChanged = true;
+          }
+        }
+
+        if (stateChanged) {
+          setContacts(updatedContacts);
+        }
       }
     } catch (error) {
       console.error("Error al cargar datos de PostgreSQL:", error);
@@ -552,6 +600,16 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             updateProperty(deal.propertyId, { status: 'en_negociacion' }).catch(console.error);
           }
         }
+      }
+
+      // Add Notification
+      addNotification('Deal actualizado', `El deal "${deal.title}" se movió a la etapa ${newStage}`, 'info').catch(console.error);
+
+      // Lead Scoring
+      if (deal.leadId && (newStage === 'propuesta' || newStage === 'negociacion')) {
+        updateLeadScore(deal.leadId, 10).catch(console.error);
+      } else if (deal.leadId && newStage === 'ganado') {
+        updateLeadScore(deal.leadId, 50).catch(console.error);
       }
 
       setDeals(prev => {
@@ -812,6 +870,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           type: 'tarea',
           summary: `Tarea completada: ${t.title}`
         }).catch(console.error);
+
+        // Lead Scoring
+        updateLeadScore(t.contactId, 2).catch(console.error);
       }
     } catch(err: any) { console.error(err); return err.message; }
   };
@@ -855,6 +916,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             type: 'visita',
             summary: `Cita/Visita completada: ${a.title}`
           }).catch(console.error);
+
+          // Lead Scoring
+          updateLeadScore(a.contactId, 15).catch(console.error);
         }
       }
     } catch(err: any) { console.error(err); return err.message; }
@@ -906,13 +970,45 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Notificaciones
-  const markNotificationAsRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  // Lead Scoring
+  const updateLeadScore = async (contactId: string, points: number) => {
+    try {
+      const contact = contacts.find(c => c.id === contactId);
+      if (!contact) return;
+      const newScore = (contact.leadScore || 0) + points;
+      await apiClient.put('/contacts/' + contactId, { leadScore: newScore });
+      setContacts(prev => prev.map(c => c.id === contactId ? { ...c, leadScore: newScore } : c));
+    } catch (err) {
+      console.error('Error updating lead score', err);
+    }
   };
 
-  const clearAllNotifications = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  // Notificaciones
+  const addNotification = async (title: string, message: string, type: 'info' | 'success' | 'warning' = 'info') => {
+    try {
+      const newNotif = await apiClient.post<NotificationItem>('/notifications', { title, message, type });
+      setNotifications(prev => [newNotif, ...prev]);
+    } catch (err) {
+      console.error('Error adding notification', err);
+    }
+  };
+
+  const markNotificationAsRead = async (id: string) => {
+    try {
+      await apiClient.put(`/notifications/${id}/read`, {});
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    } catch (err) {
+      console.error('Error marking notification as read', err);
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    try {
+      await apiClient.put('/notifications/read-all', {});
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error('Error clearing notifications', err);
+    }
   };
 
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
@@ -972,6 +1068,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deleteFinanceTransaction,
       addLeadActivity,
       updateLeadNextContact,
+      updateLeadScore,
       addTask,
       updateTask,
       toggleTaskComplete,
@@ -983,6 +1080,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       activeConversationId,
       setActiveConversationId,
       sendMessage,
+      addNotification,
       markNotificationAsRead,
       clearAllNotifications,
       resetToDemoData,

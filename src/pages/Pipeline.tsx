@@ -48,6 +48,11 @@ export const PipelinePage: React.FC<PipelinePageProps> = ({
     .reduce((sum, d) => sum + d.value, 0);
 
   const filteredDeals = deals.filter((deal) => {
+    // Si la etapa es "ganado" o "perdido" y estamos en vista Kanban O el filtro está en "all" en lista, ocultarlos
+    if (deal.stage === 'ganado' || deal.stage === 'perdido') {
+      if (viewMode === 'kanban' || selectedStageFilter === 'all') return false;
+    }
+
     const matchesSearch = !searchQuery ||
       deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       deal.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -149,10 +154,10 @@ export const PipelinePage: React.FC<PipelinePageProps> = ({
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
-              Todas ({deals.length})
+              Activas
             </button>
 
-            {pipelineStages.filter(s => s.visible).sort((a, b) => a.order - b.order).map((stage) => (
+            {pipelineStages.filter(s => s.visible && s.id !== 'ganado' && s.id !== 'perdido').sort((a, b) => a.order - b.order).map((stage) => (
               <button
                 key={stage.id}
                 onClick={() => setSelectedStageFilter(stage.id)}

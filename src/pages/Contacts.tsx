@@ -21,8 +21,11 @@ import {
   ArrowDownAZ, 
   Building, 
   User,
-  X
+  X,
+  Download
 } from 'lucide-react';
+
+import { exportToCSV } from '../lib/exportUtils';
 
 interface ContactsPageProps {
   onOpenNewContactModal: () => void;
@@ -149,6 +152,45 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
     }
   };
 
+  const handleExport = () => {
+    const exportData = filteredContacts.map(c => {
+      const agent = agents.find(a => a.id === c.assignedAgentId);
+      return {
+        'Nombre': c.name,
+        'Empresa/Razón': c.company || '',
+        'Cargo': c.jobTitle || '',
+        'Email': c.email || '',
+        'Teléfono': c.phone || '',
+        'Tipo': c.type,
+        'Canal': c.channel || '',
+        'Puntaje (Lead Score)': c.leadScore || 0,
+        'Estado Seguimiento': c.statusFollowUp,
+        'Último Contacto': c.lastContactDate ? new Date(c.lastContactDate).toLocaleDateString() : '',
+        'Próximo Contacto': c.nextFollowUpDate ? new Date(c.nextFollowUpDate).toLocaleDateString() : '',
+        'Agente Asignado': agent?.name || 'Sin Asignar',
+        'Fecha Creación': new Date(c.createdAt).toLocaleDateString()
+      };
+    });
+
+    const columns = [
+      { key: 'Nombre', label: 'Nombre' },
+      { key: 'Empresa/Razón', label: 'Empresa' },
+      { key: 'Cargo', label: 'Cargo' },
+      { key: 'Email', label: 'Email' },
+      { key: 'Teléfono', label: 'Teléfono' },
+      { key: 'Tipo', label: 'Tipo' },
+      { key: 'Canal', label: 'Canal' },
+      { key: 'Puntaje (Lead Score)', label: 'Lead Score' },
+      { key: 'Estado Seguimiento', label: 'Estado' },
+      { key: 'Último Contacto', label: 'Último Contacto' },
+      { key: 'Próximo Contacto', label: 'Próximo Contacto' },
+      { key: 'Agente Asignado', label: 'Agente Asignado' },
+      { key: 'Fecha Creación', label: 'Fecha Creación' },
+    ];
+
+    exportToCSV(exportData, 'Directorio_Contactos', columns);
+  };
+
   return (
     <div className="space-y-3.5 animate-fade-in text-xs">
       {/* Header, Search & Filters all grouped in the single top box */}
@@ -208,6 +250,17 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                 title="Vista en lista / tabla"
               >
                 <Table2 className="w-3.5 h-3.5" />
+              </button>
+              <div className="hidden sm:block w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+            
+              {/* Action Buttons */}
+              <button
+                onClick={handleExport}
+                className="px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 text-[11px] font-medium shadow-sm"
+                title="Exportar base actual"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Exportar
               </button>
             </div>
 

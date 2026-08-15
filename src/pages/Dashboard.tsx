@@ -5,7 +5,8 @@ import {
   Users, 
   CheckCircle2,
   PieChart as PieChartIcon,
-  BarChart3
+  BarChart3,
+  Download
 } from 'lucide-react';
 import { StatCard } from '../components/common/StatCard';
 import { Badge } from '../components/common/Badge';
@@ -128,8 +129,56 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     }));
   }, [deals, contacts]);
 
+import { exportToCSV } from '../lib/exportUtils';
+
+  // ... (inside component)
+  const handleExport = () => {
+    const exportData = deals.map(d => {
+      const contact = contacts.find(c => c.id === d.leadId);
+      const stage = pipelineStages.find(s => s.id === d.stage);
+      return {
+        'Título': d.title,
+        'Valor': d.value,
+        'Moneda': d.currency,
+        'Etapa': stage?.name || d.stage,
+        'Probabilidad (%)': d.probability,
+        'Contacto': contact?.name || 'Desconocido',
+        'Teléfono': contact?.phone || '',
+        'Fecha Creación': new Date(d.createdAt).toLocaleDateString()
+      };
+    });
+
+    const columns = [
+      { key: 'Título', label: 'Título del Deal' },
+      { key: 'Valor', label: 'Valor' },
+      { key: 'Moneda', label: 'Moneda' },
+      { key: 'Etapa', label: 'Etapa Pipeline' },
+      { key: 'Probabilidad (%)', label: 'Probabilidad (%)' },
+      { key: 'Contacto', label: 'Contacto' },
+      { key: 'Teléfono', label: 'Teléfono' },
+      { key: 'Fecha Creación', label: 'Fecha Creación' },
+    ];
+
+    exportToCSV(exportData, 'Reporte_Ventas_Pipeline', columns);
+  };
+
   return (
     <div className="space-y-4 animate-fade-in pb-8">
+      {/* Header and Actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <div>
+          <h1 className="text-xl font-bold text-slate-800 dark:text-white">Resumen Comercial</h1>
+          <p className="text-sm text-slate-500">Métricas y desempeño en tiempo real</p>
+        </div>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+        >
+          <Download className="w-4 h-4" />
+          Exportar Reporte
+        </button>
+      </div>
+
       {/* 4 KPI Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div onClick={() => onNavigate('pipeline')} className="cursor-pointer">

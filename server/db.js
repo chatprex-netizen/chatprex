@@ -244,7 +244,19 @@ export async function initDb() {
       );
     `);
 
-    // 12. Tablas CRM — Contratos
+    // 12. Tablas CRM — Notificaciones
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        message TEXT,
+        type TEXT CHECK(type IN ('info', 'success', 'warning')) DEFAULT 'info',
+        read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // 13. Tablas CRM — Contratos
     await client.query(`
       CREATE TABLE IF NOT EXISTS contracts (
         id TEXT PRIMARY KEY,
