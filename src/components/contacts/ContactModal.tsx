@@ -14,7 +14,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
   onClose,
   contactToEdit,
 }) => {
-  const { addContact, updateContact, agents, properties, leadChannels, pipelineStages } = useCRM();
+  const { addContact, updateContact, addDeal, agents, properties, leadChannels, pipelineStages } = useCRM();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -82,7 +82,22 @@ export const ContactModal: React.FC<ContactModalProps> = ({
       if (contactToEdit) {
         await updateContact(contactToEdit.id, formData as Partial<Contact>);
       } else {
-        await addContact(formData as any);
+        const contact = await addContact(formData as any);
+        if (contact && contact.id) {
+          await addDeal({
+            title: `Negociación con ${formData.name}`,
+            leadId: contact.id,
+            propertyId: formData.interestedProperty || undefined,
+            stage: 'nuevo_prospecto',
+            value: formData.budget || 0,
+            currency: formData.currency as any,
+            probability: 10,
+            expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            agentId: formData.assignedAgentId || agents[0]?.id || 'agent-1',
+            priority: formData.leadScore >= 80 ? 'alta' : (formData.leadScore >= 40 ? 'media' : 'baja'),
+            notes: formData.notes || ''
+          });
+        }
       }
       onClose();
     } catch (err: any) {
