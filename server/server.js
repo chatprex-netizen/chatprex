@@ -44,7 +44,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Health check
-app.get(['/health', '/api/health'], (_req, res) => {
+app.get(['/', '/health', '/api/health'], (_req, res) => {
   res.json({ status: 'ok', db: 'postgresql', timestamp: new Date() });
 });
 
