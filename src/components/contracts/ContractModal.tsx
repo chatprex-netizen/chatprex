@@ -14,7 +14,9 @@ export const ContractModal: React.FC<ContractModalProps> = ({
   onClose,
   contractToEdit,
 }) => {
-  const { addContract, updateContract, contacts, properties } = useCRM();
+  const { addContract, updateContract, contacts, properties, projects } = useCRM();
+
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
 
   const [formData, setFormData] = useState({
     code: `SEP-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
@@ -130,6 +132,24 @@ export const ContractModal: React.FC<ContractModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+              Proyecto asociado
+            </label>
+            <select
+              value={selectedProjectId}
+              onChange={(e) => {
+                setSelectedProjectId(e.target.value);
+                setFormData(prev => ({ ...prev, propertyId: '', unit: '' }));
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            >
+              <option value="">-- Todos o Independiente --</option>
+              {projects.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
               Propiedad asociada
             </label>
             <select
@@ -145,12 +165,21 @@ export const ContractModal: React.FC<ContractModalProps> = ({
               className="w-full px-2.5 py-1.5 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
             >
               <option value="">-- Sin propiedad (Solo texto) --</option>
-              {properties.filter(p => p.status === 'disponible' || p.status === 'en_negociacion' || p.id === formData.propertyId).map(p => (
-                <option key={p.id} value={p.id}>{p.code} - {p.title}</option>
-              ))}
+              {properties
+                .filter(p => {
+                  if (selectedProjectId) {
+                    const proj = projects.find(proj => proj.id === selectedProjectId);
+                    if (proj && p.projectName !== proj.name) return false;
+                  }
+                  return p.status === 'disponible' || p.status === 'en_negociacion' || p.id === formData.propertyId;
+                })
+                .map(p => (
+                  <option key={p.id} value={p.id}>{p.code} - {p.title}</option>
+                ))
+              }
             </select>
           </div>
-          <div>
+          <div className="sm:col-span-2">
             <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
               Unidad / Inmueble (Detalle) *
             </label>
