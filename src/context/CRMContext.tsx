@@ -226,7 +226,8 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const [
         propertiesData, dealsData, contactsData, contractsData, 
-        financeData, pipelineStagesData, leadChannelsData, projectsData, agentsData
+        financeData, pipelineStagesData, leadChannelsData, projectsData, agentsData,
+        tasksData, appointmentsData
       ] = await Promise.allSettled([
         apiClient.get<PaginatedResponse<Property>>('/properties?limit=100'),
         apiClient.get<PaginatedResponse<Deal>>('/deals?limit=100'),
@@ -237,6 +238,8 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiClient.get<LeadChannelConfig[]>('/lead-channels'),
         apiClient.get<Project[]>('/projects'),
         apiClient.get<Agent[]>('/agents'),
+        apiClient.get<Task[]>('/tasks'),
+        apiClient.get<Appointment[]>('/appointments'),
       ]);
 
       if (propertiesData.status === 'fulfilled' && propertiesData.value?.data) {
@@ -268,6 +271,47 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       if (agentsData.status === 'fulfilled' && Array.isArray(agentsData.value)) {
         setAgents(agentsData.value);
+      }
+
+      let loadedTasks: Task[] = [];
+      let loadedAppointments: Appointment[] = [];
+      if (tasksData.status === 'fulfilled' && Array.isArray(tasksData.value)) {
+        loadedTasks = tasksData.value;
+        setTasks(loadedTasks);
+      }
+      if (appointmentsData.status === 'fulfilled' && Array.isArray(appointmentsData.value)) {
+        loadedAppointments = appointmentsData.value;
+        setAppointments(loadedAppointments);
+      }
+
+      // Evaluar tareas vencidas para marcar contactos como 'urgente'
+      if (contactsData.status === 'fulfilled' && contactsData.value?.data) {
+        const now = new Date();
+        const urgentContactIds = new Set<string>();
+
+        loadedTasks.forEach(t => {
+          if (t.status === 'pendiente' && new Date(t.dueDate) < now && t.contactId) {
+            urgentContactIds.add(t.contactId);
+          }
+        });
+
+        loadedAppointments.forEach(a => {
+          if (a.status === 'programada' && new Date(`${a.date}T${a.time || '00:00'}`) < now && a.contactId) {
+            urgentContactIds.add(a.contactId);
+          }
+        });
+
+        const updatedContacts = contactsData.value.data.map(c => {
+          if (urgentContactIds.has(c.id) && c.statusFollowUp !== 'urgente') {
+            // Silently update the backend for overdue contacts
+            apiClient.put('/contacts/' + c.id, { statusFollowUp: 'urgente' }).catch(() => {});
+            return { ...c, statusFollowUp: 'urgente' as const };
+          }
+          return c;
+        });
+
+        setContacts(updatedContacts);
+        setContactsTotal(contactsData.value.total || contactsData.value.data.length);
       }
     } catch (error) {
       console.error("Error al cargar datos de PostgreSQL:", error);
@@ -760,6 +804,14 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         return t;
       }));
+
+      // Autogenerar actividad si se completó y tiene contacto
+      if (updatedStatus === 'completada' && t.contactId) {
+        addLeadActivity(t.contactId, {
+          type: 'tarea',
+          notes: `Tarea completada: ${t.title}`
+        }).catch(console.error);
+      }
     } catch(err: any) { console.error(err); return err.message; }
   };
 
@@ -793,6 +845,17 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await apiClient.put('/appointments/' + id, { status });
       setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+
+      // Autogenerar actividad si se realizó y tiene contacto
+      if (status === 'realizada') {
+        const a = appointments.find(x => x.id === id);
+        if (a && a.contactId) {
+          addLeadActivity(a.contactId, {
+            type: 'visita',
+            notes: `Cita/Visita completada: ${a.title}`
+          }).catch(console.error);
+        }
+      }
     } catch(err: any) { console.error(err); return err.message; }
   };
 
