@@ -82,19 +82,19 @@ export const AdminLeadChannels: React.FC = () => {
       </div>
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[800px]">
+        <table className="w-full text-left border-collapse min-w-full sm:min-w-[600px]">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
-              <th className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">Canal</th>
-              <th className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">Detalles</th>
-              <th className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">Estado</th>
-              <th className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 text-right">Acciones</th>
+              <th className="px-3 sm:px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 max-w-[100px] sm:max-w-none">Canal</th>
+              <th className="px-3 sm:px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 max-w-[120px] sm:max-w-none">Detalles</th>
+              <th className="px-3 sm:px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 w-16 sm:w-24">Estado</th>
+              <th className="px-3 sm:px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 text-right w-16 sm:w-20">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {leadChannels.map(channel => (
               <tr key={channel.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                <td className="px-4 py-2">
+                <td className="px-3 sm:px-4 py-2 max-w-[100px] sm:max-w-none">
                   <div className="flex items-center gap-2.5">
                     <div 
                       className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-white"
@@ -102,17 +102,17 @@ export const AdminLeadChannels: React.FC = () => {
                     >
                       <Share2 className="w-3.5 h-3.5" />
                     </div>
-                    <div>
-                      <div className="font-semibold text-slate-900 dark:text-white text-xs">
+                    <div className="min-w-0">
+                      <div className="font-semibold text-slate-900 dark:text-white text-xs truncate">
                         {channel.name}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-2 text-xs text-slate-600 dark:text-slate-400">
+                <td className="px-3 sm:px-4 py-2 text-xs text-slate-600 dark:text-slate-400 max-w-[120px] sm:max-w-none truncate" title={channel.details}>
                   {channel.details || '-'}
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-3 sm:px-4 py-2 w-16 sm:w-24">
                   {channel.visible ? (
                     <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                       ACTIVO
@@ -123,7 +123,7 @@ export const AdminLeadChannels: React.FC = () => {
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-3 sm:px-4 py-2 w-16 sm:w-20">
                   <div className="flex items-center justify-end gap-1">
                     <button
                       onClick={() => handleOpenEdit(channel)}
