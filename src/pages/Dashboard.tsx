@@ -50,6 +50,11 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     });
   }, [pipelineStages, deals]);
 
+  // Métricas de Conversión
+  const totalDealsCount = deals.length;
+  const wonDealsCountMetric = deals.filter(d => d.stage === 'ganado').length;
+  const conversionRate = totalDealsCount > 0 ? ((wonDealsCountMetric / totalDealsCount) * 100).toFixed(1) : '0.0';
+
   const maxStageValue = Math.max(...funnelStages.map(s => s.value), 1);
 
   // 2. Canales de Captación
@@ -177,12 +182,18 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               <BarChart3 className="w-4 h-4 text-[#004aad]" />
               Embudo de Ventas (Pipeline)
             </h3>
-            <button
-              onClick={() => onNavigate('pipeline')}
-              className="text-[11px] font-medium text-[#004aad] hover:underline"
-            >
-              Ver pipeline
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-lg">
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider">Conversión</span>
+                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{conversionRate}%</span>
+              </div>
+              <button
+                onClick={() => onNavigate('pipeline')}
+                className="text-[11px] font-medium text-[#004aad] hover:underline"
+              >
+                Ver pipeline
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3.5">
