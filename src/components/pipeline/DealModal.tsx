@@ -147,7 +147,7 @@ export const DealModal: React.FC<DealModalProps> = ({
               className="w-full px-2.5 py-1.5 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
             >
               <option value="">-- Sin propiedad fija --</option>
-              {properties.filter(p => p.status === 'disponible' || p.status === 'en_negociacion' || p.id === formData.propertyId).map((p) => (
+              {properties.filter(p => p.status === 'disponible' || p.id === formData.propertyId).map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.code} - {p.title}
                 </option>
