@@ -170,7 +170,7 @@ export const PipelinePage: React.FC<PipelinePageProps> = ({
           {/* Table Container */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[800px]">
                 <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 font-semibold text-[11px] border-b border-slate-200 dark:border-slate-700">
                   <tr>
                     <th className="py-2.5 px-4">Oportunidad</th>

@@ -513,7 +513,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
       ) : (
         /* VIEW 2: DataGrid Table View (Vista Lista) */
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[800px]">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 text-[11px] font-semibold text-slate-500">
                 <th className="py-2.5 px-3">Cliente / Contacto</th>
