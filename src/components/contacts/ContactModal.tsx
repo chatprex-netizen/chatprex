@@ -14,7 +14,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
   onClose,
   contactToEdit,
 }) => {
-  const { addContact, updateContact, addDeal, agents, properties, leadChannels, pipelineStages } = useCRM();
+  const { addContact, updateContact, addDeal, agents, contacts, properties, leadChannels, pipelineStages } = useCRM();
 
   const [formData, setFormData] = useState({
     name: '',

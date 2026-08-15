@@ -188,7 +188,8 @@ export type LeadActivityType =
   | 'correo' 
   | 'nota' 
   | 'cambio_etapa' 
-  | 'oferta_recibida';
+  | 'oferta_recibida'
+  | 'tarea';
 
 export interface LeadActivity {
   id: string;

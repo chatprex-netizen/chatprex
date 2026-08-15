@@ -251,6 +251,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setDealsTotal(dealsData.value.total || dealsData.value.data.length);
       }
       if (contactsData.status === 'fulfilled' && contactsData.value?.data) {
+        // Initial set; may be overridden below by urgency evaluation
         setContacts(contactsData.value.data);
         setContactsTotal(contactsData.value.total || contactsData.value.data.length);
       }
@@ -809,7 +810,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (updatedStatus === 'completada' && t.contactId) {
         addLeadActivity(t.contactId, {
           type: 'tarea',
-          notes: `Tarea completada: ${t.title}`
+          summary: `Tarea completada: ${t.title}`
         }).catch(console.error);
       }
     } catch(err: any) { console.error(err); return err.message; }
@@ -852,7 +853,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (a && a.contactId) {
           addLeadActivity(a.contactId, {
             type: 'visita',
-            notes: `Cita/Visita completada: ${a.title}`
+            summary: `Cita/Visita completada: ${a.title}`
           }).catch(console.error);
         }
       }
