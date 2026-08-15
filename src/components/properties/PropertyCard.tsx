@@ -85,7 +85,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           {/* Location */}
           <div className="flex items-center gap-1 text-[11px] text-slate-400 mb-0.5">
             <MapPin className="w-3 h-3 text-[#004aad] shrink-0" />
-            <span className="truncate">{property.zone}, {property.city}</span>
+            <span className="truncate">{[property.zone, property.city].filter(Boolean).join(', ')}</span>
           </div>
 
           {/* Title */}

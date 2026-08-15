@@ -271,7 +271,9 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
                     <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">
                       ${prop.price.toLocaleString()} {prop.currency}
                     </td>
-                    <td className="py-3 px-4 text-slate-400">{prop.zone}, {prop.city}</td>
+                    <td className="py-3 px-4 text-slate-400">
+                      {[prop.zone, prop.city].filter(Boolean).join(', ')}
+                    </td>
                     <td className="py-3 px-4">
                       <Badge variant={prop.status} size="sm">
                         {prop.status.replace('_', ' ')}
