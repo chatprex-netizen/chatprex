@@ -45,7 +45,7 @@ export const PipelinePage: React.FC<PipelinePageProps> = ({
 
   const totalPipelineValue = deals
     .filter((d) => d.stage !== 'perdido')
-    .reduce((sum, d) => sum + d.value, 0);
+    .reduce((sum, d) => sum + (parseFloat(d.value as any) || 0), 0);
 
   const filteredDeals = deals.filter((deal) => {
     // Si la etapa es "ganado" o "perdido" y estamos en vista Kanban O el filtro está en "all" en lista, ocultarlos
@@ -93,7 +93,7 @@ export const PipelinePage: React.FC<PipelinePageProps> = ({
           <div className="text-right hidden sm:block mr-2">
             <span className="text-[10px] text-slate-400 block font-normal">Valor en gestión</span>
             <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-              ${totalPipelineValue.toLocaleString()} USD
+              USD {totalPipelineValue.toLocaleString()}
             </div>
           </div>
 
@@ -263,7 +263,7 @@ export const PipelinePage: React.FC<PipelinePageProps> = ({
                           </td>
 
                           <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                            ${deal.value.toLocaleString()} {deal.currency}
+                            {deal.currency || 'USD'} {(parseFloat(deal.value as any) || 0).toLocaleString()}
                           </td>
 
                           <td className="py-3 px-4 font-medium text-slate-700 dark:text-slate-300">

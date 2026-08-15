@@ -92,7 +92,7 @@ export const DealCard: React.FC<DealCardProps> = ({
         <div>
           <span className="text-[10px] text-slate-400 font-normal block">Valor trato</span>
           <span className="text-xs font-bold text-slate-900 dark:text-white">
-            ${deal.value.toLocaleString()} <span className="text-[10px] text-slate-400 font-normal">{deal.currency}</span>
+            {deal.currency || 'USD'} {(parseFloat(deal.value as any) || 0).toLocaleString()}
           </span>
         </div>
 

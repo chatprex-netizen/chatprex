@@ -52,7 +52,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     <div className="flex gap-4 overflow-x-auto pb-6 pt-2 pr-6 snap-x snap-mandatory sm:snap-none">
       {pipelineStages.filter(s => s.visible && s.id !== 'ganado' && s.id !== 'perdido').sort((a, b) => a.order - b.order).map((column) => {
         const columnDeals = filteredDeals.filter((d) => d.stage === column.id);
-        const columnTotal = columnDeals.reduce((sum, d) => sum + d.value, 0);
+        const columnTotal = columnDeals.reduce((sum, d) => sum + (parseFloat(d.value as any) || 0), 0);
         const isDraggedOver = draggedOverStage === column.id;
         const stageId = column.id as DealStage;
 
@@ -79,7 +79,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   </span>
                 </div>
                 <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                  ${columnTotal.toLocaleString()} USD
+                  USD {columnTotal.toLocaleString()}
                 </p>
               </div>
 
