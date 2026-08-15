@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
-import { AppointmentStatus } from '../../types';
+import { Appointment, AppointmentStatus } from '../../types';
 import { useCRM } from '../../context/CRMContext';
 
 interface AppointmentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  appointmentToEdit?: Appointment | null;
 }
 
 export const AppointmentModal: React.FC<AppointmentModalProps> = ({
   isOpen,
   onClose,
+  appointmentToEdit,
 }) => {
-  const { addAppointment, properties, contacts, agents } = useCRM();
+  const { addAppointment, updateAppointment, properties, contacts, agents } = useCRM();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -27,6 +29,36 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
     notes: '',
   });
 
+  React.useEffect(() => {
+    if (appointmentToEdit) {
+      setFormData({
+        title: appointmentToEdit.title,
+        propertyId: appointmentToEdit.propertyId || properties[0]?.id || '',
+        contactId: appointmentToEdit.contactId,
+        agentId: appointmentToEdit.agentId,
+        date: appointmentToEdit.date,
+        time: appointmentToEdit.time,
+        durationMinutes: appointmentToEdit.durationMinutes,
+        status: appointmentToEdit.status,
+        location: appointmentToEdit.location || '',
+        notes: appointmentToEdit.notes || '',
+      });
+    } else {
+      setFormData({
+        title: '',
+        propertyId: properties[0]?.id || '',
+        contactId: contacts[0]?.id || '',
+        agentId: agents[0]?.id || '',
+        date: new Date().toISOString().split('T')[0],
+        time: '11:00',
+        durationMinutes: 60,
+        status: 'programada',
+        location: properties[0]?.address || 'En la propiedad',
+        notes: '',
+      });
+    }
+  }, [appointmentToEdit, isOpen, properties, contacts, agents]);
+
   const handlePropertyChange = (propertyId: string) => {
     const prop = properties.find((p) => p.id === propertyId);
     setFormData((prev) => ({
@@ -40,7 +72,11 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
     e.preventDefault();
     if (!formData.title.trim()) return;
 
-    addAppointment(formData);
+    if (appointmentToEdit) {
+      updateAppointment(appointmentToEdit.id, formData);
+    } else {
+      addAppointment(formData);
+    }
     onClose();
   };
 
@@ -48,8 +84,8 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Agendar Nueva Visita / Cita"
-      subtitle="Programa una visita a propiedad con el cliente y asigna al asesor"
+      title={appointmentToEdit ? 'Editar Cita' : 'Agendar Visita / Reunión'}
+      subtitle={appointmentToEdit ? 'Modifica los detalles de la cita' : 'Programa una visita guiada o reunión con un cliente'}
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">

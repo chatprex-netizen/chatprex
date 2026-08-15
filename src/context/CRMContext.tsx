@@ -128,6 +128,7 @@ interface CRMContextType {
 
   // Acciones de Citas / Agenda
   addAppointment: (appointment: Omit<Appointment, 'id'>) => Promise<void>;
+  updateAppointment: (id: string, updated: Partial<Appointment>) => Promise<void>;
   updateAppointmentStatus: (id: string, status: AppointmentStatus) => Promise<void>;
   deleteAppointment: (id: string) => Promise<void>;
   
@@ -723,6 +724,13 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch(err: any) { console.error(err); return err.message; }
   };
 
+  const updateAppointment = async (id: string, updated: Partial<Appointment>) => {
+    try {
+      await apiClient.put('/appointments/' + id, updated);
+      setAppointments(prev => prev.map(a => a.id === id ? { ...a, ...updated } : a));
+    } catch(err: any) { console.error(err); return err.message; }
+  };
+
   const updateAppointmentStatus = async (id: string, status: AppointmentStatus) => {
     try {
       await apiClient.put('/appointments/' + id, { status });
@@ -847,6 +855,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       toggleTaskComplete,
       deleteTask,
       addAppointment,
+      updateAppointment,
       updateAppointmentStatus,
       deleteAppointment,
       activeConversationId,

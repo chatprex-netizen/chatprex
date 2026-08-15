@@ -24,7 +24,7 @@ import { AppointmentModal } from './components/calendar/AppointmentModal';
 import { TaskModal } from './components/tasks/TaskModal';
 import { useCRM } from './context/CRMContext';
 import { LoginPage } from './pages/LoginPage';
-import { Page } from './types';
+import { Page, Appointment } from './types';
 
 const PAGE_ALIASES: Record<string, Page> = {
   inicio: 'dashboard',
@@ -101,6 +101,7 @@ export const App: React.FC = () => {
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [appointmentToEdit, setAppointmentToEdit] = useState<Appointment | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   useEffect(() => {
@@ -166,7 +167,14 @@ export const App: React.FC = () => {
       case 'calendar':
         return (
           <CalendarPage
-            onOpenNewAppointmentModal={() => setIsAppointmentModalOpen(true)}
+            onOpenNewAppointmentModal={() => {
+              setAppointmentToEdit(null);
+              setIsAppointmentModalOpen(true);
+            }}
+            onEditAppointment={(app) => {
+              setAppointmentToEdit(app);
+              setIsAppointmentModalOpen(true);
+            }}
           />
         );
       case 'contracts':
@@ -193,7 +201,10 @@ export const App: React.FC = () => {
         return (
           <DashboardPage
             onNavigate={navigate}
-            onOpenNewAppointmentModal={() => setIsAppointmentModalOpen(true)}
+            onOpenNewAppointmentModal={() => {
+              setAppointmentToEdit(null);
+              setIsAppointmentModalOpen(true);
+            }}
           />
         );
     }
@@ -205,7 +216,10 @@ export const App: React.FC = () => {
       onNavigate={navigate}
       onOpenNewPropertyModal={() => setIsPropertyModalOpen(true)}
       onOpenNewContactModal={() => setIsContactModalOpen(true)}
-      onOpenNewAppointmentModal={() => setIsAppointmentModalOpen(true)}
+      onOpenNewAppointmentModal={() => {
+        setAppointmentToEdit(null);
+        setIsAppointmentModalOpen(true);
+      }}
       onOpenNewTaskModal={() => setIsTaskModalOpen(true)}
     >
       {renderPage()}
@@ -228,7 +242,11 @@ export const App: React.FC = () => {
 
       <AppointmentModal
         isOpen={isAppointmentModalOpen}
-        onClose={() => setIsAppointmentModalOpen(false)}
+        onClose={() => {
+          setIsAppointmentModalOpen(false);
+          setAppointmentToEdit(null);
+        }}
+        appointmentToEdit={appointmentToEdit}
       />
 
       <TaskModal

@@ -8,15 +8,18 @@ import {
   User,
   Building2, 
   Trash2,
-  Search
+  Search,
+  Pencil
 } from 'lucide-react';
 
 interface CalendarPageProps {
   onOpenNewAppointmentModal: () => void;
+  onEditAppointment: (app: any) => void; // Using any or importing Appointment
 }
 
 export const CalendarPage: React.FC<CalendarPageProps> = ({
   onOpenNewAppointmentModal,
+  onEditAppointment,
 }) => {
   const { 
     appointments, 
@@ -214,6 +217,13 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({
                       </button>
                     )}
 
+                    <button
+                      onClick={() => onEditAppointment && onEditAppointment(app)}
+                      className="p-1 rounded text-slate-400 hover:text-blue-600 transition-colors"
+                      title="Editar"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
                     <button
                       onClick={() => {
                         if (window.confirm(`¿Eliminar la cita "${app.title}"?`)) {
