@@ -116,7 +116,10 @@ type TabId = 'personalidad' | 'motor-ia' | 'conocimiento' | 'ajustes-pro';
 
 export const AIAssistantsPage: React.FC = () => {
   /* state */
-  const [assistants, setAssistants] = useState<AIAssistant[]>(INITIAL_ASSISTANTS);
+  const [assistants, setAssistants] = useState<AIAssistant[]>(() => {
+    const saved = localStorage.getItem('prexup_ai_assistants_v1');
+    return saved ? JSON.parse(saved) : INITIAL_ASSISTANTS;
+  });
   const [selectedId, setSelectedId] = useState<string>(assistants[0]?.id || '');
   const [activeTab, setActiveTab] = useState<TabId>('personalidad');
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
@@ -138,6 +141,7 @@ export const AIAssistantsPage: React.FC = () => {
 
   const handleSave = () => {
     setIsSaving(true);
+    localStorage.setItem('prexup_ai_assistants_v1', JSON.stringify(assistants));
     setTimeout(() => setIsSaving(false), 800);
   };
 
