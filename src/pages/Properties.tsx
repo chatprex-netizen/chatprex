@@ -45,8 +45,11 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
 
   // Use properties from context, but ALWAYS fallback to INITIAL_PROPERTIES if empty
   const sourceProperties = properties.length > 0 ? properties : INITIAL_PROPERTIES;
-  const filteredProperties = sourceProperties.filter(p => p.type !== 'proyecto_preventa');
-  const totalPages = Math.ceil((propertiesTotal > 0 ? propertiesTotal : sourceProperties.length) / limit);
+  // Grid: exclude preventa (shown only in list/table). List: show all.
+  const gridProperties = sourceProperties.filter(p => p.type !== 'proyecto_preventa');
+  const listProperties = sourceProperties;
+  const displayProperties = viewMode === 'grid' ? gridProperties : listProperties;
+  const totalPages = Math.ceil((propertiesTotal > 0 ? propertiesTotal : displayProperties.length) / limit);
 
   const [showFilters, setShowFilters] = useState(false);
 
@@ -221,7 +224,7 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
       {/* Content Area */}
       {activeTab === 'projects' ? (
         <ProjectsList />
-      ) : filteredProperties.length === 0 ? (
+      ) : displayProperties.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card p-12 text-center space-y-3">
           <Building2 className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
           <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">No hay propiedades registradas</h3>
@@ -238,7 +241,7 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {filteredProperties.map((prop) => (
+          {gridProperties.map((prop) => (
             <PropertyCard
               key={prop.id}
               property={prop}
@@ -262,7 +265,7 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-normal">
-                {filteredProperties.map((prop) => (
+                {listProperties.map((prop) => (
                   <tr
                     key={prop.id}
                     className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
