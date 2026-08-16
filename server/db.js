@@ -324,10 +324,10 @@ export async function initDb() {
         contact_id TEXT NOT NULL,
         agent_id TEXT,
         agent_name TEXT,
-        type TEXT CHECK(type IN ('llamada', 'whatsapp', 'visita', 'correo', 'nota', 'cambio_etapa', 'oferta_recibida')),
+        type TEXT,
         summary TEXT,
         description TEXT,
-        result_outcome TEXT CHECK(result_outcome IN ('interesado', 'solicito_visita', 'no_contesto', 'pidio_descuento', 'descartado', 'neutro')),
+        result_outcome TEXT,
         timestamp TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );

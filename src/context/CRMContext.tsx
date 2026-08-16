@@ -121,7 +121,9 @@ interface CRMContextType {
   deleteFinanceTransaction: (id: string) => Promise<void>;
 
   // Acciones de Seguimiento de Leads
+  fetchLeadActivities: (contactId: string) => Promise<LeadActivity[]>;
   addLeadActivity: (contactId: string, activity: Omit<LeadActivity, 'id' | 'contactId' | 'timestamp' | 'agentId' | 'agentName'>) => Promise<void>;
+  deleteLeadActivity: (contactId: string, activityId: string) => Promise<void>;
   updateLeadNextContact: (contactId: string, nextFollowUpDate: string, statusFollowUp?: 'al_dia' | 'proximo' | 'urgente' | 'sin_contacto') => Promise<void>;
   updateLeadScore: (contactId: string, points: number) => Promise<void>;
   
@@ -819,35 +821,70 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Seguimiento de Leads
+  const fetchLeadActivities = async (contactId: string): Promise<LeadActivity[]> => {
+    try {
+      const res = await apiClient.get<LeadActivity[]>(`/lead-activities/${contactId}`);
+      if (Array.isArray(res)) {
+        setLeadActivities(prev => ({
+          ...prev,
+          [contactId]: res
+        }));
+        return res;
+      }
+    } catch (err) {
+      console.warn('Could not fetch lead activities from backend, using local state:', err);
+    }
+    return leadActivities[contactId] || [];
+  };
+
   const addLeadActivity = async (
     contactId: string, 
     activity: Omit<LeadActivity, 'id' | 'contactId' | 'timestamp' | 'agentId' | 'agentName'>
   ) => {
+    const formattedTimestamp = new Date().toLocaleString('es-ES', { 
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit' 
+    });
+
+    let generatedId = `act-${Date.now()}`;
     try {
       const res = await apiClient.post<{id: string}>(`/lead-activities/${contactId}`, {
-        ...activity, agentId: currentAgent.id, agentName: currentAgent.name,
-        timestamp: new Date().toISOString()
-      });
-      
-      const newActivity: LeadActivity = {
-        ...activity,
-        id: res.id,
-        contactId,
-        agentId: currentAgent.id,
+        ...activity, 
+        agentId: currentAgent.id, 
         agentName: currentAgent.name,
-        timestamp: new Date().toLocaleString('es-ES', { 
-          day: '2-digit', month: '2-digit', year: 'numeric',
-          hour: '2-digit', minute: '2-digit' 
-        }),
-      };
+        timestamp: formattedTimestamp
+      });
+      if (res && res.id) generatedId = res.id;
+    } catch(err: any) {
+      console.warn('API lead-activities error, saving locally:', err);
+    }
 
-      setLeadActivities(prev => ({
-        ...prev,
-        [contactId]: [newActivity, ...(prev[contactId] || [])]
-      }));
+    const newActivity: LeadActivity = {
+      ...activity,
+      id: generatedId,
+      contactId,
+      agentId: currentAgent.id,
+      agentName: currentAgent.name,
+      timestamp: formattedTimestamp,
+    };
 
-      setContacts(prev => prev.map(c => c.id === contactId ? { ...c, lastContactDate: new Date().toISOString(), statusFollowUp: 'al_dia' } : c));
-    } catch(err: any) { console.error(err); return err.message; }
+    setLeadActivities(prev => ({
+      ...prev,
+      [contactId]: [newActivity, ...(prev[contactId] || [])]
+    }));
+
+    setContacts(prev => prev.map(c => c.id === contactId ? { ...c, lastContactDate: new Date().toISOString(), statusFollowUp: 'al_dia' } : c));
+  };
+
+  const deleteLeadActivity = async (contactId: string, activityId: string) => {
+    try {
+      await apiClient.delete(`/lead-activities/${contactId}/${activityId}`).catch(() => {});
+    } catch(err) {}
+
+    setLeadActivities(prev => ({
+      ...prev,
+      [contactId]: (prev[contactId] || []).filter(a => a.id !== activityId)
+    }));
   };
 
   const updateLeadNextContact = async (
@@ -1107,7 +1144,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addFinanceTransaction,
       updateFinanceTransaction,
       deleteFinanceTransaction,
+      fetchLeadActivities,
       addLeadActivity,
+      deleteLeadActivity,
       updateLeadNextContact,
       updateLeadScore,
       addTask,

@@ -1,8 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Contact, LeadActivityType } from '../../types';
 import { useCRM } from '../../context/CRMContext';
-import { Plus } from 'lucide-react';
+import { 
+  Phone, 
+  MessageCircle, 
+  Home, 
+  FileText, 
+  Mail, 
+  Plus, 
+  Calendar, 
+  MapPin, 
+  Clock, 
+  Trash2, 
+  CheckCircle2, 
+  User, 
+  Building,
+  Sparkles,
+  TrendingUp,
+  Tag
+} from 'lucide-react';
 
 interface LeadFollowUpModalProps {
   isOpen: boolean;
@@ -15,53 +32,197 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
   onClose,
   contact,
 }) => {
-  const { leadActivities, addLeadActivity, updateLeadNextContact, addTask, currentAgent } = useCRM();
+  const { 
+    leadActivities, 
+    fetchLeadActivities,
+    addLeadActivity, 
+    deleteLeadActivity,
+    updateLeadNextContact, 
+    addTask, 
+    currentAgent,
+    properties,
+    leadChannels,
+    pipelineStages
+  } = useCRM();
 
   const [activityType, setActivityType] = useState<LeadActivityType>('llamada');
   const [summary, setSummary] = useState('');
   const [description, setDescription] = useState('');
   const [outcome, setOutcome] = useState<'interesado' | 'solicito_visita' | 'no_contesto' | 'pidio_descuento' | 'descartado' | 'neutro'>('interesado');
-  const [nextFollowUpDate, setNextFollowUpDate] = useState(
-    new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  );
+  const [nextFollowUpDate, setNextFollowUpDate] = useState('');
   const [createFollowUpTask, setCreateFollowUpTask] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Load activities when modal opens for this contact
+  useEffect(() => {
+    if (isOpen && contact?.id) {
+      fetchLeadActivities(contact.id);
+      
+      // Default follow-up date: existing or +2 days from now
+      if (contact.nextFollowUpDate) {
+        setNextFollowUpDate(contact.nextFollowUpDate);
+      } else {
+        const defaultDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        setNextFollowUpDate(defaultDate);
+      }
+      setSummary('');
+      setDescription('');
+      setOutcome('interesado');
+      setActivityType('llamada');
+    }
+  }, [isOpen, contact?.id]);
 
   if (!contact) return null;
 
   const activities = leadActivities[contact.id] || [];
 
-  const handleAddActivity = (e: React.FormEvent) => {
+  // Helper: Format real contact budget (No '$' symbol, currency on left, comma as thousand separator)
+  const formatContactBudget = () => {
+    const currency = contact.currency || 'USD';
+    const min = typeof contact.budgetMin === 'number' ? contact.budgetMin : Number(contact.budgetMin) || 0;
+    const max = typeof contact.budgetMax === 'number' ? contact.budgetMax : Number(contact.budgetMax) || 0;
+    const budget = typeof contact.budget === 'number' ? contact.budget : Number(contact.budget) || 0;
+
+    if (min > 0 && max > 0) {
+      return `${currency} ${min.toLocaleString('en-US')} - ${max.toLocaleString('en-US')}`;
+    }
+    if (budget > 0) {
+      return `${currency} ${budget.toLocaleString('en-US')}`;
+    }
+    if (max > 0) {
+      return `${currency} ${max.toLocaleString('en-US')}`;
+    }
+    if (min > 0) {
+      return `${currency} ${min.toLocaleString('en-US')}`;
+    }
+    return 'Sin especificar';
+  };
+
+  // Helper: Resolve real property/project or zones
+  const getInterestInfo = () => {
+    if (contact.interestedProperty) {
+      const prop = properties.find(p => p.id === contact.interestedProperty);
+      if (prop) {
+        return {
+          type: 'property',
+          label: prop.projectName ? `${prop.projectName}` : prop.title,
+          sublabel: prop.zone ? `${prop.zone}, ${prop.city || ''}` : prop.city
+        };
+      }
+    }
+    if (contact.preferredZones && contact.preferredZones.length > 0) {
+      return {
+        type: 'zones',
+        label: contact.preferredZones.join(', '),
+        sublabel: undefined
+      };
+    }
+    return {
+      type: 'none',
+      label: 'Sin especificar',
+      sublabel: undefined
+    };
+  };
+
+  const interestInfo = getInterestInfo();
+
+  // Helper: Resolve channel name
+  const channelName = (() => {
+    const ch = leadChannels?.find(c => c.id === contact.channel);
+    return ch ? ch.name : contact.channel || 'Directo';
+  })();
+
+  // Helper: Resolve stage name
+  const stageName = (() => {
+    const st = pipelineStages?.find(s => s.id === contact.pipelineStage);
+    return st ? st.title : contact.pipelineStage || 'Nuevo prospecto';
+  })();
+
+  const handleAddActivity = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!summary.trim()) return;
 
-    addLeadActivity(contact.id, {
-      type: activityType,
-      summary: summary.trim(),
-      description: description.trim() || undefined,
-      resultOutcome: outcome,
-    });
-
-    updateLeadNextContact(contact.id, nextFollowUpDate, 'al_dia');
-
-    if (createFollowUpTask) {
-      addTask({
-        title: `Seguimiento con ${contact.name}: ${summary.trim()}`,
-        description: `Próximo contacto programado.`,
-        type: activityType === 'whatsapp' ? 'whatsapp' : 'llamada',
-        priority: 'alta',
-        status: 'pendiente',
-        dueDate: nextFollowUpDate,
-        dueTime: '10:30',
-        agentId: currentAgent.id,
-        contactId: contact.id,
+    setIsSubmitting(true);
+    try {
+      await addLeadActivity(contact.id, {
+        type: activityType,
+        summary: summary.trim(),
+        description: description.trim() || undefined,
+        resultOutcome: outcome,
       });
-    }
 
-    setSummary('');
-    setDescription('');
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2500);
+      if (nextFollowUpDate) {
+        await updateLeadNextContact(contact.id, nextFollowUpDate, 'al_dia');
+      }
+
+      if (createFollowUpTask && nextFollowUpDate) {
+        const taskTypeMap: Record<string, any> = {
+          whatsapp: 'whatsapp',
+          llamada: 'llamada',
+          visita: 'visita',
+          correo: 'correo',
+          nota: 'seguimiento_general'
+        };
+
+        await addTask({
+          title: `Seguimiento: ${contact.name} - ${summary.trim()}`,
+          description: description.trim() || `Seguimiento programado tras ${activityType}.`,
+          type: taskTypeMap[activityType] || 'llamada',
+          priority: outcome === 'interesado' || outcome === 'solicito_visita' ? 'alta' : 'media',
+          status: 'pendiente',
+          dueDate: nextFollowUpDate,
+          dueTime: '10:00',
+          agentId: currentAgent.id,
+          contactId: contact.id,
+        });
+      }
+
+      setSummary('');
+      setDescription('');
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteActivity = async (activityId: string) => {
+    if (window.confirm('¿Deseas eliminar este registro de interacción?')) {
+      await deleteLeadActivity(contact.id, activityId);
+    }
+  };
+
+  const getOutcomeBadge = (res?: string) => {
+    switch (res) {
+      case 'interesado':
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Interesado</span>;
+      case 'solicito_visita':
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">Solicitó visita</span>;
+      case 'pidio_descuento':
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">Negociando</span>;
+      case 'no_contesto':
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">No contestó</span>;
+      case 'descartado':
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Descartado</span>;
+      default:
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">En espera</span>;
+    }
+  };
+
+  const getActivityIcon = (type: LeadActivityType) => {
+    switch (type) {
+      case 'llamada':
+        return <Phone className="w-3.5 h-3.5 text-blue-500" />;
+      case 'whatsapp':
+        return <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />;
+      case 'visita':
+        return <Home className="w-3.5 h-3.5 text-purple-500" />;
+      case 'correo':
+        return <Mail className="w-3.5 h-3.5 text-amber-500" />;
+      default:
+        return <FileText className="w-3.5 h-3.5 text-slate-400" />;
+    }
   };
 
   return (
@@ -69,63 +230,108 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={`Seguimiento: ${contact.name}`}
-      subtitle={`Tel: ${contact.phone} · Score: ${contact.leadScore} pts`}
-      maxWidth="xl"
+      subtitle={`Tel: ${contact.phone || 'Sin teléfono'} · Lead Score: ${contact.leadScore || 0} pts`}
+      maxWidth="2xl"
     >
       <div className="space-y-4 text-xs">
-        {/* Lead Overview Bar */}
-        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+        {/* Real Lead Overview Bar */}
+        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-4 gap-3">
+          {/* Presupuesto */}
           <div>
-            <span className="text-[10px] text-slate-400 block font-normal">Presupuesto</span>
-            <span className="font-bold text-slate-800 dark:text-white">
-              ${contact.budgetMin?.toLocaleString()} - ${contact.budgetMax?.toLocaleString()} USD
+            <span className="text-[10px] text-slate-400 block font-normal flex items-center gap-1">
+              <span>Presupuesto</span>
+            </span>
+            <span className="font-bold text-slate-800 dark:text-white text-xs block truncate mt-0.5">
+              {formatContactBudget()}
             </span>
           </div>
 
+          {/* Interés / Proyecto / Zonas */}
           <div>
-            <span className="text-[10px] text-slate-400 block font-normal">Zonas de interés</span>
-            <span className="text-slate-600 dark:text-slate-300 font-medium">
-              {contact.preferredZones.join(', ')}
+            <span className="text-[10px] text-slate-400 block font-normal flex items-center gap-1">
+              {interestInfo.type === 'property' ? <Building className="w-3 h-3 text-[#004aad]" /> : <MapPin className="w-3 h-3 text-[#004aad]" />}
+              <span>{interestInfo.type === 'property' ? 'Proyecto / Inmueble' : 'Zonas de interés'}</span>
             </span>
+            <span className="text-slate-700 dark:text-slate-200 font-medium block truncate mt-0.5" title={interestInfo.label}>
+              {interestInfo.label}
+            </span>
+            {interestInfo.sublabel && (
+              <span className="text-[10px] text-slate-400 block truncate">
+                {interestInfo.sublabel}
+              </span>
+            )}
           </div>
 
+          {/* Próximo contacto */}
           <div>
-            <span className="text-[10px] text-slate-400 block font-normal">Próximo contacto</span>
-            <span className="font-semibold text-[#004aad]">
+            <span className="text-[10px] text-slate-400 block font-normal flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-slate-400" />
+              <span>Próximo contacto</span>
+            </span>
+            <span className={`font-semibold text-xs block mt-0.5 ${contact.nextFollowUpDate ? 'text-[#004aad] dark:text-blue-400' : 'text-slate-400'}`}>
               {contact.nextFollowUpDate || 'Sin programar'}
             </span>
+          </div>
+
+          {/* Etapa & Canal */}
+          <div>
+            <span className="text-[10px] text-slate-400 block font-normal flex items-center gap-1">
+              <TrendingUp className="w-3 h-3 text-emerald-500" />
+              <span>Etapa / Canal</span>
+            </span>
+            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-[#004aad] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                {stageName}
+              </span>
+              <span className="text-[10px] text-slate-400">
+                vía {channelName}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Form to Log New Activity */}
-        <form onSubmit={handleAddActivity} className="p-3.5 bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
-          <h4 className="font-semibold text-xs text-slate-800 dark:text-white flex items-center gap-1.5">
-            <Plus className="w-3.5 h-3.5 text-[#004aad]" />
-            Registrar nueva interacción
-          </h4>
-
-          <div className="grid grid-cols-4 gap-1.5">
-            {[
-              { id: 'llamada', label: '📞 Llamada' },
-              { id: 'whatsapp', label: '💬 WhatsApp' },
-              { id: 'visita', label: '🏡 Visita' },
-              { id: 'nota', label: '📝 Nota' },
-            ].map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setActivityType(t.id as any)}
-                className={`py-1.5 px-2 rounded-lg text-xs font-medium border transition-all text-center ${
-                  activityType === t.id
-                    ? 'bg-[#004aad] text-white border-[#004aad] shadow-xs'
-                    : 'bg-[#f1f1f1] dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+        <form onSubmit={handleAddActivity} className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="font-bold text-xs text-slate-800 dark:text-white flex items-center gap-1.5">
+              <Plus className="w-4 h-4 text-[#004aad]" />
+              <span>Registrar nueva interacción</span>
+            </h4>
+            <span className="text-[10px] text-slate-400">
+              Asesor: <strong className="text-slate-700 dark:text-slate-200">{currentAgent?.name}</strong>
+            </span>
           </div>
 
+          {/* Activity Type Selector */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+            {[
+              { id: 'llamada', label: 'Llamada', icon: Phone, color: 'text-blue-600' },
+              { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, color: 'text-emerald-600' },
+              { id: 'visita', label: 'Visita', icon: Home, color: 'text-purple-600' },
+              { id: 'correo', label: 'Correo', icon: Mail, color: 'text-amber-600' },
+              { id: 'nota', label: 'Nota', icon: FileText, color: 'text-slate-600' },
+            ].map((t) => {
+              const Icon = t.icon;
+              const isSelected = activityType === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActivityType(t.id as any)}
+                  className={`py-2 px-2.5 rounded-lg text-xs font-medium border transition-all flex items-center justify-center gap-1.5 ${
+                    isSelected
+                      ? 'bg-[#004aad] text-white border-[#004aad] shadow-sm font-semibold'
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : t.color}`} />
+                  <span>{t.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Summary Input */}
           <div>
             <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
               Resumen de la interacción *
@@ -133,104 +339,161 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
             <input
               type="text"
               required
-              placeholder="Ej: Se coordinó visita para el fin de semana"
+              placeholder="Ej: Se presentó el proyecto Residencial Las Praderas y se coordinó cita"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              className="w-full px-3 py-1.5 rounded-lg bg-[#f1f1f1] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
+              className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad] focus:ring-1 focus:ring-[#004aad] transition-all text-xs"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          {/* Description/Notes textarea */}
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+              Notas y detalles de la conversación <span className="text-slate-400 font-normal">(opcional)</span>
+            </label>
+            <textarea
+              rows={2}
+              placeholder="Detalles sobre lo conversado, objeciones, preferencias de pago, requerimientos específicos..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad] focus:ring-1 focus:ring-[#004aad] transition-all text-xs resize-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
-                Resultado
+                Resultado de la interacción
               </label>
               <select
                 value={outcome}
                 onChange={(e) => setOutcome(e.target.value as any)}
-                className="w-full px-2.5 py-1.5 rounded-lg bg-[#f1f1f1] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+                className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 text-xs font-medium"
               >
-                <option value="interesado">Interesado</option>
-                <option value="solicito_visita">Solicitó visita</option>
-                <option value="pidio_descuento">Negociando</option>
-                <option value="no_contesto">No contestó</option>
-                <option value="neutro">En espera</option>
-                <option value="descartado">Descartado</option>
+                <option value="interesado">🔥 Interesado (Caliente)</option>
+                <option value="solicito_visita">🏡 Solicitó visita / cita</option>
+                <option value="pidio_descuento">💬 En negociación</option>
+                <option value="no_contesto">📵 No contestó / Volver a llamar</option>
+                <option value="neutro">⏳ En espera de decisión</option>
+                <option value="descartado">❌ Descartado / No califica</option>
               </select>
             </div>
 
             <div>
               <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
-                Próximo seguimiento
+                Próximo seguimiento programado
               </label>
               <input
                 type="date"
                 value={nextFollowUpDate}
                 onChange={(e) => setNextFollowUpDate(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-lg bg-[#f1f1f1] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+                className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 text-xs"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-1.5 text-[11px] text-slate-500 cursor-pointer">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+            <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={createFollowUpTask}
                 onChange={(e) => setCreateFollowUpTask(e.target.checked)}
-                className="rounded text-[#004aad] focus:ring-[#004aad] w-3.5 h-3.5"
+                className="rounded text-[#004aad] focus:ring-[#004aad] w-4 h-4 cursor-pointer"
               />
-              <span>Crear tarea para esa fecha</span>
+              <span>Crear tarea automática en la agenda para la fecha de seguimiento</span>
             </label>
 
             <button
               type="submit"
-              className="px-3.5 py-1.5 rounded-lg bg-[#004aad] hover:bg-[#003b8a] text-white font-medium text-xs shadow-xs transition-all"
+              disabled={isSubmitting || !summary.trim()}
+              className="px-4 py-2 rounded-lg bg-[#004aad] hover:bg-[#003b8a] text-white font-medium text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Registrar actividad
+              <Plus className="w-3.5 h-3.5" />
+              <span>{isSubmitting ? 'Guardando...' : 'Registrar actividad'}</span>
             </button>
           </div>
 
           {savedSuccess && (
-            <div className="text-center text-[11px] font-medium text-emerald-600 animate-fade-in">
-              ✓ Actividad guardada con éxito
+            <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-center text-xs font-semibold text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-2 animate-fade-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>✓ Actividad registrada correctamente y contacto actualizado</span>
             </div>
           )}
         </form>
 
         {/* Timeline of Past Activities */}
         <div>
-          <h4 className="font-semibold text-xs text-slate-400 mb-2">
-            Historial de interacciones ({activities.length})
-          </h4>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-bold text-xs text-slate-800 dark:text-white flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-[#004aad]" />
+              <span>Historial de interacciones ({activities.length})</span>
+            </h4>
+            <span className="text-[10px] text-slate-400">
+              Orden cronológico (más reciente arriba)
+            </span>
+          </div>
 
-          <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
             {activities.length === 0 ? (
-              <div className="p-4 text-center text-[11px] text-slate-400 border border-dashed border-slate-200 rounded-lg">
-                No hay actividades registradas aún.
+              <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl space-y-1.5">
+                <Clock className="w-6 h-6 text-slate-300 dark:text-slate-600 mx-auto" />
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  No hay actividades registradas aún
+                </p>
+                <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+                  Registra llamadas, notas o acuerdos con {contact.name} en el formulario superior para mantener la trazabilidad del cliente.
+                </p>
               </div>
             ) : (
               activities.map((act) => (
                 <div
                   key={act.id}
-                  className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-1"
+                  className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-1.5 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <span className="capitalize text-[#004aad] font-bold">{act.type === 'whatsapp' ? 'WhatsApp' : act.type}:</span>
-                      <span>{act.summary}</span>
-                    </span>
-                    <span className="text-[10px] text-slate-400">{act.timestamp}</span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 shrink-0">
+                        {getActivityIcon(act.type)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-slate-900 dark:text-white text-xs">
+                            {act.summary}
+                          </span>
+                          {getOutcomeBadge(act.resultOutcome)}
+                        </div>
+                        <span className="text-[10px] text-slate-400 capitalize">
+                          Tipo: <strong className="text-slate-600 dark:text-slate-300">{act.type}</strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-slate-300" />
+                        {act.timestamp}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteActivity(act.id)}
+                        className="p-1 text-slate-300 hover:text-rose-600 rounded transition-colors"
+                        title="Eliminar registro"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
 
                   {act.description && (
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
                       {act.description}
                     </p>
                   )}
 
-                  <div className="text-[10px] text-slate-400">
-                    Asesor: <strong className="text-slate-600 dark:text-slate-300">{act.agentName}</strong>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+                    <span>
+                      Asesor: <strong className="text-slate-600 dark:text-slate-300">{act.agentName || 'Sistema'}</strong>
+                    </span>
                   </div>
                 </div>
               ))
@@ -238,11 +501,12 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
           </div>
         </div>
 
+        {/* Modal Footer */}
         <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+            className="px-4 py-2 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
           >
             Cerrar
           </button>
@@ -251,3 +515,4 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
     </Modal>
   );
 };
+

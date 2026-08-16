@@ -947,6 +947,15 @@ router.post('/api/crm/lead-activities/:contactId', async (req, res) => {
   }
 });
 
+router.delete('/api/crm/lead-activities/:contactId/:activityId', async (req, res) => {
+  try {
+    await query('DELETE FROM lead_activities WHERE id = $1', [req.params.activityId]);
+    res.json({ success: true, message: 'Actividad eliminada' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ══════════════════════════════════════════════════
 // PIPELINE STAGES
 // ══════════════════════════════════════════════════
