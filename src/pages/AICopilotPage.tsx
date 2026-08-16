@@ -4,7 +4,6 @@ import {
   Sparkles, 
   Copy, 
   Check,
-  TrendingUp,
   Target,
   BarChart3,
   LineChart,
@@ -80,10 +79,10 @@ Genera un pronóstico realista usando los datos. Devuelve SOLO el JSON sin markd
       const newData = { ...parsed, lastUpdated: new Date().toISOString() };
       setPredictiveAnalysis(newData);
       localStorage.setItem('prexup_predictive_v1', JSON.stringify(newData));
-      addNotification({ id: Date.now().toString(), type: 'info', title: 'Análisis actualizado', message: 'El pronóstico y tendencias han sido calculados.', read: false, createdAt: new Date().toISOString() });
+      addNotification('Análisis actualizado', 'El pronóstico y tendencias han sido calculados.', 'info');
     } catch (error: any) {
       console.error("Error generating predictive analysis:", error);
-      addNotification({ id: Date.now().toString(), type: 'error', title: 'Error AI', message: 'No se pudo generar el análisis. Verifica tu configuración de IA.', read: false, createdAt: new Date().toISOString() });
+      addNotification('Error AI', 'No se pudo generar el análisis. Verifica tu configuración de IA.', 'warning');
     } finally {
       setIsUpdatingAnalysis(false);
     }
@@ -136,7 +135,7 @@ Genera un pronóstico realista usando los datos. Devuelve SOLO el JSON sin markd
     try {
       const priceFormatted = `$${selectedProperty.price.toLocaleString()} ${selectedProperty.currency}`;
       
-      const prompt = `Eres un experto copywriter inmobiliario. Por favor, genera un texto persuasivo para promocionar la siguiente propiedad en la plataforma: ${platform}.
+      let prompt = `Eres un experto copywriter inmobiliario. Por favor, genera un texto persuasivo para promocionar la siguiente propiedad en la plataforma: ${platform}.
       
 Detalles de la propiedad:
 - Título: ${selectedProperty.title}
