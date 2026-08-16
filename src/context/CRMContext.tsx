@@ -395,7 +395,10 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const fetchProperties = async (page = 1, search = '', filters = '') => {
     try {
-      const res = await apiClient.get<PaginatedResponse<Property>>(`/properties?page=${page}&limit=12&search=${encodeURIComponent(search)}${filters}`);
+      let query = `?page=${page}&limit=12`;
+      if (search) query += `&search=${encodeURIComponent(search)}`;
+      if (filters) query += filters;
+      const res = await apiClient.get<PaginatedResponse<Property>>(`/properties${query}`);
       setProperties(res.data || []);
       setPropertiesTotal(res.total || 0);
     } catch(e) {}
@@ -403,7 +406,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const fetchContacts = async (page = 1, search = '') => {
     try {
-      const res = await apiClient.get<PaginatedResponse<Contact>>(`/contacts?page=${page}&limit=12&search=${encodeURIComponent(search)}`);
+      let query = `?page=${page}&limit=12`;
+      if (search) query += `&search=${encodeURIComponent(search)}`;
+      const res = await apiClient.get<PaginatedResponse<Contact>>(`/contacts${query}`);
       setContacts(res.data || []);
       setContactsTotal(res.total || 0);
     } catch(e) {}
@@ -411,7 +416,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const fetchDeals = async (page = 1, search = '', kanban = false) => {
     try {
-      const res = await apiClient.get<PaginatedResponse<Deal>>(`/deals?page=${page}&limit=50&search=${encodeURIComponent(search)}&kanban=${kanban}`);
+      let query = `?page=${page}&limit=50&kanban=${kanban}`;
+      if (search) query += `&search=${encodeURIComponent(search)}`;
+      const res = await apiClient.get<PaginatedResponse<Deal>>(`/deals${query}`);
       setDeals(res.data || []);
       setDealsTotal(res.total || 0);
     } catch(e) {}
