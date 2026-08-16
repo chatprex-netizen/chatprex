@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Deal, DealStage } from '../../types';
 import { Badge } from '../common/Badge';
 import { 
   Building2, 
+  Home,
   User, 
   ChevronRight, 
   ChevronLeft,
@@ -32,11 +33,41 @@ export const DealCard: React.FC<DealCardProps> = ({
   onEdit,
   onDragStart,
 }) => {
-  const { contacts, properties, agents, moveDealStage, deleteDeal } = useCRM();
+  const { contacts, properties, projects, agents, moveDealStage, deleteDeal } = useCRM();
 
   const contact = contacts.find((c) => c.id === deal.leadId);
-  const property = properties.find((p) => p.id === deal.propertyId);
   const agent = agents.find((a) => a.id === deal.agentId);
+
+  // Resolver si es proyecto/preventa o propiedad individual
+  const interestInfo = useMemo(() => {
+    const targetId = deal.propertyId || contact?.interestedProperty;
+    if (!targetId) return null;
+
+    // 1. Buscar en properties
+    const prop = properties.find(p => p.id === targetId || (p.projectName && p.projectName.toLowerCase() === targetId.toLowerCase()));
+    if (prop) {
+      const isProject = prop.type === 'proyecto_preventa' || Boolean(prop.projectName && prop.projectName.trim().length > 0);
+      return {
+        isProject,
+        name: isProject ? (prop.projectName || prop.title) : prop.title,
+      };
+    }
+
+    // 2. Buscar en projects
+    const proj = projects.find(p => p.id === targetId || (p.name && p.name.toLowerCase() === targetId.toLowerCase()));
+    if (proj) {
+      return {
+        isProject: true,
+        name: proj.name,
+      };
+    }
+
+    // 3. Texto directo
+    return {
+      isProject: true,
+      name: targetId,
+    };
+  }, [deal.propertyId, contact?.interestedProperty, properties, projects]);
 
   const currentStageIndex = STAGE_ORDER.indexOf(deal.stage);
 
@@ -71,11 +102,17 @@ export const DealCard: React.FC<DealCardProps> = ({
         </Badge>
       </div>
 
-      {/* Associated Property (if any) */}
-      {property && (
-        <div className="flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
-          <Building2 className="w-3 h-3 text-[#004aad] shrink-0" />
-          <span className="truncate">{property.title}</span>
+      {/* Proyecto de Interés o Inmueble */}
+      {interestInfo && (
+        <div className="flex items-center gap-1 text-[11px] text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/80 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
+          {interestInfo.isProject ? (
+            <Building2 className="w-3.5 h-3.5 text-[#004aad] shrink-0" />
+          ) : (
+            <Home className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          )}
+          <span className="truncate font-medium" title={interestInfo.name}>
+            {interestInfo.name}
+          </span>
         </div>
       )}
 
