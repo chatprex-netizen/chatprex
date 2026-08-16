@@ -255,7 +255,7 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
             <table className="w-full text-left text-xs min-w-[800px]">
               <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 font-semibold text-[11px] border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="py-2.5 px-4">Propiedad</th>
+                  <th className="py-2.5 px-4">Proyecto / Propiedad</th>
                   <th className="py-2.5 px-4">Tipo</th>
                   <th className="py-2.5 px-4">Operación</th>
                   <th className="py-2.5 px-4">Precio</th>
@@ -265,31 +265,44 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-normal">
-                {listProperties.map((prop) => (
-                  <tr
-                    key={prop.id}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
-                  >
-                    <td className="py-3 px-4 max-w-[200px]">
-                      <div className="flex items-center gap-2.5">
-                        <img
-                          src={(prop.images && Array.isArray(prop.images) && prop.images[0]) || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80'}
-                          alt={prop.title || 'Propiedad'}
-                          className="w-9 h-9 rounded-lg object-cover shrink-0"
-                        />
-                        <span className="font-semibold text-slate-900 dark:text-white truncate">
-                          {prop.title || 'Sin título'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 capitalize">{(prop.type || 'departamento').replace('_', ' ')}</td>
-                    <td className="py-3 px-4 capitalize">{prop.operation || 'venta'}</td>
-                    <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">
-                      {prop.currency || 'USD'} {(parseFloat(prop.price as any) || 0).toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4 text-slate-400">
-                      {[prop.zone, prop.city].filter(Boolean).join(', ') || '-'}
-                    </td>
+                {listProperties.map((prop) => {
+                  const isPresaleProject = prop.type === 'proyecto_preventa' || Boolean(prop.projectName && prop.projectName.trim().length > 0);
+                  const displayName = isPresaleProject ? (prop.projectName || prop.title) : (prop.title || 'Sin título');
+                  const subDisplayName = isPresaleProject && prop.projectName && prop.title && prop.title !== prop.projectName ? prop.title : null;
+                  const currencyLabel = prop.currency === 'PEN' ? 'S/' : prop.currency || 'USD';
+
+                  return (
+                    <tr
+                      key={prop.id}
+                      className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                    >
+                      <td className="py-3 px-4 max-w-[240px]">
+                        <div className="flex items-center gap-2.5">
+                          <img
+                            src={(prop.images && Array.isArray(prop.images) && prop.images[0]) || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80'}
+                            alt={displayName}
+                            className="w-9 h-9 rounded-lg object-cover shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <span className="font-semibold text-slate-900 dark:text-white truncate block" title={displayName}>
+                              {displayName}
+                            </span>
+                            {subDisplayName && (
+                              <span className="text-[11px] text-slate-400 truncate block" title={subDisplayName}>
+                                {subDisplayName}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 capitalize">{(prop.type || 'departamento').replace('_', ' ')}</td>
+                      <td className="py-3 px-4 capitalize">{prop.operation || 'venta'}</td>
+                      <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">
+                        {currencyLabel} {(parseFloat(prop.price as any) || 0).toLocaleString('en-US')}
+                      </td>
+                      <td className="py-3 px-4 text-slate-400">
+                        {[prop.zone, prop.city].filter(Boolean).join(', ') || '-'}
+                      </td>
                     <td className="py-3 px-4">
                       <Badge variant={prop.status || 'disponible'} size="sm">
                         {(prop.status || 'disponible').replace('_', ' ')}
@@ -304,7 +317,8 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
                       </button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

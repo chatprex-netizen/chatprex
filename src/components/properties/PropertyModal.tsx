@@ -50,13 +50,13 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     description: '',
     type: 'departamento' as PropertyType,
     operation: 'venta' as PropertyOperation,
-    price: 350000,
-    currency: 'USD' as 'USD' | 'EUR' | 'MXN' | 'PEN',
-    areaTotal: 120,
-    areaBuilt: 100,
-    bedrooms: 2,
-    bathrooms: 2,
-    parkingSpots: 1,
+    price: '' as string | number,
+    currency: 'PEN' as 'USD' | 'EUR' | 'MXN' | 'PEN',
+    areaTotal: '' as string | number,
+    areaBuilt: '' as string | number,
+    bedrooms: '' as string | number,
+    bathrooms: '' as string | number,
+    parkingSpots: '' as string | number,
     address: '',
     zone: '',
     city: '',
@@ -72,6 +72,14 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
 
   const isLandOrPresale = formData.type === 'terreno' || formData.type === 'proyecto_preventa';
 
+  const formatNumberWithCommas = (val: string | number) => {
+    if (val === '' || val === null || val === undefined) return '';
+    const clean = val.toString().replace(/[^0-9.]/g, '');
+    const parts = clean.split('.');
+    const integerPart = parts[0] ? parseInt(parts[0], 10).toLocaleString('en-US') : '';
+    return parts.length > 1 ? `${integerPart}.${parts[1]}` : integerPart;
+  };
+
   useEffect(() => {
     if (propertyToEdit) {
       setFormData({
@@ -80,21 +88,21 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         description: propertyToEdit.description,
         type: propertyToEdit.type,
         operation: propertyToEdit.operation,
-        price: propertyToEdit.price,
-        currency: propertyToEdit.currency,
-        areaTotal: propertyToEdit.areaTotal,
-        areaBuilt: propertyToEdit.areaBuilt,
-        bedrooms: propertyToEdit.bedrooms,
-        bathrooms: propertyToEdit.bathrooms,
-        parkingSpots: propertyToEdit.parkingSpots,
+        price: propertyToEdit.price || '',
+        currency: propertyToEdit.currency || 'PEN',
+        areaTotal: propertyToEdit.areaTotal || '',
+        areaBuilt: propertyToEdit.areaBuilt || '',
+        bedrooms: propertyToEdit.bedrooms || '',
+        bathrooms: propertyToEdit.bathrooms || '',
+        parkingSpots: propertyToEdit.parkingSpots || '',
         address: propertyToEdit.address,
         zone: propertyToEdit.zone,
         city: propertyToEdit.city || '',
-        features: propertyToEdit.features,
+        features: propertyToEdit.features || [],
         status: propertyToEdit.status,
-        images: propertyToEdit.images,
+        images: propertyToEdit.images || [],
         agentId: propertyToEdit.agentId,
-        commissionPct: propertyToEdit.commissionPct,
+        commissionPct: propertyToEdit.commissionPct ?? 5.0,
         imageUrlInput: '',
         projectName: propertyToEdit.projectName || '',
         developer: propertyToEdit.developer || '',
@@ -106,17 +114,17 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         description: '',
         type: 'departamento',
         operation: 'venta',
-        price: 350000,
-        currency: 'USD',
-        areaTotal: 120,
-        areaBuilt: 100,
-        bedrooms: 2,
-        bathrooms: 2,
-        parkingSpots: 1,
+        price: '',
+        currency: 'PEN',
+        areaTotal: '',
+        areaBuilt: '',
+        bedrooms: '',
+        bathrooms: '',
+        parkingSpots: '',
         address: '',
         zone: '',
         city: '',
-        features: ['Seguridad 24/7', 'Ascensor Directo'],
+        features: [],
         status: 'disponible',
         images: [
           'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80'
@@ -161,11 +169,22 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     if (!formData.title.trim()) return;
 
     try {
-      const { imageUrlInput, ...payload } = formData;
+      const { imageUrlInput, ...rest } = formData;
+      const payload = {
+        ...rest,
+        price: parseFloat(formData.price.toString().replace(/,/g, '')) || 0,
+        areaTotal: parseFloat(formData.areaTotal.toString()) || 0,
+        areaBuilt: parseFloat(formData.areaBuilt.toString()) || 0,
+        bedrooms: parseInt(formData.bedrooms.toString(), 10) || 0,
+        bathrooms: parseFloat(formData.bathrooms.toString()) || 0,
+        parkingSpots: parseInt(formData.parkingSpots.toString(), 10) || 0,
+        commissionPct: parseFloat(formData.commissionPct.toString()) || 0,
+      };
+
       if (propertyToEdit) {
-        await updateProperty(propertyToEdit.id, payload);
+        await updateProperty(propertyToEdit.id, payload as any);
       } else {
-        await addProperty(payload);
+        await addProperty(payload as any);
       }
       onClose();
     } catch (err: any) {
@@ -255,33 +274,39 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Precio
-            </label>
-            <div>
-              <input
-                type="number"
-                min="0"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100 font-semibold"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Moneda
             </label>
             <select
               value={formData.currency}
               onChange={(e) => setFormData({ ...formData, currency: e.target.value as any })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100 font-semibold"
             >
-              <option value="USD">USD ($)</option>
+              <option value="PEN">S/ (Soles)</option>
+              <option value="USD">USD</option>
               <option value="EUR">EUR (€)</option>
-              <option value="MXN">MXN ($)</option>
-              <option value="PEN">PEN (S/)</option>
+              <option value="MXN">MXN</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Precio / Monto
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-bold text-xs">
+                {formData.currency === 'PEN' ? 'S/' : formData.currency}
+              </div>
+              <input
+                type="text"
+                placeholder="Ej: 350,000"
+                value={formatNumberWithCommas(formData.price)}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9.]/g, '');
+                  setFormData({ ...formData, price: raw });
+                }}
+                className="w-full pl-10 pr-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100 font-bold"
+              />
+            </div>
           </div>
 
           <div>
@@ -291,8 +316,9 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
             <input
               type="number"
               step="0.5"
+              placeholder="5"
               value={formData.commissionPct}
-              onChange={(e) => setFormData({ ...formData, commissionPct: Number(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, commissionPct: e.target.value as any })}
               className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100"
             />
           </div>
@@ -307,8 +333,9 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
               </label>
               <input
                 type="number"
+                placeholder="Ej: 120"
                 value={formData.areaTotal}
-                onChange={(e) => setFormData({ ...formData, areaTotal: Number(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, areaTotal: e.target.value })}
                 className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
@@ -319,8 +346,9 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
               </label>
               <input
                 type="number"
+                placeholder="Ej: 100"
                 value={formData.areaBuilt}
-                onChange={(e) => setFormData({ ...formData, areaBuilt: Number(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, areaBuilt: e.target.value })}
                 className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
@@ -331,8 +359,9 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
               </label>
               <input
                 type="number"
+                placeholder="Ej: 3"
                 value={formData.bedrooms}
-                onChange={(e) => setFormData({ ...formData, bedrooms: Number(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
                 className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
@@ -344,8 +373,9 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
               <input
                 type="number"
                 step="0.5"
+                placeholder="Ej: 2"
                 value={formData.bathrooms}
-                onChange={(e) => setFormData({ ...formData, bathrooms: Number(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
                 className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
@@ -356,8 +386,9 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
               </label>
               <input
                 type="number"
+                placeholder="Ej: 1"
                 value={formData.parkingSpots}
-                onChange={(e) => setFormData({ ...formData, parkingSpots: Number(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, parkingSpots: e.target.value })}
                 className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
@@ -372,8 +403,9 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
               </label>
               <input
                 type="number"
+                placeholder="Ej: 200"
                 value={formData.areaTotal}
-                onChange={(e) => setFormData({ ...formData, areaTotal: Number(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, areaTotal: e.target.value })}
                 className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
