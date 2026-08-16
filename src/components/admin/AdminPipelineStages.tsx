@@ -94,76 +94,76 @@ export const AdminPipelineStages: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-full sm:min-w-[600px]">
+      <div className="max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+        <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
-              <th className="px-3 sm:px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 w-10 sm:w-16 text-center">Orden</th>
-              <th className="px-3 sm:px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 max-w-[120px] sm:max-w-none">Etapa</th>
-              <th className="px-3 sm:px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 w-16 sm:w-24">Estado</th>
-              <th className="px-3 sm:px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 text-right w-16 sm:w-20">Acciones</th>
+              <th className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 w-16 text-center">Orden</th>
+              <th className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">Etapa</th>
+              <th className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 w-28 text-center">Estado</th>
+              <th className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 w-24 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {sortedStages.map((stage, index) => (
               <tr key={stage.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                <td className="px-3 sm:px-4 py-2 w-10 sm:w-16">
-                  <div className="flex flex-col items-center gap-0.5">
+                <td className="px-4 py-2 text-center">
+                  <div className="flex items-center justify-center gap-1">
                     <button 
                       onClick={() => moveOrder(index, 'up')}
                       disabled={index === 0}
-                      className="text-slate-400 hover:text-[#2563eb] disabled:opacity-30 disabled:hover:text-slate-400"
+                      className="p-1 rounded text-slate-400 hover:text-[#004aad] hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-20 disabled:hover:bg-transparent"
+                      title="Mover arriba"
                     >
                       <ArrowUp className="w-3.5 h-3.5" />
                     </button>
                     <button 
                       onClick={() => moveOrder(index, 'down')}
                       disabled={index === sortedStages.length - 1}
-                      className="text-slate-400 hover:text-[#2563eb] disabled:opacity-30 disabled:hover:text-slate-400"
+                      className="p-1 rounded text-slate-400 hover:text-[#004aad] hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-20 disabled:hover:bg-transparent"
+                      title="Mover abajo"
                     >
                       <ArrowDown className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </td>
-                <td className="px-3 sm:px-4 py-2 max-w-[120px] sm:max-w-none">
-                  <div className="flex items-center gap-2">
+                <td className="px-4 py-2.5">
+                  <div className="flex items-center gap-2.5">
                     <div 
-                      className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-white"
+                      className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-white shadow-xs"
                       style={{ backgroundColor: stage.color }}
                     >
                       <Columns className="w-3.5 h-3.5" />
                     </div>
-                    <div className="min-w-0">
-                      <div className="font-semibold text-slate-900 dark:text-white text-xs truncate">
-                        {stage.name}
-                      </div>
-                    </div>
+                    <span className="font-bold text-slate-900 dark:text-white text-xs">
+                      {stage.name}
+                    </span>
                   </div>
                 </td>
-                <td className="px-3 sm:px-4 py-2 w-16 sm:w-24">
+                <td className="px-4 py-2 text-center">
                   {stage.visible ? (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
                       ACTIVA
                     </span>
                   ) : (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                       OCULTA
                     </span>
                   )}
                 </td>
-                <td className="px-3 sm:px-4 py-2 w-16 sm:w-20">
-                  <div className="flex items-center justify-end gap-1">
+                <td className="px-4 py-2 text-center">
+                  <div className="flex items-center justify-center gap-1.5">
                     <button
                       onClick={() => handleOpenEdit(stage)}
-                      className="p-1 text-[#2563eb] hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded transition-colors"
-                      title="Editar"
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors"
+                      title="Editar etapa"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDelete(stage.id)}
-                      className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded transition-colors"
-                      title="Eliminar"
+                      className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
+                      title="Eliminar etapa"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -173,7 +173,7 @@ export const AdminPipelineStages: React.FC = () => {
             ))}
             {pipelineStages.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                <td colSpan={4} className="px-6 py-8 text-center text-slate-500 text-xs">
                   No hay etapas registradas.
                 </td>
               </tr>
