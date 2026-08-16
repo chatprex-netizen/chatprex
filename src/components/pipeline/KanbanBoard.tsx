@@ -52,7 +52,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     <div className="flex gap-4 overflow-x-auto pb-6 pt-2 pr-6 snap-x snap-mandatory sm:snap-none">
       {pipelineStages.filter(s => s.visible && s.id !== 'ganado' && s.id !== 'perdido').sort((a, b) => a.order - b.order).map((column) => {
         const columnDeals = filteredDeals.filter((d) => d.stage === column.id);
-        const columnTotal = columnDeals.reduce((sum, d) => sum + (parseFloat(d.value as any) || 0), 0);
         const isDraggedOver = draggedOverStage === column.id;
         const stageId = column.id as DealStage;
 
@@ -69,18 +68,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           >
             {/* Column Header */}
             <div className="flex items-center justify-between mb-3 px-1">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">
-                    {column.name}
-                  </h3>
-                  <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                    {columnDeals.length}
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                  USD {columnTotal.toLocaleString()}
-                </p>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">
+                  {column.name}
+                </h3>
+                <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                  {columnDeals.length}
+                </span>
               </div>
 
               <button
