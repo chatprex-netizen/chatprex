@@ -48,8 +48,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       {/* Image Thumbnail & Badges */}
       <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
         <img
-          src={property.images[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80'}
-          alt={property.title}
+          src={(property.images && Array.isArray(property.images) && property.images[0]) || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80'}
+          alt={property.title || 'Propiedad'}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
           loading="lazy"
         />
@@ -57,12 +57,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Top Badges */}
         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
-          <Badge variant={property.status} size="sm">
-            {property.status.replace('_', ' ')}
+          <Badge variant={property.status || 'disponible'} size="sm">
+            {(property.status || 'disponible').replace('_', ' ')}
           </Badge>
 
           <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold capitalize bg-black/60 text-white backdrop-blur-xs border border-white/20">
-            {property.operation}
+            {property.operation || 'venta'}
           </span>
         </div>
 
@@ -82,37 +82,37 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           {/* Location */}
           <div className="flex items-center gap-1 text-[11px] text-slate-400 mb-0.5">
             <MapPin className="w-3 h-3 text-[#004aad] shrink-0" />
-            <span className="truncate">{[property.zone, property.city].filter(Boolean).join(', ')}</span>
+            <span className="truncate">{[property.zone, property.city].filter(Boolean).join(', ') || '-'}</span>
           </div>
 
           {/* Title */}
           <h3 className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-1 group-hover:text-[#004aad] transition-colors">
-            {property.title}
+            {property.title || 'Propiedad sin título'}
           </h3>
 
           {/* Key Metrics Icons */}
           <div className="grid grid-cols-4 gap-1.5 py-2 my-1.5 border-y border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs">
             <div className="flex items-center gap-1">
               <Bed className="w-3 h-3 text-slate-400" />
-              <span className="font-medium text-slate-800 dark:text-slate-200">{property.bedrooms}</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{property.bedrooms ?? 0}</span>
               <span className="text-[10px] text-slate-400">rec</span>
             </div>
 
             <div className="flex items-center gap-1">
               <Bath className="w-3 h-3 text-slate-400" />
-              <span className="font-medium text-slate-800 dark:text-slate-200">{property.bathrooms}</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{property.bathrooms ?? 0}</span>
               <span className="text-[10px] text-slate-400">bañ</span>
             </div>
 
             <div className="flex items-center gap-1">
               <Car className="w-3 h-3 text-slate-400" />
-              <span className="font-medium text-slate-800 dark:text-slate-200">{property.parkingSpots}</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{property.parkingSpots ?? 0}</span>
               <span className="text-[10px] text-slate-400">est</span>
             </div>
 
             <div className="flex items-center gap-1">
               <Maximize2 className="w-3 h-3 text-slate-400" />
-              <span className="font-medium text-slate-800 dark:text-slate-200">{property.areaTotal}</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{property.areaTotal ?? 0}</span>
               <span className="text-[10px] text-slate-400">m²</span>
             </div>
           </div>
@@ -123,13 +123,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <div className="flex items-center gap-1.5 overflow-hidden">
             {agent && (
               <>
-                <img 
-                  src={agent.avatar} 
-                  alt={agent.name} 
-                  className="w-5 h-5 rounded-full object-cover" 
-                />
+                {agent.avatar && (
+                  <img 
+                    src={agent.avatar} 
+                    alt={agent.name || 'Agente'} 
+                    className="w-5 h-5 rounded-full object-cover" 
+                  />
+                )}
                 <span className="text-[11px] text-slate-400 truncate max-w-[90px]">
-                  {agent.name.split(' ')[0]}
+                  {(agent.name || 'Agente').split(' ')[0]}
                 </span>
               </>
             )}

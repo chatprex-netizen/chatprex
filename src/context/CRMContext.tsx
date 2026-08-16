@@ -25,6 +25,7 @@ import {
   AIConfig
 } from '../types';
 import { apiClient } from '../lib/api-client';
+import { INITIAL_PROPERTIES } from '../data/initialData';
 
 export interface NotificationItem {
   id: string;
@@ -155,8 +156,8 @@ const CRMContext = createContext<CRMContextType | undefined>(undefined);
 const LOCAL_STORAGE_KEY_PREFIX = 'prexup_data_v3_';
 
 export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [propertiesTotal, setPropertiesTotal] = useState(0);
+  const [properties, setProperties] = useState<Property[]>(INITIAL_PROPERTIES);
+  const [propertiesTotal, setPropertiesTotal] = useState(INITIAL_PROPERTIES.length);
 
   const [deals, setDeals] = useState<Deal[]>([]);
   const [dealsTotal, setDealsTotal] = useState(0);
@@ -266,8 +267,10 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ]);
 
       if (propertiesData.status === 'fulfilled' && propertiesData.value?.data) {
-        setProperties(propertiesData.value.data);
-        setPropertiesTotal(propertiesData.value.total || propertiesData.value.data.length);
+        if (propertiesData.value.data.length > 0) {
+          setProperties(propertiesData.value.data);
+          setPropertiesTotal(propertiesData.value.total || propertiesData.value.data.length);
+        }
       }
       if (dealsData.status === 'fulfilled' && dealsData.value?.data) {
         setDeals(dealsData.value.data);
@@ -399,8 +402,17 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (search) query += `&search=${encodeURIComponent(search)}`;
       if (filters) query += filters;
       const res = await apiClient.get<PaginatedResponse<Property>>(`/properties${query}`);
-      setProperties(res.data || []);
-      setPropertiesTotal(res.total || 0);
+      if (res.data && res.data.length > 0) {
+        setProperties(res.data);
+        setPropertiesTotal(res.total || res.data.length);
+      } else if (!search && !filters && page === 1) {
+        // Fallback to initial data if DB empty
+        setProperties(prev => prev.length > 0 ? prev : INITIAL_PROPERTIES);
+        setPropertiesTotal(prev => prev > 0 ? prev : INITIAL_PROPERTIES.length);
+      } else {
+        setProperties(res.data || []);
+        setPropertiesTotal(res.total || 0);
+      }
     } catch(e) {}
   };
 

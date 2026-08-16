@@ -218,6 +218,21 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
       {/* Content Area */}
       {activeTab === 'projects' ? (
         <ProjectsList />
+      ) : filteredProperties.length === 0 ? (
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card p-12 text-center space-y-3">
+          <Building2 className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">No hay propiedades registradas</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            No se encontraron unidades o inmuebles con los filtros seleccionados. Puedes publicar un nuevo inmueble haciendo clic en el botón superior.
+          </p>
+          <button
+            onClick={onOpenNewPropertyModal}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#004aad] text-white text-xs font-medium hover:bg-[#003b8a] transition-all shadow-xs"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Publicar propiedad
+          </button>
+        </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {filteredProperties.map((prop) => (
@@ -252,26 +267,26 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
                     <td className="py-3 px-4 max-w-[200px]">
                       <div className="flex items-center gap-2.5">
                         <img
-                          src={prop.images[0]}
-                          alt={prop.title}
+                          src={(prop.images && Array.isArray(prop.images) && prop.images[0]) || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80'}
+                          alt={prop.title || 'Propiedad'}
                           className="w-9 h-9 rounded-lg object-cover shrink-0"
                         />
                         <span className="font-semibold text-slate-900 dark:text-white truncate">
-                          {prop.title}
+                          {prop.title || 'Sin título'}
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 capitalize">{prop.type.replace('_', ' ')}</td>
-                    <td className="py-3 px-4 capitalize">{prop.operation}</td>
+                    <td className="py-3 px-4 capitalize">{(prop.type || 'departamento').replace('_', ' ')}</td>
+                    <td className="py-3 px-4 capitalize">{prop.operation || 'venta'}</td>
                     <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">
                       {prop.currency || 'USD'} {(parseFloat(prop.price as any) || 0).toLocaleString()}
                     </td>
                     <td className="py-3 px-4 text-slate-400">
-                      {[prop.zone, prop.city].filter(Boolean).join(', ')}
+                      {[prop.zone, prop.city].filter(Boolean).join(', ') || '-'}
                     </td>
                     <td className="py-3 px-4">
-                      <Badge variant={prop.status} size="sm">
-                        {prop.status.replace('_', ' ')}
+                      <Badge variant={prop.status || 'disponible'} size="sm">
+                        {(prop.status || 'disponible').replace('_', ' ')}
                       </Badge>
                     </td>
                     <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>

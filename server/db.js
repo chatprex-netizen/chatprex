@@ -497,6 +497,99 @@ export async function initDb() {
       console.warn('⚠️ No se pudo crear/actualizar el usuario admin seed:', err.message);
     }
 
+    // Seed: Properties (si la tabla está vacía)
+    try {
+      const { rows: propCount } = await client.query('SELECT COUNT(*) as count FROM properties');
+      if (parseInt(propCount[0].count, 10) === 0) {
+        const seedProps = [
+          {
+            id: 'prop-1', code: 'INM-001', title: 'Penthouse de lujo con vista panorámica',
+            description: 'Exclusivo penthouse de doble altura con acabados en mármol italiano, terraza privada de 80m² con jacuzzi y domótica integral.',
+            type: 'penthouse', operation: 'venta', price: 680000, currency: 'USD',
+            area_total: 280, area_built: 200, bedrooms: 3, bathrooms: 4, parking_spots: 3,
+            address: 'Av. Las Palmas 1420, Piso 18', zone: 'Lomas Altas', city: 'Ciudad de México',
+            features: ['Jacuzzi privado', 'Seguridad 24/7', 'Ascensor directo', 'Gimnasio', 'Terraza'],
+            status: 'disponible',
+            images: [
+              'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&auto=format&fit=crop&q=80'
+            ],
+            agent_id: 'agent-admin', commission_pct: 4.5, featured: true
+          },
+          {
+            id: 'prop-2', code: 'INM-002', title: 'Residencia contemporánea con jardín y piscina',
+            description: 'Hermosa casa estilo minimalista rodeada de áreas verdes, cocina de concepto abierto con isla de cuarzo y paneles solares instalados.',
+            type: 'casa', operation: 'venta', price: 495000, currency: 'USD',
+            area_total: 420, area_built: 310, bedrooms: 4, bathrooms: 4.5, parking_spots: 4,
+            address: 'Calle Los Encinos 88, Condominio El Roble', zone: 'San Jerónimo', city: 'Monterrey',
+            features: ['Piscina', 'Jardín amplio', 'Paneles solares', 'Cuarto de servicio'],
+            status: 'en_negociacion',
+            images: [
+              'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&auto=format&fit=crop&q=80'
+            ],
+            agent_id: 'agent-admin', commission_pct: 5.0, featured: true
+          },
+          {
+            id: 'prop-3', code: 'INM-003', title: 'Departamento moderno en distrito financiero',
+            description: 'Ideal para ejecutivos o inversionistas. Departamento completamente amoblado con amenidades premium.',
+            type: 'departamento', operation: 'alquiler', price: 2400, currency: 'USD',
+            area_total: 95, area_built: 95, bedrooms: 2, bathrooms: 2, parking_spots: 1,
+            address: 'Paseo de la Reforma 505, Torre Aura', zone: 'Cuauhtémoc', city: 'Ciudad de México',
+            features: ['Amoblado', 'Co-working', 'Sky lounge', 'Alberca climatizada'],
+            status: 'disponible',
+            images: [
+              'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80'
+            ],
+            agent_id: 'agent-admin', commission_pct: 4.0, featured: false
+          },
+          {
+            id: 'prop-4', code: 'INM-004', title: 'Preventa exclusiva: Torre Vanguardia Sky',
+            description: 'Proyecto arquitectónico de alta plusvalía. Departamentos de 1, 2 y 3 recámaras.',
+            type: 'departamento', operation: 'venta', price: 215000, currency: 'USD',
+            area_total: 110, area_built: 110, bedrooms: 2, bathrooms: 2, parking_spots: 2,
+            address: 'Av. Providencia 2300', zone: 'Providencia', city: 'Guadalajara',
+            features: ['Preventa', 'Plusvalía garantizada', 'Rooftop bar'],
+            status: 'disponible',
+            images: [
+              'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=80'
+            ],
+            agent_id: 'agent-admin', commission_pct: 4.0, featured: true
+          },
+          {
+            id: 'prop-5', code: 'INM-005', title: 'Terreno comercial estratégico en esquina',
+            description: 'Excelente terreno con uso de suelo comercial mixto, alto flujo vehicular.',
+            type: 'terreno', operation: 'venta', price: 750000, currency: 'USD',
+            area_total: 1200, area_built: 0, bedrooms: 0, bathrooms: 0, parking_spots: 0,
+            address: 'Blvd. Aeropuerto Km 4.5', zone: 'Zona Industrial Norte', city: 'Querétaro',
+            features: ['Uso mixto', 'Factibilidad de servicios'],
+            status: 'disponible',
+            images: [
+              'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80'
+            ],
+            agent_id: 'agent-admin', commission_pct: 5.0, featured: false
+          }
+        ];
+
+        for (const p of seedProps) {
+          await client.query(`
+            INSERT INTO properties (id, code, title, description, type, operation, price, currency,
+              area_total, area_built, bedrooms, bathrooms, parking_spots, address, zone, city,
+              features, status, images, agent_id, commission_pct, featured)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            p.id, p.code, p.title, p.description, p.type, p.operation, p.price, p.currency,
+            p.area_total, p.area_built, p.bedrooms, p.bathrooms, p.parking_spots, p.address, p.zone, p.city,
+            p.features, p.status, p.images, p.agent_id, p.commission_pct, p.featured
+          ]);
+        }
+        console.log('🌱 Seed: Propiedades iniciales insertadas en PostgreSQL.');
+      }
+    } catch (err) {
+      console.warn('⚠️ No se pudo inicializar seed de propiedades:', err.message);
+    }
+
     client.release();
     console.log('📦 Todas las tablas CRM creadas/verificadas exitosamente.\n');
   } catch (err) {
