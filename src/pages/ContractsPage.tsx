@@ -25,6 +25,7 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
     searchQuery, 
     setSearchQuery,
     properties
+  } = useCRM();
 
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
