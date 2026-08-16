@@ -24,6 +24,7 @@ export const Layout: React.FC<LayoutProps> = ({
   children,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans transition-colors">
@@ -33,10 +34,12 @@ export const Layout: React.FC<LayoutProps> = ({
         onNavigate={onNavigate}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
 
       {/* Main Content Area */}
-      <div className="lg:pl-72 flex flex-col flex-1 pb-20 lg:pb-8">
+      <div className={`flex flex-col flex-1 pb-20 lg:pb-8 transition-all duration-300 ${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
         <Header
           currentPage={currentPage}
           onOpenMobileMenu={() => setIsSidebarOpen(true)}
