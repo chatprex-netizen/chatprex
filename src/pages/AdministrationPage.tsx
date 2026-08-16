@@ -7,19 +7,20 @@ import {
   Share2,
   Globe,
   Settings,
-  BrainCircuit,
-  Bot
+  BrainCircuit
 } from 'lucide-react';
 import { AdminCompanySettings } from '../components/admin/AdminCompanySettings';
 import { AdminUsers } from '../components/admin/AdminUsers';
 import { AdminProjects } from '../components/admin/AdminProjects';
 import { AdminPipelineStages } from '../components/admin/AdminPipelineStages';
 import { AdminLeadChannels } from '../components/admin/AdminLeadChannels';
+import { useCRM } from '../context/CRMContext';
 import { AdminBranding } from '../components/admin/AdminBranding';
 
 type AdminTab = 'central' | 'users' | 'projects' | 'pipeline' | 'channels' | 'ai-models' | 'web' | 'branding';
 
 export const AdministrationPage: React.FC = () => {
+  const { aiConfig, updateAIConfig, addNotification } = useCRM();
   const [activeTab, setActiveTab] = useState<AdminTab>('central');
 
   return (
@@ -175,18 +176,29 @@ export const AdministrationPage: React.FC = () => {
               </div>
 
               {/* DeepSeek Card */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-4 opacity-75 hover:opacity-100 transition-opacity">
+              <div className={`bg-slate-50 dark:bg-slate-800/50 border ${aiConfig.provider === 'deepseek' ? 'border-[#004aad]' : 'border-slate-200 dark:border-slate-700'} rounded-xl p-4 space-y-4 transition-all cursor-pointer`}
+                   onClick={() => updateAIConfig({ provider: 'deepseek' })}>
                 <div className="flex items-center justify-between">
                   <div className="font-bold text-slate-900 dark:text-white text-sm">DeepSeek</div>
-                  <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                  <div className={`w-2 h-2 rounded-full ${aiConfig.provider === 'deepseek' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                   <label className="block text-[10px] font-semibold text-slate-500 uppercase">API Key</label>
-                  <input type="password" placeholder="sk-..." className="w-full text-xs p-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" />
+                  <input 
+                    type="password" 
+                    placeholder="sk-..." 
+                    value={aiConfig.apiKey}
+                    onChange={(e) => updateAIConfig({ apiKey: e.target.value })}
+                    className="w-full text-xs p-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" 
+                  />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                   <label className="block text-[10px] font-semibold text-slate-500 uppercase">Modelo a usar</label>
-                  <select className="w-full text-xs p-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                  <select 
+                    value={aiConfig.model}
+                    onChange={(e) => updateAIConfig({ model: e.target.value })}
+                    className="w-full text-xs p-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                  >
                     <option value="deepseek-coder">Pro (Coder)</option>
                     <option value="deepseek-chat">Básico (Chat)</option>
                   </select>
@@ -214,7 +226,10 @@ export const AdministrationPage: React.FC = () => {
               </div>
             </div>
             <div className="flex justify-end pt-2">
-              <button className="px-4 py-2 bg-[#004aad] hover:bg-[#003b8a] text-white text-xs font-bold rounded-lg shadow-sm">
+              <button 
+                onClick={() => addNotification('Configuración Guardada', 'La configuración del modelo de IA ha sido actualizada.', 'success')}
+                className="px-4 py-2 bg-[#004aad] hover:bg-[#003b8a] text-white text-xs font-bold rounded-lg shadow-sm"
+              >
                 Guardar Configuración IA
               </button>
             </div>

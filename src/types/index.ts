@@ -25,6 +25,12 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
+export interface AIConfig {
+  provider: 'openai' | 'deepseek' | 'groq';
+  apiKey: string;
+  model: string;
+}
+
 export type PropertyType = 
   | 'departamento' 
   | 'casa' 

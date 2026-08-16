@@ -10,9 +10,10 @@ import {
   LineChart
 } from 'lucide-react';
 import { Badge } from '../components/common/Badge';
+import { generateCopy } from '../lib/aiService';
 
 export const AICopilotPage: React.FC = () => {
-  const { properties } = useCRM();
+  const { properties, aiConfig, addNotification } = useCRM();
 
   const [activeTab, setActiveTab] = useState<'copywriter' | 'matching' | 'objections' | 'predictive'>('predictive');
 
@@ -26,60 +27,44 @@ export const AICopilotPage: React.FC = () => {
   const selectedProperty = properties.find((p) => p.id === selectedPropertyId);
 
   // Generador de copy inteligente
-  const handleGenerateCopy = () => {
+  const handleGenerateCopy = async () => {
     if (!selectedProperty) return;
     setIsGenerating(true);
     setGeneratedText('');
 
-    setTimeout(() => {
-      let copy = '';
+    try {
       const priceFormatted = `$${selectedProperty.price.toLocaleString()} ${selectedProperty.currency}`;
+      
+      const prompt = `Eres un experto copywriter inmobiliario. Por favor, genera un texto persuasivo para promocionar la siguiente propiedad en la plataforma: ${platform}.
+      
+Detalles de la propiedad:
+- Título: ${selectedProperty.title}
+- Ubicación: ${selectedProperty.zone}, ${selectedProperty.city}
+- Precio: ${priceFormatted}
+- Área Total: ${selectedProperty.areaTotal} m²
+- Área Construida: ${selectedProperty.areaBuilt} m²
+- Habitaciones: ${selectedProperty.bedrooms}
+- Baños: ${selectedProperty.bathrooms}
+- Estacionamientos: ${selectedProperty.parkingSpots}
+- Amenidades: ${selectedProperty.features.join(', ')}
+- Descripción original: ${selectedProperty.description}
 
-      if (platform === 'portal') {
-        copy = `${selectedProperty.title} en ${selectedProperty.zone}\n\n` +
-          `Descubre esta magnífica oportunidad inmobiliaria en la cotizada zona de ${selectedProperty.zone}, ${selectedProperty.city}.\n\n` +
-          `Características principales:\n` +
-          `• Superficie: ${selectedProperty.areaTotal} m² totales (${selectedProperty.areaBuilt} m² construidos)\n` +
-          `• Habitaciones: ${selectedProperty.bedrooms} amplias recámaras con excelente iluminación natural\n` +
-          `• Baños: ${selectedProperty.bathrooms} baños completos\n` +
-          `• Estacionamiento: ${selectedProperty.parkingSpots} cocheras privadas\n\n` +
-          `Amenidades:\n` +
-          selectedProperty.features.map(f => `• ${f}`).join('\n') + '\n\n' +
-          `Precio: ${priceFormatted}\n\n` +
-          `Descripción: ${selectedProperty.description}\n\n` +
-          `Agenda tu visita privada hoy mismo.`;
-      } else if (platform === 'instagram') {
-        copy = `Nuevo ingreso exclusivo en ${selectedProperty.zone}\n\n` +
-          `${selectedProperty.title} (${selectedProperty.city})\n\n` +
-          `Una propiedad diseñada para quienes buscan confort, seguridad y alta plusvalía.\n\n` +
-          `• ${selectedProperty.bedrooms} recámaras | ${selectedProperty.bathrooms} baños | ${selectedProperty.parkingSpots} autos | ${selectedProperty.areaTotal} m²\n\n` +
-          `Amenidades: ${selectedProperty.features.slice(0, 4).join(', ')}\n\n` +
-          `Precio: ${priceFormatted}\n\n` +
-          `Escríbenos un mensaje para enviarte el brochure y planos.\n\n` +
-          `#BienesRaices #Inmobiliaria #RealEstate #${selectedProperty.zone.replace(/\s+/g, '')}`;
-      } else if (platform === 'whatsapp') {
-        copy = `Hola! Te comparto los detalles de esta opción disponible en ${selectedProperty.zone}:\n\n` +
-          `🏡 *${selectedProperty.title}*\n` +
-          `💵 *Precio:* ${priceFormatted}\n` +
-          `📐 *Metraje:* ${selectedProperty.areaTotal} m² (${selectedProperty.bedrooms} recámaras / ${selectedProperty.bathrooms} baños)\n` +
-          `🌟 *Amenidades:* ${selectedProperty.features.slice(0, 3).join(' • ')}\n\n` +
-          `¿Te gustaría coordinar una visita para esta semana?`;
-      } else {
-        copy = `Asunto: Presentación de oportunidad inmobiliaria - ${selectedProperty.title}\n\n` +
-          `Estimado/a,\n\n` +
-          `Es un gusto saludarle. Queremos presentarle una propiedad destacada en nuestro catálogo ubicada en ${selectedProperty.zone}.\n\n` +
-          `Resumen del inmueble:\n` +
-          `- Propiedad: ${selectedProperty.title} (${selectedProperty.code})\n` +
-          `- Valor: ${priceFormatted}\n` +
-          `- Área: ${selectedProperty.areaTotal} m²\n` +
-          `- Distribución: ${selectedProperty.bedrooms} recámaras, ${selectedProperty.bathrooms} baños, ${selectedProperty.parkingSpots} estacionamientos.\n\n` +
-          `Quedamos a su disposición para coordinar una reunión o visita.\n\n` +
-          `Atentamente,\nEquipo comercial`;
-      }
+Instrucciones:
+1. Adapta el tono y longitud a la plataforma seleccionada (${platform}).
+2. Si es Instagram, incluye emojis y hashtags relevantes al final.
+3. Si es WhatsApp, que sea un mensaje conversacional, corto y directo, con emojis.
+4. Si es Email, formato profesional con asunto.
+5. Si es Portal Inmobiliario, detallado y persuasivo destacando los beneficios.
+6. Devuelve únicamente el texto generado, sin comentarios adicionales.`;
 
-      setGeneratedText(copy);
+      const aiText = await generateCopy(prompt, aiConfig);
+      setGeneratedText(aiText);
+    } catch (error: any) {
+      console.error(error);
+      addNotification('Error al generar copy', error.message || 'Error desconocido', 'warning');
+    } finally {
       setIsGenerating(false);
-    }, 400);
+    }
   };
 
   const handleCopy = () => {

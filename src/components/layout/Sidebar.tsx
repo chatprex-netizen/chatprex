@@ -85,6 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       isCollapsible: false,
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'ai-copilot', label: 'Copiloto IA', icon: Sparkles, highlight: true },
         { 
           id: 'messages', 
           label: 'Mensajes', 
@@ -112,7 +113,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'ai-assistants', label: 'Asistentes IA', icon: Bot, highlight: true },
         { id: 'campaigns', label: 'Campañas', icon: Megaphone },
-        { id: 'ai-copilot', label: 'Copiloto IA', icon: Sparkles, highlight: true },
       ]
     },
     {

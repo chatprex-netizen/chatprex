@@ -21,7 +21,8 @@ import {
   Project,
   PropertyStatus,
   PaginatedResponse,
-  AppBranding
+  AppBranding,
+  AIConfig
 } from '../types';
 import { apiClient } from '../lib/api-client';
 
@@ -61,6 +62,8 @@ interface CRMContextType {
   isLoading: boolean;
   appBranding: AppBranding;
   updateBranding: (branding: Partial<AppBranding>) => void;
+  aiConfig: AIConfig;
+  updateAIConfig: (config: Partial<AIConfig>) => void;
   
   // Acciones de Etapas, Canales y Proyectos
   addPipelineStage: (stage: Omit<PipelineStageConfig, 'id'>) => Promise<void>;
@@ -206,6 +209,23 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAppBranding((prev) => {
       const updated = { ...prev, ...branding };
       localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'appBranding', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const [aiConfig, setAiConfig] = useState<AIConfig>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'aiConfig');
+    return saved ? JSON.parse(saved) : {
+      provider: 'deepseek',
+      apiKey: 'sk-31e59cacf030463c83f93e1dab497a7a',
+      model: 'deepseek-chat',
+    };
+  });
+
+  const updateAIConfig = (config: Partial<AIConfig>) => {
+    setAiConfig((prev) => {
+      const updated = { ...prev, ...config };
+      localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'aiConfig', JSON.stringify(updated));
       return updated;
     });
   };
@@ -1100,7 +1120,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       login,
       logout,
       appBranding,
-      updateBranding
+      updateBranding,
+      aiConfig,
+      updateAIConfig
     }}>
       {children}
     </CRMContext.Provider>
