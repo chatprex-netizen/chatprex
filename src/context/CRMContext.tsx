@@ -82,7 +82,7 @@ interface CRMContextType {
   deleteAgent: (id: string) => Promise<void>;
   
   // Paginación y Filtrado
-  fetchProperties: (page?: number, search?: string) => Promise<void>;
+  fetchProperties: (page?: number, search?: string, filters?: string) => Promise<void>;
   fetchContacts: (page?: number, search?: string) => Promise<void>;
   fetchDeals: (page?: number, search?: string, kanban?: boolean) => Promise<void>;
   fetchTasks: (startDate?: string, endDate?: string) => Promise<void>;
@@ -393,9 +393,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     fetchAllData();
   }, []);
 
-  const fetchProperties = async (page = 1, search = '') => {
+  const fetchProperties = async (page = 1, search = '', filters = '') => {
     try {
-      const res = await apiClient.get<PaginatedResponse<Property>>(`/properties?page=${page}&limit=12&search=${encodeURIComponent(search)}`);
+      const res = await apiClient.get<PaginatedResponse<Property>>(`/properties?page=${page}&limit=12&search=${encodeURIComponent(search)}${filters}`);
       setProperties(res.data || []);
       setPropertiesTotal(res.total || 0);
     } catch(e) {}

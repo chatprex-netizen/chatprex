@@ -37,7 +37,7 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
 
   // Fetch from API
   React.useEffect(() => {
-    fetchProperties(page, searchQuery + (selectedType !== 'all' ? `&type=${selectedType}` : '') + (selectedOperation !== 'all' ? `&operation=${selectedOperation}` : '') + (selectedStatus !== 'all' ? `&status=${selectedStatus}` : ''));
+    fetchProperties(page, searchQuery, (selectedType !== 'all' ? `&type=${selectedType}` : '') + (selectedOperation !== 'all' ? `&operation=${selectedOperation}` : '') + (selectedStatus !== 'all' ? `&status=${selectedStatus}` : ''));
   }, [page, searchQuery, selectedType, selectedOperation, selectedStatus]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
