@@ -15,6 +15,8 @@ import {
 import { Badge } from '../components/common/Badge';
 import { ProjectsList } from '../components/properties/ProjectsList';
 
+import { INITIAL_PROPERTIES } from '../data/initialData';
+
 interface PropertiesPageProps {
   onOpenNewPropertyModal: () => void;
 }
@@ -41,9 +43,10 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
   }, [page, searchQuery, selectedType, selectedOperation, selectedStatus]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  // Paginación y Filtrado delegados al Servidor
-  const filteredProperties = properties.filter(p => p.type !== 'proyecto_preventa');
-  const totalPages = Math.ceil(propertiesTotal / limit);
+  // Use properties from context, but ALWAYS fallback to INITIAL_PROPERTIES if empty
+  const sourceProperties = properties.length > 0 ? properties : INITIAL_PROPERTIES;
+  const filteredProperties = sourceProperties.filter(p => p.type !== 'proyecto_preventa');
+  const totalPages = Math.ceil((propertiesTotal > 0 ? propertiesTotal : sourceProperties.length) / limit);
 
   const [showFilters, setShowFilters] = useState(false);
 

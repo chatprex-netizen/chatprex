@@ -402,18 +402,20 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (search) query += `&search=${encodeURIComponent(search)}`;
       if (filters) query += filters;
       const res = await apiClient.get<PaginatedResponse<Property>>(`/properties${query}`);
+      // Only update if API returned actual data — never wipe to empty
       if (res.data && res.data.length > 0) {
         setProperties(res.data);
         setPropertiesTotal(res.total || res.data.length);
-      } else if (!search && !filters && page === 1) {
-        // Fallback to initial data if DB empty
-        setProperties(prev => prev.length > 0 ? prev : INITIAL_PROPERTIES);
-        setPropertiesTotal(prev => prev > 0 ? prev : INITIAL_PROPERTIES.length);
-      } else {
-        setProperties(res.data || []);
-        setPropertiesTotal(res.total || 0);
       }
-    } catch(e) {}
+      // If API returned empty and user has active search/filters, still show empty for that search
+      else if (search || filters) {
+        setProperties([]);
+        setPropertiesTotal(0);
+      }
+      // Otherwise (no search, no filters, DB empty) — keep existing data
+    } catch(e) {
+      // On API error, keep existing data
+    }
   };
 
   const fetchContacts = async (page = 1, search = '') => {
