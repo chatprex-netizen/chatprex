@@ -287,7 +287,7 @@ router.get('/api/crm/contacts/:id', async (req, res) => {
 router.post('/api/crm/contacts', validateData(contactSchema), async (req, res) => {
   try {
     const { id, name, email, phone, type, channel, budgetMin, budgetMax, budget, currency, pipelineStage,
-      interestedProperty, preferredZones, preferredTypes, leadScore, notes, assignedAgentId,
+      interestedProperty, preferredZones, preferredTypes, leadScore, leadTemperature, scoreCriteria, notes, assignedAgentId,
       nextFollowUpDate, statusFollowUp, avatar } = req.body;
 
     const contactId = id || `cont-${Date.now()}`;
@@ -296,9 +296,9 @@ router.post('/api/crm/contacts', validateData(contactSchema), async (req, res) =
 
     await query(`
       INSERT INTO contacts (id, name, email, phone, type, channel, budget_min, budget_max, budget, currency,
-        pipeline_stage, interested_property, preferred_zones, preferred_types, lead_score, notes,
+        pipeline_stage, interested_property, preferred_zones, preferred_types, lead_score, lead_temperature, score_criteria, notes,
         assigned_agent_id, last_contact_date, next_follow_up_date, status_follow_up, avatar)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,NOW(),$18,$19,$20)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,NOW(),$20,$21,$22)
       ON CONFLICT (id) DO UPDATE SET
         name = EXCLUDED.name,
         email = EXCLUDED.email,
@@ -306,7 +306,8 @@ router.post('/api/crm/contacts', validateData(contactSchema), async (req, res) =
     `, [contactId, contactName, email || null, contactPhone, type || 'comprador', channel || 'whatsapp',
       budgetMin || 0, budgetMax || 0, budget || 0, currency || 'USD',
       pipelineStage || 'nuevo_prospecto', interestedProperty || '', preferredZones || [], preferredTypes || [],
-      leadScore || 0, notes || '', assignedAgentId || null, nextFollowUpDate || null, statusFollowUp || 'al_dia', avatar || '']);
+      leadScore || 0, leadTemperature || 'frio', typeof scoreCriteria === 'object' ? JSON.stringify(scoreCriteria) : (scoreCriteria || '{}'),
+      notes || '', assignedAgentId || null, nextFollowUpDate || null, statusFollowUp || 'al_dia', avatar || '']);
 
     res.status(201).json({ id: contactId, message: 'Contacto creado' });
   } catch (err) {

@@ -10,6 +10,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { useCRM } from '../../context/CRMContext';
+import { evaluateScoreCriteria, TEMPERATURE_CONFIG } from '../../lib/leadScoring';
 
 interface DealCardProps {
   deal: Deal;
@@ -92,14 +93,26 @@ export const DealCard: React.FC<DealCardProps> = ({
       onClick={() => onEdit(deal)}
       className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card hover:shadow-card-hover transition-all duration-150 cursor-grab active:cursor-grabbing group space-y-2"
     >
-      {/* Header: Title & Priority */}
+      {/* Header: Title & Priority & Temperature Score */}
       <div className="flex items-start justify-between gap-1.5">
         <h4 className="font-semibold text-xs text-slate-900 dark:text-white line-clamp-2 group-hover:text-[#004aad] transition-colors">
           {deal.title}
         </h4>
-        <Badge variant={deal.priority} size="sm">
-          {deal.priority}
-        </Badge>
+        <div className="flex items-center gap-1 shrink-0">
+          {contact && (() => {
+            const evalData = evaluateScoreCriteria(contact);
+            const temp = contact.leadTemperature || evalData.temperature;
+            const tempConfig = TEMPERATURE_CONFIG[temp];
+            return (
+              <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${tempConfig.bgLight} ${tempConfig.color} ${tempConfig.border}`} title={`Score: ${evalData.score} pts (${tempConfig.label})`}>
+                {tempConfig.emoji} {evalData.score}
+              </span>
+            );
+          })()}
+          <Badge variant={deal.priority} size="sm">
+            {deal.priority}
+          </Badge>
+        </div>
       </div>
 
       {/* Proyecto de Interés o Inmueble */}

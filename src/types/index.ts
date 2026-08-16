@@ -134,6 +134,18 @@ export interface LeadChannelConfig {
   visible: boolean;
 }
 
+export type LeadTemperature = 'frio' | 'interesado' | 'calificado' | 'caliente' | 'muy_caliente';
+
+export interface LeadScoreCriteria {
+  budgetCompatible: boolean;   // +20 Presupuesto compatible
+  paymentCapacity: boolean;    // +15 Tiene capacidad de pago / precalificado
+  needDefined: boolean;        // +15 Necesidad definida
+  urgencyUnder30Days: boolean; // +20 Quiere comprar en menos de 30 días
+  hasInteracted: boolean;      // +10 Respondió al asesor
+  hasVisited: boolean;         // +15 Visitó el proyecto
+  hasSelectedProperty: boolean;// +5 Eligió un inmueble/lote específico
+}
+
 export interface Contact {
   id: string;
   name: string;
@@ -151,6 +163,8 @@ export interface Contact {
   preferredZones: string[];
   preferredTypes: PropertyType[];
   leadScore: number; // 0 - 100
+  leadTemperature?: LeadTemperature;
+  scoreCriteria?: Partial<LeadScoreCriteria>;
   notes: string;
   assignedAgentId: string;
   lastContactDate: string;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCRM } from '../context/CRMContext';
-import { Contact } from '../types';
+import { Contact, LeadTemperature } from '../types';
 import { ContactModal } from '../components/contacts/ContactModal';
 import { LeadFollowUpModal } from '../components/contacts/LeadFollowUpModal';
 import { Badge } from '../components/common/Badge';
@@ -22,9 +22,11 @@ import {
   Building, 
   User,
   X,
-  Download
+  Download,
+  Flame,
+  Target
 } from 'lucide-react';
-
+import { evaluateScoreCriteria, TEMPERATURE_CONFIG, getTemperatureFromScore } from '../lib/leadScoring';
 import { exportToCSV } from '../lib/exportUtils';
 
 interface ContactsPageProps {
@@ -54,7 +56,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
 
   // Estados de vista y orden
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'score-desc' | 'recent'>('name-asc');
+  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'score-desc' | 'recent'>('score-desc');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // Filtros
@@ -63,6 +65,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
   const [selectedStatusFollowUp, setSelectedStatusFollowUp] = useState<string>('all');
   const [selectedAgent, setSelectedAgent] = useState<string>('all');
   const [selectedBudgetRange, setSelectedBudgetRange] = useState<string>('all');
+  const [selectedTemperature, setSelectedTemperature] = useState<string>('all');
 
   // Modales
   const [contactToEdit, setContactToEdit] = useState<Contact | null>(null);
@@ -83,7 +86,8 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
     selectedStatusFollowUp !== 'all',
     selectedAgent !== 'all',
     selectedBudgetRange !== 'all',
-    sortBy !== 'name-asc',
+    selectedTemperature !== 'all',
+    sortBy !== 'score-desc',
     searchQuery !== ''
   ].filter(Boolean).length;
 
@@ -93,14 +97,15 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
     setSelectedStatusFollowUp('all');
     setSelectedAgent('all');
     setSelectedBudgetRange('all');
-    setSortBy('name-asc');
+    setSelectedTemperature('all');
+    setSortBy('score-desc');
     setSearchQuery('');
   };
 
   // Paginación delegada
   const totalPages = Math.ceil(contactsTotal / limit);
 
-  // Filtrado y ordenamiento local (restante)
+  // Filtrado y ordenamiento local
   const filteredContacts = contacts
     .filter((c) => {
       const matchesSearch = true; // Ya lo maneja la API
@@ -110,25 +115,32 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
       const matchesStatusFollowUp = selectedStatusFollowUp === 'all' || c.statusFollowUp === selectedStatusFollowUp;
       const matchesAgent = selectedAgent === 'all' || c.assignedAgentId === selectedAgent;
 
+      const evalData = evaluateScoreCriteria(c);
+      const contactTemp = c.leadTemperature || evalData.temperature;
+      const matchesTemperature = selectedTemperature === 'all' || contactTemp === selectedTemperature;
+
       const matchesBudget = selectedBudgetRange === 'all' ? true :
         selectedBudgetRange === 'under-300k' ? (c.budgetMax ? c.budgetMax < 300000 : true) :
         selectedBudgetRange === '300k-500k' ? (c.budgetMin && c.budgetMax ? c.budgetMin >= 300000 && c.budgetMax <= 500000 : true) :
         (c.budgetMax ? c.budgetMax > 500000 : true);
 
-      return matchesSearch && matchesType && matchesChannel && matchesStatusFollowUp && matchesAgent && matchesBudget;
+      return matchesSearch && matchesType && matchesChannel && matchesStatusFollowUp && matchesAgent && matchesBudget && matchesTemperature;
     })
     .sort((a, b) => {
       const nameA = a.name || '';
       const nameB = b.name || '';
       
+      const scoreA = typeof a.leadScore === 'number' && a.leadScore > 0 ? a.leadScore : evaluateScoreCriteria(a).score;
+      const scoreB = typeof b.leadScore === 'number' && b.leadScore > 0 ? b.leadScore : evaluateScoreCriteria(b).score;
+
+      if (sortBy === 'score-desc') {
+        return scoreB - scoreA;
+      }
       if (sortBy === 'name-asc') {
         return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
       }
       if (sortBy === 'name-desc') {
         return nameB.localeCompare(nameA, 'es', { sensitivity: 'base' });
-      }
-      if (sortBy === 'score-desc') {
-        return (b.leadScore || 0) - (a.leadScore || 0);
       }
       return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
     });
@@ -431,6 +443,34 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
         )}
       </div>
 
+      {/* Quick Temperature Filter Bar */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <span className="text-[11px] font-bold text-slate-500 shrink-0 mr-1 flex items-center gap-1">
+          <Target className="w-3.5 h-3.5 text-[#004aad]" />
+          <span>Temperatura:</span>
+        </span>
+        {[
+          { id: 'all', label: 'Todos' },
+          { id: 'muy_caliente', label: '🔥 Cierre (81-100)' },
+          { id: 'caliente', label: '🔴 Caliente (61-80)' },
+          { id: 'calificado', label: '🟠 Calificado (41-60)' },
+          { id: 'interesado', label: '🟡 Interesado (21-40)' },
+          { id: 'frio', label: '🔵 Frío (0-20)' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setSelectedTemperature(tab.id)}
+            className={`px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap transition-all ${
+              selectedTemperature === tab.id
+                ? 'bg-[#004aad] text-white shadow-xs'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {/* VIEW 1: Cards Grid (2 Columns in Mobile, 4 Columns in PC) */}
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3">
@@ -444,6 +484,10 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
           ) : (
             filteredContacts.map((contact) => {
               const agent = agents.find((a) => a.id === contact.assignedAgentId);
+              const evalData = evaluateScoreCriteria(contact);
+              const score = typeof contact.leadScore === 'number' && contact.leadScore > 0 ? contact.leadScore : evalData.score;
+              const temp = contact.leadTemperature || evalData.temperature;
+              const tempConfig = TEMPERATURE_CONFIG[temp];
 
               return (
                 <div
@@ -473,8 +517,9 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                       </div>
 
                       <div className="text-right shrink-0">
-                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                          {contact.leadScore} pts
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${tempConfig.bgLight} ${tempConfig.color} ${tempConfig.border}`}>
+                          <span>{tempConfig.emoji}</span>
+                          <span>{score} pts</span>
                         </span>
                       </div>
                     </div>
@@ -484,6 +529,9 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                       <Badge variant="blue" size="sm">
                         {contact.type}
                       </Badge>
+                      <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded ${tempConfig.bgLight} ${tempConfig.color}`}>
+                        {tempConfig.label}
+                      </span>
                       {contact.statusFollowUp === 'urgente' && (
                         <span className="px-1.5 py-0.2 text-[9px] font-semibold rounded bg-rose-50 text-rose-600 border border-rose-200">
                           Urgente
@@ -498,10 +546,10 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                         <span className="truncate">{contact.phone}</span>
                       </div>
 
-                      {(contact.budget !== undefined && contact.budget !== null) && (
+                      {(contact.budget !== undefined && contact.budget !== null && contact.budget > 0) && (
                         <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium truncate">
                           <span className="truncate">
-                            {contact.currency || 'USD'} {(parseFloat(contact.budget as any) || 0).toLocaleString()}
+                            {contact.currency === 'PEN' ? 'S/' : (contact.currency || 'S/')} {(parseFloat(contact.budget as any) || 0).toLocaleString('en-US')}
                           </span>
                         </div>
                       )}
@@ -582,8 +630,8 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                 <th className="py-2.5 px-3">Cliente / Contacto</th>
                 <th className="py-2.5 px-3">Teléfono & Canal</th>
                 <th className="py-2.5 px-3">Tipo</th>
-                <th className="py-2.5 px-3">Presupuesto & Zonas</th>
-                <th className="py-2.5 px-3">Lead Score</th>
+                <th className="py-2.5 px-3">Presupuesto & Proyecto</th>
+                <th className="py-2.5 px-3">Score & Temperatura</th>
                 <th className="py-2.5 px-3">Asesor</th>
                 <th className="py-2.5 px-3 text-right">Acciones</th>
               </tr>
@@ -598,6 +646,10 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
               ) : (
                 filteredContacts.map((contact) => {
                   const agent = agents.find((a) => a.id === contact.assignedAgentId);
+                  const evalData = evaluateScoreCriteria(contact);
+                  const score = typeof contact.leadScore === 'number' && contact.leadScore > 0 ? contact.leadScore : evalData.score;
+                  const temp = contact.leadTemperature || evalData.temperature;
+                  const tempConfig = TEMPERATURE_CONFIG[temp];
 
                   return (
                     <tr 
@@ -641,11 +693,11 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                         </Badge>
                       </td>
 
-                      {/* Presupuesto */}
+                      {/* Presupuesto & Proyecto */}
                       <td className="py-2.5 px-3">
-                        {contact.budget !== undefined && contact.budget !== null ? (
+                        {contact.budget !== undefined && contact.budget !== null && contact.budget > 0 ? (
                           <div className="font-medium text-emerald-600 dark:text-emerald-400">
-                            {contact.currency || 'USD'} {(parseFloat(contact.budget as any) || 0).toLocaleString()}
+                            {contact.currency === 'PEN' ? 'S/' : (contact.currency || 'S/')} {(parseFloat(contact.budget as any) || 0).toLocaleString('en-US')}
                           </div>
                         ) : (
                           <span className="text-slate-400">Sin definir</span>
@@ -662,21 +714,19 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                         )}
                       </td>
 
-                      {/* Score */}
+                      {/* Score & Temperatura */}
                       <td className="py-2.5 px-3">
-                        <div className="flex items-center gap-1.5">
-                          <div className="font-bold text-slate-800 dark:text-white">
-                            {contact.leadScore}
-                          </div>
-                          <div className="w-12 h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
-                            <div
-                              className="h-full bg-emerald-500 rounded-full"
-                              style={{ width: `${contact.leadScore}%` }}
-                            />
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${tempConfig.bgLight} ${tempConfig.color} ${tempConfig.border}`}>
+                            <span>{tempConfig.emoji}</span>
+                            <span>{score} pts</span>
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline">
+                            {tempConfig.label}
+                          </span>
                         </div>
                         {contact.nextFollowUpDate && (
-                          <div className="text-[10px] text-[#004aad]">
+                          <div className="text-[10px] text-[#004aad] mt-0.5">
                             Próx: {contact.nextFollowUpDate}
                           </div>
                         )}

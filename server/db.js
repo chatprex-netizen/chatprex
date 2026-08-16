@@ -104,6 +104,8 @@ export async function initDb() {
       { name: 'preferred_zones', type: 'TEXT[]' },
       { name: 'preferred_types', type: 'TEXT[]' },
       { name: 'lead_score', type: 'INTEGER DEFAULT 0' },
+      { name: 'lead_temperature', type: 'TEXT DEFAULT \'frio\'' },
+      { name: 'score_criteria', type: 'TEXT' },
       { name: 'notes', type: 'TEXT' },
       { name: 'assigned_agent_id', type: 'TEXT' },
       { name: 'last_contact_date', type: 'TIMESTAMP' },

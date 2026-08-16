@@ -18,8 +18,10 @@ import {
   Building,
   Sparkles,
   TrendingUp,
-  Tag
+  Tag,
+  Flame
 } from 'lucide-react';
+import { evaluateScoreCriteria, TEMPERATURE_CONFIG } from '../../lib/leadScoring';
 
 interface LeadFollowUpModalProps {
   isOpen: boolean;
@@ -289,6 +291,66 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Lead Score & Temperature Diagnostic Bar */}
+        {(() => {
+          const evalData = evaluateScoreCriteria(contact, activities);
+          const score = typeof contact.leadScore === 'number' && contact.leadScore > 0 ? contact.leadScore : evalData.score;
+          const temp = contact.leadTemperature || evalData.temperature;
+          const tempConfig = TEMPERATURE_CONFIG[temp];
+
+          return (
+            <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-rose-500" />
+                  <span className="font-bold text-xs text-slate-800 dark:text-white">
+                    Calificación Comercial del Lead
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-extrabold text-xs text-slate-900 dark:text-white">
+                    {score} / 100 pts
+                  </span>
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${tempConfig.bgLight} ${tempConfig.color} ${tempConfig.border}`}>
+                    <span>{tempConfig.emoji}</span>
+                    <span>{tempConfig.label}</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-300 ${
+                    score >= 81 ? 'bg-gradient-to-r from-rose-500 to-red-600' :
+                    score >= 61 ? 'bg-gradient-to-r from-amber-500 to-orange-600' :
+                    score >= 41 ? 'bg-gradient-to-r from-blue-500 to-indigo-600' :
+                    score >= 21 ? 'bg-gradient-to-r from-teal-400 to-emerald-500' :
+                    'bg-slate-400'
+                  }`}
+                  style={{ width: `${score}%` }}
+                />
+              </div>
+
+              {/* Diagnostic pills */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {evalData.breakdown.map((item) => (
+                  <span
+                    key={item.key}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border ${
+                      item.achieved 
+                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' 
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 line-through opacity-60'
+                    }`}
+                  >
+                    {item.achieved ? '✓' : '✗'} {item.label} (+{item.points})
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Form to Log New Activity */}
         <form onSubmit={handleAddActivity} className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card space-y-3">
