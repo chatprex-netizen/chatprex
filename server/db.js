@@ -505,26 +505,26 @@ export async function initDb() {
       if (parseInt(propCount[0].count, 10) === 0) {
         const seedProps = [
           {
-            id: 'prop-1', code: 'INM-001', title: 'Penthouse de lujo con vista panorámica',
-            description: 'Exclusivo penthouse de doble altura con acabados en mármol italiano, terraza privada de 80m² con jacuzzi y domótica integral.',
-            type: 'penthouse', operation: 'venta', price: 680000, currency: 'USD',
-            area_total: 280, area_built: 200, bedrooms: 3, bathrooms: 4, parking_spots: 3,
-            address: 'Av. Las Palmas 1420, Piso 18', zone: 'Lomas Altas', city: 'Ciudad de México',
-            features: ['Jacuzzi privado', 'Seguridad 24/7', 'Ascensor directo', 'Gimnasio', 'Terraza'],
+            id: 'prop-1', code: 'INM-001', title: 'Lote Campestre Exclusivo frente a Parque',
+            description: 'Exclusivo lote de campo en esquina con vista a los volcanes, servicios de agua, luz y título en Sunarp.',
+            type: 'terreno', operation: 'venta', price: 195000, currency: 'S/',
+            area_total: 650, area_built: 0, bedrooms: 0, bathrooms: 0, parking_spots: 2,
+            address: 'Calle Los Molles Mz. B Lote 01', zone: 'Campiña Exclusiva', city: 'Arequipa',
+            features: ['Frente a parque', 'En esquina', 'Servicios de luz y agua', 'Título Sunarp', 'Pórtico 24/7'],
             status: 'disponible',
             images: [
-              'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop&q=80',
-              'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&auto=format&fit=crop&q=80'
+              'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop&q=80'
             ],
             agent_id: 'agent-admin', commission_pct: 4.5, featured: true
           },
           {
-            id: 'prop-2', code: 'INM-002', title: 'Residencia contemporánea con jardín y piscina',
-            description: 'Hermosa casa estilo minimalista rodeada de áreas verdes, cocina de concepto abierto con isla de cuarzo y paneles solares instalados.',
+            id: 'prop-2', code: 'INM-002', title: 'Casa de Campo Contemporánea con Jardín',
+            description: 'Hermosa casa estilo campestre rodeada de áreas verdes, piscina privada, terraza y acabados de primera.',
             type: 'casa', operation: 'venta', price: 495000, currency: 'USD',
-            area_total: 420, area_built: 310, bedrooms: 4, bathrooms: 4.5, parking_spots: 4,
-            address: 'Calle Los Encinos 88, Condominio El Roble', zone: 'San Jerónimo', city: 'Monterrey',
-            features: ['Piscina', 'Jardín amplio', 'Paneles solares', 'Cuarto de servicio'],
+            area_total: 1000, area_built: 280, bedrooms: 4, bathrooms: 4.5, parking_spots: 4,
+            address: 'Av. Las Palmeras Km 22', zone: 'Valle Campestre', city: 'Arequipa',
+            features: ['Piscina', 'Jardín amplio', 'Club House', 'Seguridad privada', 'Área de parrilla'],
             status: 'en_negociacion',
             images: [
               'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80',
@@ -533,12 +533,12 @@ export async function initDb() {
             agent_id: 'agent-admin', commission_pct: 5.0, featured: true
           },
           {
-            id: 'prop-3', code: 'INM-003', title: 'Departamento moderno en distrito financiero',
-            description: 'Ideal para ejecutivos o inversionistas. Departamento completamente amoblado con amenidades premium.',
-            type: 'departamento', operation: 'alquiler', price: 2400, currency: 'USD',
+            id: 'prop-3', code: 'INM-003', title: 'Departamento con Vista Panorámica',
+            description: 'Departamento de estreno con excelentes acabados, cocina equipada y amenidades premium.',
+            type: 'departamento', operation: 'venta', price: 185000, currency: 'USD',
             area_total: 95, area_built: 95, bedrooms: 2, bathrooms: 2, parking_spots: 1,
-            address: 'Paseo de la Reforma 505, Torre Aura', zone: 'Cuauhtémoc', city: 'Ciudad de México',
-            features: ['Amoblado', 'Co-working', 'Sky lounge', 'Alberca climatizada'],
+            address: 'Malecón de la Marina 450', zone: 'Miraflores', city: 'Lima',
+            features: ['Vista panorámica', 'Co-working', 'Sky lounge', 'Seguridad 24/7', 'Ascensor directo'],
             status: 'disponible',
             images: [
               'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80'
@@ -546,30 +546,17 @@ export async function initDb() {
             agent_id: 'agent-admin', commission_pct: 4.0, featured: false
           },
           {
-            id: 'prop-4', code: 'INM-004', title: 'Preventa exclusiva: Torre Vanguardia Sky',
-            description: 'Proyecto arquitectónico de alta plusvalía. Departamentos de 1, 2 y 3 recámaras.',
-            type: 'departamento', operation: 'venta', price: 215000, currency: 'USD',
-            area_total: 110, area_built: 110, bedrooms: 2, bathrooms: 2, parking_spots: 2,
-            address: 'Av. Providencia 2300', zone: 'Providencia', city: 'Guadalajara',
-            features: ['Preventa', 'Plusvalía garantizada', 'Rooftop bar'],
+            id: 'prop-4', code: 'INM-004', title: 'Lote Residencial en Preventa',
+            description: 'Preventa exclusiva de lotes para casa de campo con facilidades de pago directo.',
+            type: 'terreno', operation: 'preventa', price: 145000, currency: 'S/',
+            area_total: 500, area_built: 0, bedrooms: 0, bathrooms: 0, parking_spots: 2,
+            address: 'Calle Los Molles Mz. A Lote 12', zone: 'Campiña Exclusiva', city: 'Arequipa',
+            features: ['Preventa', 'Plusvalía garantizada', 'Club House', 'Ciclovía', 'Canchas de tenis'],
             status: 'disponible',
             images: [
               'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=80'
             ],
             agent_id: 'agent-admin', commission_pct: 4.0, featured: true
-          },
-          {
-            id: 'prop-5', code: 'INM-005', title: 'Terreno comercial estratégico en esquina',
-            description: 'Excelente terreno con uso de suelo comercial mixto, alto flujo vehicular.',
-            type: 'terreno', operation: 'venta', price: 750000, currency: 'USD',
-            area_total: 1200, area_built: 0, bedrooms: 0, bathrooms: 0, parking_spots: 0,
-            address: 'Blvd. Aeropuerto Km 4.5', zone: 'Zona Industrial Norte', city: 'Querétaro',
-            features: ['Uso mixto', 'Factibilidad de servicios'],
-            status: 'disponible',
-            images: [
-              'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80'
-            ],
-            agent_id: 'agent-admin', commission_pct: 5.0, featured: false
           }
         ];
 

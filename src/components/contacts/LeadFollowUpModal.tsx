@@ -43,6 +43,7 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
     addTask, 
     currentAgent,
     properties,
+    projects,
     leadChannels,
     pipelineStages
   } = useCRM();
@@ -79,18 +80,19 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
 
   const activities = leadActivities[contact.id] || [];
 
-  // Helper: Format real contact budget (No '$' symbol, currency on left, comma as thousand separator)
+  // Helper: Format real contact budget cleanly without $ and with commas
   const formatContactBudget = () => {
-    const currency = contact.currency || 'USD';
-    const min = typeof contact.budgetMin === 'number' ? contact.budgetMin : Number(contact.budgetMin) || 0;
-    const max = typeof contact.budgetMax === 'number' ? contact.budgetMax : Number(contact.budgetMax) || 0;
-    const budget = typeof contact.budget === 'number' ? contact.budget : Number(contact.budget) || 0;
+    const rawCurrency = contact.currency || 'S/';
+    const currency = rawCurrency === 'PEN' ? 'S/' : rawCurrency;
+    const budget = parseFloat(contact.budget as any) || 0;
+    const min = contact.budgetMin || 0;
+    const max = contact.budgetMax || 0;
 
-    if (min > 0 && max > 0) {
-      return `${currency} ${min.toLocaleString('en-US')} - ${max.toLocaleString('en-US')}`;
-    }
     if (budget > 0) {
       return `${currency} ${budget.toLocaleString('en-US')}`;
+    }
+    if (min > 0 && max > 0) {
+      return `${currency} ${min.toLocaleString('en-US')} - ${max.toLocaleString('en-US')}`;
     }
     if (max > 0) {
       return `${currency} ${max.toLocaleString('en-US')}`;
@@ -98,47 +100,63 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
     if (min > 0) {
       return `${currency} ${min.toLocaleString('en-US')}`;
     }
-    return 'Sin especificar';
+    return 'Sin definir';
   };
 
-  // Helper: Resolve real property/project or zones
+  // Helper: Resolve real property/project accurately
   const getInterestInfo = () => {
-    if (contact.interestedProperty) {
-      const prop = properties.find(p => p.id === contact.interestedProperty);
+    const target = contact.interestedProperty;
+    if (target && target.trim().length > 0) {
+      // 1. Buscar en propiedades
+      const prop = properties.find(p => p.id === target || (p.projectName && p.projectName.toLowerCase() === target.toLowerCase()) || (p.title && p.title.toLowerCase() === target.toLowerCase()));
       if (prop) {
         return {
           type: 'property',
-          label: prop.projectName ? `${prop.projectName}` : prop.title,
-          sublabel: prop.zone ? `${prop.zone}, ${prop.city || ''}` : prop.city
+          label: prop.projectName ? prop.projectName : prop.title,
+          sublabel: prop.projectName && prop.title !== prop.projectName ? prop.title : (prop.zone || prop.city)
         };
       }
-    }
-    if (contact.preferredZones && contact.preferredZones.length > 0) {
+
+      // 2. Buscar en proyectos
+      const proj = projects?.find(p => p.id === target || (p.name && p.name.toLowerCase() === target.toLowerCase()));
+      if (proj) {
+        return {
+          type: 'property',
+          label: proj.name,
+          sublabel: proj.developer || 'Proyecto Inmobiliario'
+        };
+      }
+
+      // 3. Texto directo del proyecto ingresado
       return {
-        type: 'zones',
-        label: contact.preferredZones.join(', '),
-        sublabel: undefined
+        type: 'property',
+        label: target,
+        sublabel: 'Proyecto / Inmueble de interés'
       };
     }
+
     return {
       type: 'none',
-      label: 'Sin especificar',
+      label: 'Sin proyecto asignado',
       sublabel: undefined
     };
   };
 
   const interestInfo = getInterestInfo();
 
-  // Helper: Resolve channel name
-  const channelName = (() => {
-    const ch = leadChannels?.find(c => c.id === contact.channel);
-    return ch ? ch.name : contact.channel || 'Directo';
+  // Helper: Resolve channel name and style
+  const channelInfo = (() => {
+    const ch = leadChannels?.find(c => c.id === contact.channel || c.name.toLowerCase() === (contact.channel || '').toLowerCase());
+    return {
+      name: ch ? ch.name : (contact.channel ? contact.channel.charAt(0).toUpperCase() + contact.channel.slice(1) : 'WhatsApp'),
+      color: ch?.color || '#25D366'
+    };
   })();
 
   // Helper: Resolve stage name
   const stageName = (() => {
-    const st = pipelineStages?.find(s => s.id === contact.pipelineStage);
-    return st ? st.title : contact.pipelineStage || 'Nuevo prospecto';
+    const st = pipelineStages?.find(s => s.id === contact.pipelineStage || s.name.toLowerCase() === (contact.pipelineStage || '').toLowerCase());
+    return st ? st.name : (contact.pipelineStage ? contact.pipelineStage.replace(/_/g, ' ') : 'Nuevo prospecto');
   })();
 
   const handleAddActivity = async (e: React.FormEvent) => {
@@ -227,12 +245,16 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
     }
   };
 
+  const evalData = evaluateScoreCriteria(contact, activities);
+  const score = Math.min(100, Math.max(0, evalData.score));
+  const tempConfig = TEMPERATURE_CONFIG[evalData.temperature];
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={`Seguimiento: ${contact.name}`}
-      subtitle={`Tel: ${contact.phone || 'Sin teléfono'} · Lead Score: ${contact.leadScore || 0} pts`}
+      subtitle={`Tel: ${contact.phone || 'Sin teléfono'} · Lead Score: ${score} pts (${tempConfig.label})`}
       maxWidth="2xl"
     >
       <div className="space-y-4 text-xs">
@@ -248,13 +270,13 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
             </span>
           </div>
 
-          {/* Interés / Proyecto / Zonas */}
+          {/* Interés / Proyecto */}
           <div>
             <span className="text-[10px] text-slate-400 block font-normal flex items-center gap-1">
-              {interestInfo.type === 'property' ? <Building className="w-3 h-3 text-[#004aad]" /> : <MapPin className="w-3 h-3 text-[#004aad]" />}
-              <span>{interestInfo.type === 'property' ? 'Proyecto / Inmueble' : 'Zonas de interés'}</span>
+              <Building className="w-3 h-3 text-[#004aad]" />
+              <span>Proyecto de Interés</span>
             </span>
-            <span className="text-slate-700 dark:text-slate-200 font-medium block truncate mt-0.5" title={interestInfo.label}>
+            <span className="text-slate-800 dark:text-slate-100 font-semibold block truncate mt-0.5" title={interestInfo.label}>
               {interestInfo.label}
             </span>
             {interestInfo.sublabel && (
@@ -285,72 +307,63 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
               <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-[#004aad] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                 {stageName}
               </span>
-              <span className="text-[10px] text-slate-400">
-                vía {channelName}
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                vía {channelInfo.name}
               </span>
             </div>
           </div>
         </div>
 
         {/* Lead Score & Temperature Diagnostic Bar */}
-        {(() => {
-          const evalData = evaluateScoreCriteria(contact, activities);
-          const score = typeof contact.leadScore === 'number' && contact.leadScore > 0 ? contact.leadScore : evalData.score;
-          const temp = contact.leadTemperature || evalData.temperature;
-          const tempConfig = TEMPERATURE_CONFIG[temp];
-
-          return (
-            <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-rose-500" />
-                  <span className="font-bold text-xs text-slate-800 dark:text-white">
-                    Calificación Comercial del Lead
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-xs text-slate-900 dark:text-white">
-                    {score} / 100 pts
-                  </span>
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${tempConfig.bgLight} ${tempConfig.color} ${tempConfig.border}`}>
-                    <span>{tempConfig.emoji}</span>
-                    <span>{tempConfig.label}</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <div 
-                  className={`h-full transition-all duration-300 ${
-                    score >= 81 ? 'bg-gradient-to-r from-rose-500 to-red-600' :
-                    score >= 61 ? 'bg-gradient-to-r from-amber-500 to-orange-600' :
-                    score >= 41 ? 'bg-gradient-to-r from-blue-500 to-indigo-600' :
-                    score >= 21 ? 'bg-gradient-to-r from-teal-400 to-emerald-500' :
-                    'bg-slate-400'
-                  }`}
-                  style={{ width: `${score}%` }}
-                />
-              </div>
-
-              {/* Diagnostic pills */}
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {evalData.breakdown.map((item) => (
-                  <span
-                    key={item.key}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border ${
-                      item.achieved 
-                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' 
-                        : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 line-through opacity-60'
-                    }`}
-                  >
-                    {item.achieved ? '✓' : '✗'} {item.label} (+{item.points})
-                  </span>
-                ))}
-              </div>
+        <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Flame className="w-4 h-4 text-rose-500" />
+              <span className="font-bold text-xs text-slate-800 dark:text-white">
+                Calificación Comercial del Lead
+              </span>
             </div>
-          );
-        })()}
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-xs text-slate-900 dark:text-white">
+                {score} / 100 pts
+              </span>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${tempConfig.bgLight} ${tempConfig.color} ${tempConfig.border}`}>
+                <span>{tempConfig.emoji}</span>
+                <span>{tempConfig.label}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div 
+              className={`h-full transition-all duration-300 ${
+                score >= 81 ? 'bg-gradient-to-r from-rose-500 to-red-600' :
+                score >= 61 ? 'bg-gradient-to-r from-amber-500 to-orange-600' :
+                score >= 41 ? 'bg-gradient-to-r from-blue-500 to-indigo-600' :
+                score >= 21 ? 'bg-gradient-to-r from-teal-400 to-emerald-500' :
+                'bg-slate-400'
+              }`}
+              style={{ width: `${score}%` }}
+            />
+          </div>
+
+          {/* Diagnostic pills */}
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {evalData.breakdown.map((item) => (
+              <span
+                key={item.key}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border ${
+                  item.achieved 
+                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' 
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 line-through opacity-60'
+                }`}
+              >
+                {item.achieved ? '✓' : '✗'} {item.label} (+{item.points})
+              </span>
+            ))}
+          </div>
+        </div>
 
         {/* Form to Log New Activity */}
         <form onSubmit={handleAddActivity} className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card space-y-3">
