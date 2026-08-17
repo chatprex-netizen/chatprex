@@ -143,13 +143,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
         {/* Footer */}
         <div className="text-center space-y-2 mt-6">
-          <div className="flex items-center justify-center gap-3 text-xs text-slate-400">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
             <a href="#/privacy" className="hover:text-slate-200 transition-colors underline">
               Política de Privacidad
             </a>
             <span>·</span>
             <a href="#/terms" className="hover:text-slate-200 transition-colors underline">
               Términos de Servicio
+            </a>
+            <span>·</span>
+            <a href="#/data-deletion" className="hover:text-slate-200 transition-colors underline">
+              Exclusión de Datos
             </a>
           </div>
           <p className="text-slate-500 text-[11px]">

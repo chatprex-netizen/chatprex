@@ -19,6 +19,7 @@ import { InstagramConfigPage } from './pages/InstagramConfigPage';
 import { HubspotConfigPage } from './pages/HubspotConfigPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
+import { DataDeletionPage } from './pages/DataDeletionPage';
 import { PropertyModal } from './components/properties/PropertyModal';
 import { DealModal } from './components/pipeline/DealModal';
 import { ContactModal } from './components/contacts/ContactModal';
@@ -71,8 +72,11 @@ const PAGE_ALIASES: Record<string, Page> = {
   'politica-de-privacidad': 'privacy',
   'politicas-de-privacidad': 'privacy',
   'privacy-policy': 'privacy',
-  'data-deletion': 'privacy',
-  'eliminacion-de-datos': 'privacy',
+  'data-deletion': 'data-deletion',
+  'eliminacion-de-datos': 'data-deletion',
+  'exclusion-de-datos': 'data-deletion',
+  'user-data-deletion': 'data-deletion',
+  'opt-out': 'data-deletion',
   'terms': 'terms',
   'terminos': 'terms',
   'terminos-de-servicio': 'terms',
@@ -100,10 +104,11 @@ const VALID_PAGES: Page[] = [
   'settings',
   'privacy',
   'terms',
+  'data-deletion',
 ];
 
 const readPageFromLocation = (): Page => {
-  // 1. Revisar hash (#/privacy, #/terms, etc.)
+  // 1. Revisar hash (#/privacy, #/terms, #/data-deletion, etc.)
   const hashRaw = window.location.hash.replace(/^#\/?/, '').split('/')[0]?.toLowerCase();
   if (hashRaw) {
     const normalizedHash = PAGE_ALIASES[hashRaw] ?? hashRaw;
@@ -159,6 +164,10 @@ export const App: React.FC = () => {
 
   if (currentPage === 'terms') {
     return <TermsOfServicePage />;
+  }
+
+  if (currentPage === 'data-deletion') {
+    return <DataDeletionPage />;
   }
 
   if (isLoading) {
