@@ -34,6 +34,9 @@ import {
 interface AIAssistant {
   id: string;
   name: string;
+  botKey?: string; // ID identificador para enrutamiento (ej: bot-orquestador, bot-campo-arequipa)
+  assignedProject?: string; // Proyecto asignado
+  roleType?: 'orquestador' | 'especialista' | 'atencion_general';
   provider: string;
   model: string;
   active: boolean;
@@ -62,9 +65,9 @@ interface AssistantSettings {
   activationKeywords: string[];
 }
 
-/* ─── Seed data ──────────────────────────────────── */
+/* ─── Seed data & Official Templates ──────────────── */
 
-const DEFAULT_PERSONALITY = `# ROL E IDENTIDAD
+const DEFAULT_ORCHESTRATOR_PERSONALITY = `# ROL E IDENTIDAD
 Eres el "Agente Administrador y Orquestador IA" de la inmobiliaria. Eres el cerebro central de recepción para todas las conversaciones entrantes de WhatsApp, Instagram, Messenger y Web. Tu tono es profesional, cordial, ágil y empático (máximo 2 a 3 oraciones por mensaje).
 
 # REGLAS DE AUTOMATIZACIÓN Y REGISTRO EN EL CRM
@@ -94,18 +97,18 @@ Cuando ingrese un lead o recibas nuevos datos, ejecuta la función [registrar_le
 
 3. SI PREGUNTA POR UN PROYECTO O PROPIEDAD NO DISPONIBLE EN EL CATÁLOGO:
    - Informa amablemente y transfiere al asesor humano asignado:
-     "Ese proyecto no lo tenemos disponible en este momento, pero tenemos opciones similares de gran plusvalía. Te comunico con el asesor comercial {nombre_asesor} (Teléfono: {telefono_asesor}) quien te brindará la información personalizada."
+     "Ese proyecto no lo tenemos disponible en este momento, pero tenemos opciones similares de gran plusvalía. Te comunico con el asesor comercial Elvis Meza (Teléfono: 957100984) quien te brindará la información personalizada."
    - Ejecuta la herramienta [transferir_humano].
 
 4. SI SOLICITA UN ASESOR HUMANO, TIENE PREGUNTAS COMPLEJAS O MUESTRA FRUSTRACIÓN:
    - Si pide hablar con una persona, consulta temas legales notariales o crédito hipotecario complejo:
-   - Responde: "Con gusto, te comunico directamente con tu asesor asignado {nombre_asesor} (Teléfono: {telefono_asesor}) para que te atienda personalmente."
+   - Responde: "Con gusto, te comunico directamente con tu asesor asignado Elvis Meza (Teléfono: 957100984) para que te atienda personalmente."
    - Llama a la herramienta [transferir_humano].`;
 
-const DEFAULT_MANUAL_CONTEXT = `[CATÁLOGO DE PROYECTOS DISPONIBLES]
+const DEFAULT_ORCHESTRATOR_CONTEXT = `[CATÁLOGO DE PROYECTOS DISPONIBLES]
 - Proyecto: Residencial Las Praderas | Tipo: Lotes de campo y casas de playa | Bot ID: bot-praderas
+- Proyecto: Hacienda Los Volcanes Arequipa | Tipo: Lotes de campo exclusivos con servicios y título | Bot ID: bot-campo-arequipa
 - Proyecto: Torre Marina | Tipo: Departamentos de estreno frente al mar | Bot ID: bot-torre-marina
-- Proyecto: Valle Verde | Tipo: Lotes urbanizados con título y servicios completos | Bot ID: bot-valle-verde
 
 [ASESORES ACTIVOS PARA ASIGNACIÓN ROUND-ROBIN]
 - Asesor: Elvis Meza | Teléfono: 957100984 | Especialidad: Proyectos y Preventas
@@ -165,18 +168,44 @@ const SPECIALIST_CAMPO_AREQUIPA_CONTEXT = `[PROYECTO: HACIENDA LOS VOLCANES - AR
 [ASESOR COMERCIAL ASIGNADO]
 - Asesor: Elvis Meza | Celular / WhatsApp: 957100984 | Asesor Senior de Proyectos Campestres.`;
 
+export const OFFICIAL_TEMPLATES = [
+  {
+    id: 'tpl-orquestador',
+    name: '🌟 Agente Administrador / Orquestador IA',
+    roleType: 'orquestador' as const,
+    botKey: 'bot-orquestador',
+    personality: DEFAULT_ORCHESTRATOR_PERSONALITY,
+    manualContext: DEFAULT_ORCHESTRATOR_CONTEXT,
+    keywords: ['Información', 'Precios', 'Proyecto', 'Lotes', 'Departamentos'],
+    orchestratorMode: true,
+  },
+  {
+    id: 'tpl-campo-arequipa',
+    name: '🏔️ Especialista Terrenos de Campo (Arequipa)',
+    roleType: 'especialista' as const,
+    botKey: 'bot-campo-arequipa',
+    personality: SPECIALIST_CAMPO_AREQUIPA_PERSONALITY,
+    manualContext: SPECIALIST_CAMPO_AREQUIPA_CONTEXT,
+    keywords: ['Terreno', 'Lote', 'Campo', 'Arequipa', 'Casa de campo', 'Visita'],
+    orchestratorMode: false,
+  },
+];
+
 const INITIAL_ASSISTANTS: AIAssistant[] = [
   {
     id: 'bot-1',
     name: 'Agente Administrador / Orquestador',
+    botKey: 'bot-orquestador',
+    roleType: 'orquestador',
+    assignedProject: 'Todos los proyectos (Orquestador)',
     provider: 'openai',
     model: 'gpt-4o-mini',
     active: true,
-    personality: DEFAULT_PERSONALITY,
+    personality: DEFAULT_ORCHESTRATOR_PERSONALITY,
     apiKey: 'sk-proj-••••••••••••••••••••••••••••',
     deepseekKey: '',
     knowledgeFiles: [],
-    manualContext: DEFAULT_MANUAL_CONTEXT,
+    manualContext: DEFAULT_ORCHESTRATOR_CONTEXT,
     settings: {
       audioTranscription: true,
       smartGrouping: true,
@@ -189,6 +218,9 @@ const INITIAL_ASSISTANTS: AIAssistant[] = [
   {
     id: 'bot-campo-arequipa',
     name: 'Especialista Terrenos de Campo (Arequipa)',
+    botKey: 'bot-campo-arequipa',
+    roleType: 'especialista',
+    assignedProject: 'Hacienda Los Volcanes - Arequipa',
     provider: 'openai',
     model: 'gpt-4o-mini',
     active: true,
@@ -215,10 +247,18 @@ type TabId = 'personalidad' | 'motor-ia' | 'conocimiento' | 'ajustes-pro';
 export const AIAssistantsPage: React.FC = () => {
   /* state */
   const [assistants, setAssistants] = useState<AIAssistant[]>(() => {
-    const saved = localStorage.getItem('prexup_ai_assistants_v1');
-    return saved ? JSON.parse(saved) : INITIAL_ASSISTANTS;
+    const saved = localStorage.getItem('prexup_ai_assistants_v2');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return INITIAL_ASSISTANTS;
+      }
+    }
+    return INITIAL_ASSISTANTS;
   });
-  const [selectedId, setSelectedId] = useState<string>(assistants[0]?.id || '');
+
+  const [selectedId, setSelectedId] = useState<string>(assistants[0]?.id || 'bot-1');
   const [activeTab, setActiveTab] = useState<TabId>('personalidad');
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
   const [showApiKey, setShowApiKey] = useState(false);
@@ -226,11 +266,11 @@ export const AIAssistantsPage: React.FC = () => {
   const [newKeyword, setNewKeyword] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const selected = assistants.find((a) => a.id === selectedId)!;
+  const selected = assistants.find((a) => a.id === selectedId) || assistants[0] || INITIAL_ASSISTANTS[0];
 
   /* helpers */
   const updateSelected = (patch: Partial<AIAssistant>) => {
-    setAssistants((prev) => prev.map((a) => (a.id === selectedId ? { ...a, ...patch } : a)));
+    setAssistants((prev) => prev.map((a) => (a.id === selected.id ? { ...a, ...patch } : a)));
   };
 
   const updateSettings = (patch: Partial<AssistantSettings>) => {
@@ -239,8 +279,33 @@ export const AIAssistantsPage: React.FC = () => {
 
   const handleSave = () => {
     setIsSaving(true);
-    localStorage.setItem('prexup_ai_assistants_v1', JSON.stringify(assistants));
+    localStorage.setItem('prexup_ai_assistants_v2', JSON.stringify(assistants));
     setTimeout(() => setIsSaving(false), 800);
+  };
+
+  const handleResetToDefaults = () => {
+    if (window.confirm('¿Deseas restaurar la lista de Asistentes IA a los Bots Oficiales (Orquestador + Especialista Arequipa)?')) {
+      setAssistants(INITIAL_ASSISTANTS);
+      setSelectedId(INITIAL_ASSISTANTS[0].id);
+      localStorage.setItem('prexup_ai_assistants_v2', JSON.stringify(INITIAL_ASSISTANTS));
+    }
+  };
+
+  const handleApplyTemplate = (templateId: string) => {
+    const tpl = OFFICIAL_TEMPLATES.find((t) => t.id === templateId);
+    if (!tpl) return;
+
+    updateSelected({
+      personality: tpl.personality,
+      manualContext: tpl.manualContext,
+      botKey: tpl.botKey,
+      roleType: tpl.roleType,
+      settings: {
+        ...selected.settings,
+        orchestratorMode: tpl.orchestratorMode,
+        activationKeywords: tpl.keywords,
+      },
+    });
   };
 
   const handleTestConnection = () => {
@@ -251,22 +316,25 @@ export const AIAssistantsPage: React.FC = () => {
   const handleAddBot = () => {
     const newBot: AIAssistant = {
       id: `bot-${Date.now()}`,
-      name: 'Nuevo Bot',
+      name: 'Nuevo Asistente IA',
+      botKey: `bot-${Date.now().toString().slice(-4)}`,
+      roleType: 'especialista',
+      assignedProject: 'General',
       provider: 'openai',
       model: 'gpt-4o-mini',
-      active: false,
-      personality: '',
+      active: true,
+      personality: DEFAULT_ORCHESTRATOR_PERSONALITY,
       apiKey: '',
       deepseekKey: '',
       knowledgeFiles: [],
       manualContext: '',
       settings: {
-        audioTranscription: false,
-        smartGrouping: false,
-        humanizedWriting: false,
-        agentIntervention: false,
+        audioTranscription: true,
+        smartGrouping: true,
+        humanizedWriting: true,
+        agentIntervention: true,
         orchestratorMode: false,
-        activationKeywords: [],
+        activationKeywords: ['Información'],
       },
     };
     setAssistants((prev) => [...prev, newBot]);
@@ -324,7 +392,7 @@ export const AIAssistantsPage: React.FC = () => {
   return (
     <div className="flex flex-col md:flex-row h-full animate-fade-in text-xs min-h-[calc(100vh-120px)]">
       {/* ───── LEFT PANEL: Bot List ───── */}
-      <div className="w-full md:w-[260px] h-64 md:h-auto flex-shrink-0 bg-white dark:bg-slate-900 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 flex flex-col">
+      <div className="w-full md:w-[280px] h-64 md:h-auto flex-shrink-0 bg-white dark:bg-slate-900 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 flex flex-col">
         {/* Panel header */}
         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -343,28 +411,30 @@ export const AIAssistantsPage: React.FC = () => {
               key={bot.id}
               onClick={() => { setSelectedId(bot.id); setActiveTab('personalidad'); }}
               className={`w-full group relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all ${
-                selectedId === bot.id
+                selected.id === bot.id
                   ? 'bg-[#004aad] text-white shadow-lg shadow-blue-500/20'
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
               }`}
             >
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                selectedId === bot.id
+                selected.id === bot.id
                   ? 'bg-white/20'
                   : 'bg-slate-100 dark:bg-slate-800'
               }`}>
-                <Bot className={`w-4 h-4 ${selectedId === bot.id ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
+                <Bot className={`w-4 h-4 ${selected.id === bot.id ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-[11px] truncate">{bot.name}</div>
-                <div className={`text-[10px] truncate ${
-                  selectedId === bot.id ? 'text-blue-100' : 'text-slate-400'
+                <div className={`text-[10px] truncate flex items-center gap-1 ${
+                  selected.id === bot.id ? 'text-blue-100' : 'text-slate-400'
                 }`}>
-                  {bot.provider === 'openai' ? 'OpenAI' : bot.provider} • {bot.model}
+                  <span className="font-mono text-[9px]">ID: {bot.botKey || bot.id}</span>
+                  <span>•</span>
+                  <span>{bot.settings?.orchestratorMode ? 'Orquestador' : 'Especialista'}</span>
                 </div>
               </div>
               {/* Delete on hover (only when more than 1 bot) */}
-              {assistants.length > 1 && selectedId !== bot.id && (
+              {assistants.length > 1 && selected.id !== bot.id && (
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDeleteBot(bot.id); }}
                   className="hidden group-hover:flex absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md bg-red-50 dark:bg-red-900/30 text-red-500 hover:bg-red-100"
@@ -376,47 +446,68 @@ export const AIAssistantsPage: React.FC = () => {
           ))}
         </div>
 
-        {/* New bot button */}
-        <div className="px-3 py-3 border-t border-slate-100 dark:border-slate-800">
+        {/* Buttons: New Bot + Reset defaults */}
+        <div className="px-3 py-3 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
           <button
             onClick={handleAddBot}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-[#004aad] hover:text-[#004aad] transition-all group"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-[#004aad] hover:text-[#004aad] transition-all group"
           >
-            <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
-              <Plus className="w-4 h-4" />
+            <div className="w-6 h-6 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
+              <Plus className="w-3.5 h-3.5" />
             </div>
-            <div>
-              <div className="font-semibold text-[11px]">Nuevo Bot</div>
-              <div className="text-[10px] text-slate-400">Crear asistente en blanco</div>
+            <div className="text-left">
+              <div className="font-semibold text-[11px]">Crear Nuevo Asistente</div>
             </div>
+          </button>
+
+          <button
+            onClick={handleResetToDefaults}
+            className="w-full text-center py-1.5 text-[10px] text-slate-400 hover:text-[#004aad] dark:hover:text-blue-400 font-medium transition-colors"
+          >
+            Restaurar Bots Recomendados (Orquestador + Arequipa)
           </button>
         </div>
       </div>
 
       {/* ───── RIGHT PANEL: Configuration ───── */}
       <div className="flex-1 flex flex-col bg-[#f8fafc] dark:bg-slate-950 overflow-y-auto">
-        {/* Top bar */}
-        <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
+        {/* Top bar with editable Name & Bot ID */}
+        <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+            <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
+              <Bot className="w-6 h-6 text-[#004aad]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
                 <input
                   type="text"
                   value={selected.name}
                   onChange={(e) => updateSelected({ name: e.target.value })}
-                  className="font-bold text-base text-slate-900 dark:text-white bg-transparent border-none outline-none p-0 w-auto"
-                  style={{ width: `${Math.max(selected.name.length, 8)}ch` }}
+                  className="font-bold text-sm sm:text-base text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-lg outline-none focus:border-[#004aad]"
+                  placeholder="Nombre del Asistente..."
+                />
+
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 dark:bg-blue-950/60 text-[#004aad] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                  {selected.settings?.orchestratorMode ? '🌟 Modo Orquestador' : '🎯 Especialista'}
+                </span>
+              </div>
+
+              {/* Bot Key ID identifier for routing */}
+              <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                <span>Identificador de Enrutamiento:</span>
+                <input
+                  type="text"
+                  value={selected.botKey || selected.id}
+                  onChange={(e) => updateSelected({ botKey: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                  className="font-mono font-bold text-[11px] text-slate-700 dark:text-slate-200 bg-transparent border-b border-dashed border-slate-300 dark:border-slate-600 outline-none px-1"
+                  placeholder="ej: bot-campo-arequipa"
+                  title="El agente orquestador usa este ID para transferir la conversación"
                 />
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Configuración y personalidad del asistente virtual
-              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 shrink-0">
             {/* Active toggle */}
             <button
               onClick={() => updateSelected({ active: !selected.active })}
@@ -433,7 +524,7 @@ export const AIAssistantsPage: React.FC = () => {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[11px] font-semibold hover:bg-slate-800 dark:hover:bg-slate-100 transition-all shadow-sm active:scale-95"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#004aad] hover:bg-[#003b8a] text-white text-[11px] font-semibold transition-all shadow-sm active:scale-95"
             >
               <Save className="w-3.5 h-3.5" />
               {isSaving ? 'Guardando...' : 'Guardar Cambios'}
@@ -467,21 +558,50 @@ export const AIAssistantsPage: React.FC = () => {
           {/* ─── TAB: Personalidad ─── */}
           {activeTab === 'personalidad' && (
             <div className="space-y-4 animate-fade-in">
+              {/* Template Selector Bar */}
+              <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                <div>
+                  <div className="font-bold text-xs text-blue-950 dark:text-blue-200 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#004aad]" />
+                    <span>Cargar Plantilla Oficial Recomendada:</span>
+                  </div>
+                  <p className="text-[10px] text-blue-700 dark:text-blue-300">
+                    Aplica al instante instrucciones probadas para orquestación o cierres de terrenos.
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                  <select
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleApplyTemplate(e.target.value);
+                      }
+                    }}
+                    defaultValue=""
+                    className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 text-xs font-semibold text-slate-800 dark:text-slate-200 outline-none"
+                  >
+                    <option value="" disabled>-- Seleccionar Plantilla --</option>
+                    {OFFICIAL_TEMPLATES.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-sm text-slate-900 dark:text-white">
-                    Instrucciones de comportamiento
+                    Instrucciones de comportamiento (System Prompt)
                   </h3>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Define la voz, tono y reglas de interacción del bot.
+                    Define la voz, tono, protocolo de agendamiento y reglas de derivación del bot.
                   </p>
                 </div>
                 <button
-                  onClick={() => updateSelected({ personality: DEFAULT_PERSONALITY })}
+                  onClick={() => updateSelected({ personality: DEFAULT_ORCHESTRATOR_PERSONALITY })}
                   className="flex items-center gap-1.5 text-[11px] text-slate-500 hover:text-[#004aad] transition-colors"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  Restaurar plantilla
+                  Restaurar Orquestador
                 </button>
               </div>
 
@@ -489,7 +609,7 @@ export const AIAssistantsPage: React.FC = () => {
                 <textarea
                   value={selected.personality}
                   onChange={(e) => updateSelected({ personality: e.target.value })}
-                  rows={18}
+                  rows={20}
                   className="w-full px-4 py-3 bg-transparent text-slate-800 dark:text-slate-200 font-mono text-[11px] leading-relaxed resize-none outline-none placeholder-slate-300"
                   placeholder="Escribe las instrucciones de comportamiento para tu asistente de IA..."
                 />
@@ -499,9 +619,7 @@ export const AIAssistantsPage: React.FC = () => {
               <div className="flex items-start gap-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-3.5">
                 <Lightbulb className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                 <p className="text-[11px] text-emerald-700 dark:text-emerald-300 leading-relaxed">
-                  <strong>Tip:</strong> Incluya reglas de respuesta corta y un llamado a la acción claro
-                  para maximizar las conversiones de sus leads. La IA funciona mejor con instrucciones
-                  directas y en viñetas.
+                  <strong>Tip de Cierre:</strong> Recuerde solicitar el nombre al iniciar y presentar siempre <strong>2 alternativas de lotes (destacado vs premium)</strong> con llamado a la acción para visita presencial.
                 </p>
               </div>
             </div>
