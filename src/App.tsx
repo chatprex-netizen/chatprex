@@ -17,6 +17,8 @@ import { WhatsAppConfigPage } from './pages/WhatsAppConfigPage';
 import { MessengerConfigPage } from './pages/MessengerConfigPage';
 import { InstagramConfigPage } from './pages/InstagramConfigPage';
 import { HubspotConfigPage } from './pages/HubspotConfigPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { PropertyModal } from './components/properties/PropertyModal';
 import { DealModal } from './components/pipeline/DealModal';
 import { ContactModal } from './components/contacts/ContactModal';
@@ -64,6 +66,18 @@ const PAGE_ALIASES: Record<string, Page> = {
   'hubspot': 'hubspot-config',
   'config-hubspot': 'hubspot-config',
   'leads': 'pipeline',
+  'privacy': 'privacy',
+  'privacidad': 'privacy',
+  'politica-de-privacidad': 'privacy',
+  'politicas-de-privacidad': 'privacy',
+  'privacy-policy': 'privacy',
+  'data-deletion': 'privacy',
+  'eliminacion-de-datos': 'privacy',
+  'terms': 'terms',
+  'terminos': 'terms',
+  'terminos-de-servicio': 'terms',
+  'terminos-y-condiciones': 'terms',
+  'terms-of-service': 'terms',
 };
 
 const VALID_PAGES: Page[] = [
@@ -84,17 +98,35 @@ const VALID_PAGES: Page[] = [
   'hubspot-config',
   'finances',
   'settings',
+  'privacy',
+  'terms',
 ];
 
-const readPageFromHash = (): Page => {
-  const raw = window.location.hash.replace('#/', '').split('/')[0] || 'dashboard';
-  const normalized = PAGE_ALIASES[raw] ?? raw;
-  return VALID_PAGES.includes(normalized as Page) ? (normalized as Page) : 'dashboard';
+const readPageFromLocation = (): Page => {
+  // 1. Revisar hash (#/privacy, #/terms, etc.)
+  const hashRaw = window.location.hash.replace(/^#\/?/, '').split('/')[0]?.toLowerCase();
+  if (hashRaw) {
+    const normalizedHash = PAGE_ALIASES[hashRaw] ?? hashRaw;
+    if (VALID_PAGES.includes(normalizedHash as Page)) {
+      return normalizedHash as Page;
+    }
+  }
+
+  // 2. Revisar pathname directo (/privacy, /terms, /data-deletion, etc.)
+  const pathRaw = window.location.pathname.replace(/^\//, '').split('/')[0]?.toLowerCase();
+  if (pathRaw) {
+    const normalizedPath = PAGE_ALIASES[pathRaw] ?? pathRaw;
+    if (VALID_PAGES.includes(normalizedPath as Page)) {
+      return normalizedPath as Page;
+    }
+  }
+
+  return 'dashboard';
 };
 
 export const App: React.FC = () => {
   const { isAuthenticated, login, isLoading } = useCRM();
-  const [currentPage, setCurrentPage] = useState<Page>(readPageFromHash);
+  const [currentPage, setCurrentPage] = useState<Page>(readPageFromLocation);
 
   // Modales globales
   const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);
@@ -105,9 +137,13 @@ export const App: React.FC = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   useEffect(() => {
-    const onHashChange = () => setCurrentPage(readPageFromHash());
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    const onLocationChange = () => setCurrentPage(readPageFromLocation());
+    window.addEventListener('hashchange', onLocationChange);
+    window.addEventListener('popstate', onLocationChange);
+    return () => {
+      window.removeEventListener('hashchange', onLocationChange);
+      window.removeEventListener('popstate', onLocationChange);
+    };
   }, []);
 
   const navigate = (page: string) => {
@@ -115,6 +151,15 @@ export const App: React.FC = () => {
     if (!VALID_PAGES.includes(normalized as Page)) return;
     window.location.hash = `#/${normalized}`;
   };
+
+  // Páginas públicas accesibles sin inicio de sesión (Requisito de Meta / Facebook Apps)
+  if (currentPage === 'privacy') {
+    return <PrivacyPolicyPage />;
+  }
+
+  if (currentPage === 'terms') {
+    return <TermsOfServicePage />;
+  }
 
   if (isLoading) {
     return (

@@ -15,7 +15,9 @@ export type Page =
   | 'instagram-config'
   | 'hubspot-config'
   | 'settings'
-  | 'finances';
+  | 'finances'
+  | 'privacy'
+  | 'terms';
 
 export interface PaginatedResponse<T> {
   data: T[];
