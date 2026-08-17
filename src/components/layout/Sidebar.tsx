@@ -304,6 +304,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <LogOut className={isCollapsed ? 'w-4 h-4' : 'w-3.5 h-3.5'} />
             {!isCollapsed && <span>Cerrar sesión</span>}
           </button>
+
+          {!isCollapsed && (
+            <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500">
+              <a href="#/privacy" className="hover:text-slate-300 transition-colors">Privacidad</a>
+              <span>·</span>
+              <a href="#/terms" className="hover:text-slate-300 transition-colors">Términos</a>
+              <span>·</span>
+              <a href="#/data-deletion" className="hover:text-slate-300 transition-colors">Exclusión</a>
+            </div>
+          )}
         </div>
       </aside>
     </>
