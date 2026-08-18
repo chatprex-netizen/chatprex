@@ -350,7 +350,9 @@ export const AdminPortalWeb: React.FC = () => {
   });
 
   const featuredCount = propertyList.filter(p => p.featured).length;
-  const portalUrl = `${window.location.origin}/#/portal`;
+  const portalUrl = typeof window !== 'undefined' && window.location.hostname.includes('casaya.app')
+    ? 'https://casaya.app'
+    : `${window.location.origin}/#/portal`;
 
   return (
     <div className="space-y-8 animate-fade-in text-xs max-w-5xl pb-24 font-sans">
@@ -372,7 +374,7 @@ export const AdminPortalWeb: React.FC = () => {
 
         <div className="flex items-center gap-2 shrink-0">
           <a
-            href="#/portal"
+            href={portalUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2.5 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-blue-500/20 transition-all cursor-pointer"

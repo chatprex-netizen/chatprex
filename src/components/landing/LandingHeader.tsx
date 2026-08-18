@@ -106,17 +106,17 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             ))}
           </nav>
 
-          {/* Acciones y CTA Principal */}
+          {/* Acciones y Acceso CRM */}
           <div className="flex items-center gap-2.5">
             
             {/* Acceso CRM en Desktop (candado) */}
             <a
-              href="#/dashboard"
+              href={typeof window !== 'undefined' && window.location.hostname.includes('casaya.app') ? 'https://crm.casaya.app' : '#/dashboard'}
               title="Ingreso a App CasaYa (CRM)"
-              className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-xs font-bold text-[#202020] dark:text-slate-200 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-xs font-bold text-[#202020] dark:text-slate-200 transition-colors cursor-pointer shadow-xs"
             >
               <Lock className="w-3.5 h-3.5 text-[#1154FF] dark:text-[#38BDF8]" />
-              <span>App CRM</span>
+              <span>Ingreso CRM</span>
             </a>
 
             {/* Selector de Moneda S/ | USD */}
@@ -140,16 +140,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               className="w-9 h-9 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-[#202020] dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
             >
               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
-            </button>
-
-            {/* CTA Principal Desktop: Quiero conocer disponibilidad */}
-            <button
-              type="button"
-              onClick={() => onWhatsAppClick('¡Hola! Quiero conocer la disponibilidad de proyectos y propiedades.')}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[13px] shadow-sm transition-all transform active:scale-98 cursor-pointer"
-            >
-              <span>Quiero conocer disponibilidad</span>
-              <ArrowRight className="w-3.5 h-3.5" />
             </button>
 
             {/* Botón Menú Móvil */}
@@ -192,7 +182,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             {/* Sección de Ingreso a la App CasaYa (CRM) con Icono de Candado */}
             <div className="pt-2 border-t border-[#F1F3F5] dark:border-white/[0.08]">
               <a
-                href="#/dashboard"
+                href={typeof window !== 'undefined' && window.location.hostname.includes('casaya.app') ? 'https://crm.casaya.app' : '#/dashboard'}
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-3 px-3.5 rounded-xl bg-slate-100 dark:bg-[#151821] border border-[#E5E7EB] dark:border-white/[0.1] text-[#202020] dark:text-slate-100 text-xs font-bold flex items-center justify-between transition-all cursor-pointer hover:border-[#1154FF]"
               >
