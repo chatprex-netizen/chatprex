@@ -150,8 +150,8 @@ export const PublicLandingPage: React.FC = () => {
               />
             </div>
           ))}
-          {/* Overlay cinematográfico oscuro para contraste perfecto */}
-          <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/75 via-black/55 to-[#0B0C10] backdrop-blur-[1.5px]" />
+          {/* Overlay suave y translúcido para resaltar la viveza de las imágenes con contraste óptimo */}
+          <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/35 via-black/20 to-black/60" />
         </div>
 
         {/* Contenido del Hero */}
