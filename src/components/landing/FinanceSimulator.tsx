@@ -117,8 +117,8 @@ export const FinanceSimulator: React.FC<FinanceSimulatorProps> = ({
             </div>
 
             <div className="flex items-center gap-2 text-[12px] text-slate-500 pt-2 border-t border-[#F1F3F5] dark:border-slate-800">
-              <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>0% de interés • Título independizado SUNARP</span>
+              <ShieldCheck className="w-4 h-4 text-[#1154FF] shrink-0" />
+              <span>Financiamiento directo y cuotas fijas a tu medida</span>
             </div>
           </div>
 

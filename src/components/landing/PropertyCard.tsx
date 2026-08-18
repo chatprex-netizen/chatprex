@@ -103,10 +103,18 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 {property.areaTotal} m²
               </span>
             )}
-            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold text-[12px]">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Título SUNARP
-            </span>
+            {property.bedrooms && property.bedrooms > 0 && (
+              <span className="font-medium text-[#202020] dark:text-slate-200">
+                {property.bedrooms} hab.
+              </span>
+            )}
+            {/* Badge SUNARP solo si la propiedad lo indica explícitamente */}
+            {(Array.isArray(property.features) && property.features.some(f => (f || '').toLowerCase().includes('sunarp') || (f || '').toLowerCase().includes('título') || (f || '').toLowerCase().includes('registrado'))) && (
+              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold text-[12px]">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Título SUNARP
+              </span>
+            )}
           </div>
 
           {/* Características */}

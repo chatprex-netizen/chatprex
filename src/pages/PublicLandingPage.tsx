@@ -3,11 +3,9 @@ import { useCRM } from '../context/CRMContext';
 import { Property } from '../types';
 import { LandingHeader } from '../components/landing/LandingHeader';
 import { AirbnbSearchBar } from '../components/landing/AirbnbSearchBar';
-import { CategoryTabs } from '../components/landing/CategoryTabs';
 import { PropertyCard } from '../components/landing/PropertyCard';
 import { PropertyDetailModal } from '../components/landing/PropertyDetailModal';
 import { FinanceSimulator } from '../components/landing/FinanceSimulator';
-import { LegalSecuritySection } from '../components/landing/LegalSecuritySection';
 import { DualContactSection } from '../components/landing/DualContactSection';
 import { MobileBottomNav } from '../components/landing/MobileBottomNav';
 import { LandingFooter } from '../components/landing/LandingFooter';
@@ -125,17 +123,17 @@ export const PublicLandingPage: React.FC = () => {
           {/* Badge Superior */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 shadow-sm text-xs font-semibold text-[#202020] dark:text-slate-200 animate-fade-in">
             <span className="w-2 h-2 rounded-full bg-[#1154FF]" />
-            <span>Terrenos de Campo Exclusivos en Arequipa</span>
+            <span>Proyectos en Preventa & Propiedades Exclusivas</span>
           </div>
 
           {/* Titular Principal H1 (Escala: 34-40px mobile, 48-56px desktop, 800) */}
           <h1 className="font-manrope font-extrabold text-[34px] sm:text-[44px] md:text-[52px] text-[#202020] dark:text-white tracking-tight leading-[1.08] max-w-3xl mx-auto">
-            Tu Casa de Campo Soñada a 25 min de la Ciudad
+            Encuentra tu Próxima Propiedad o Proyecto Inmobiliario
           </h1>
 
           {/* Subtítulo (Escala: 15-17px desktop, 400/500, line-height 1.55) */}
           <p className="text-[15px] sm:text-[17px] text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-[1.55] font-normal">
-            Lotes campestres desde 500 m² con servicios de luz y agua, títulos independizados en SUNARP y financiamiento directo sin intereses.
+            Casas, departamentos, lotes de campo y desarrollos en preventa con alta plusvalía y facilidades de financiamiento a tu medida.
           </p>
 
           {/* Buscador Estilo Airbnb */}
@@ -156,18 +154,8 @@ export const PublicLandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. Pestañas de Categoría */}
-      <section id="proyectos" className="pt-10 pb-4">
-        <CategoryTabs
-          activeCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-          activeFeature={selectedFeature}
-          onSelectFeature={setSelectedFeature}
-        />
-      </section>
-
-      {/* 4. Grilla de Propiedades & Lotes */}
-      <section className="max-w-6xl mx-auto px-4 py-8">
+      {/* 3. Grilla de Propiedades & Lotes */}
+      <section id="proyectos" className="max-w-6xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-manrope font-bold text-[22px] sm:text-[26px] md:text-[32px] text-[#202020] dark:text-white tracking-tight leading-[1.15]">
@@ -176,7 +164,7 @@ export const PublicLandingPage: React.FC = () => {
                'Catálogo Disponible'}
             </h2>
             <p className="text-[13px] text-slate-400 mt-0.5">
-              {filteredProperties.length} {filteredProperties.length === 1 ? 'inmueble disponible' : 'inmuebles disponibles'} con entrega inmediata
+              {filteredProperties.length} {filteredProperties.length === 1 ? 'inmueble disponible' : 'inmuebles disponibles'}
             </p>
           </div>
 
@@ -235,10 +223,7 @@ export const PublicLandingPage: React.FC = () => {
         onSendSimulation={(msg) => handleOpenWhatsApp(undefined, msg)}
       />
 
-      {/* 6. Beneficios y Ubicación */}
-      <LegalSecuritySection />
-
-      {/* 7. Módulo de Contacto Dual */}
+      {/* 6. Módulo de Contacto Dual */}
       <DualContactSection
         currency={currency}
         onSendMessage={(msg) => handleOpenWhatsApp(undefined, msg)}

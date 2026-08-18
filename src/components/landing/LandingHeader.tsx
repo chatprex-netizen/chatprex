@@ -19,9 +19,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: 'Proyectos', href: '#proyectos' },
-    { label: 'Ubicación', href: '#ubicacion' },
-    { label: 'Beneficios', href: '#beneficios' },
+    { label: 'Proyectos & Inmuebles', href: '#proyectos' },
     { label: 'Financiamiento', href: '#financiamiento' },
     { label: 'Contacto', href: '#contacto' },
   ];

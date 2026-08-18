@@ -148,16 +148,22 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               </div>
             )}
             <div className="p-3 bg-[#F7F8FA] dark:bg-slate-800 rounded-xl border border-[#E5E7EB] dark:border-slate-700">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase block">Legal</span>
-              <span className="font-manrope font-bold text-sm text-emerald-600 dark:text-emerald-400">Título SUNARP</span>
+              <span className="text-[10px] text-slate-400 font-semibold uppercase block">Tipo</span>
+              <span className="font-manrope font-bold text-sm text-[#202020] dark:text-white capitalize">
+                {property.type ? property.type.replace('_', ' ') : 'Inmueble'}
+              </span>
             </div>
             <div className="p-3 bg-[#F7F8FA] dark:bg-slate-800 rounded-xl border border-[#E5E7EB] dark:border-slate-700">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase block">Servicios</span>
-              <span className="font-manrope font-bold text-sm text-[#202020] dark:text-white">Luz y Agua</span>
+              <span className="text-[10px] text-slate-400 font-semibold uppercase block">Operación</span>
+              <span className="font-manrope font-bold text-sm text-[#202020] dark:text-white capitalize">
+                {property.operation || 'Venta'}
+              </span>
             </div>
             <div className="p-3 bg-[#F7F8FA] dark:bg-slate-800 rounded-xl border border-[#E5E7EB] dark:border-slate-700">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase block">Entrega</span>
-              <span className="font-manrope font-bold text-sm text-[#202020] dark:text-white">Inmediata</span>
+              <span className="text-[10px] text-slate-400 font-semibold uppercase block">Estado</span>
+              <span className="font-manrope font-bold text-sm text-emerald-600 dark:text-emerald-400 capitalize">
+                {property.status ? property.status.replace('_', ' ') : 'Disponible'}
+              </span>
             </div>
           </div>
 
