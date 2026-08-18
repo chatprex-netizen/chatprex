@@ -14,7 +14,7 @@ export const PrivacyPolicyPage: React.FC = () => {
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-extrabold text-base tracking-tight text-white block">Prexup CRM</span>
+              <span className="font-extrabold text-base tracking-tight text-white block">CasaYa CRM</span>
               <span className="text-[10px] text-slate-400 block -mt-1 font-medium">Plataforma Inmobiliaria Omnicanal</span>
             </div>
           </div>
@@ -49,7 +49,7 @@ export const PrivacyPolicyPage: React.FC = () => {
             Política de Privacidad y Tratamiento de Datos
           </h1>
           <p className="text-sm text-slate-400 leading-relaxed">
-            Última actualización: <strong className="text-slate-200">{lastUpdated}</strong>. Esta política describe de manera transparente cómo <strong>Prexup CRM</strong> recopila, utiliza, almacena y protege los datos personales de nuestros usuarios y los prospectos comerciales gestionados a través de integraciones oficiales de mensajería (incluyendo <strong>Meta Platforms, WhatsApp Cloud API, Facebook Messenger e Instagram Direct</strong>).
+            Última actualización: <strong className="text-slate-200">{lastUpdated}</strong>. Esta política describe de manera transparente cómo <strong>CasaYa CRM</strong> recopila, utiliza, almacena y protege los datos personales de nuestros usuarios y los prospectos comerciales gestionados a través de integraciones oficiales de mensajería (incluyendo <strong>Meta Platforms, WhatsApp Cloud API, Facebook Messenger e Instagram Direct</strong>).
           </p>
         </div>
 
@@ -61,10 +61,10 @@ export const PrivacyPolicyPage: React.FC = () => {
           </h2>
           <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs sm:text-sm text-slate-300 space-y-2 leading-relaxed">
             <p>
-              <strong>Prexup CRM</strong> (en adelante, &quot;la Plataforma&quot;, &quot;nosotros&quot; o &quot;nuestro&quot;) opera como proveedor de tecnología de Customer Relationship Management (CRM) para agencias, asesores y desarrolladores inmobiliarios.
+              <strong>CasaYa CRM</strong> (en adelante, &quot;la Plataforma&quot;, &quot;nosotros&quot; o &quot;nuestro&quot;) opera como proveedor de tecnología de Customer Relationship Management (CRM) para agencias, asesores y desarrolladores inmobiliarios.
             </p>
             <p>
-              Para cualquier consulta, solicitud de ejercicio de derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) o dudas sobre este documento, puedes contactarnos al correo oficial: <a href="mailto:privacidad@prexup.com" className="text-blue-400 hover:underline font-semibold">privacidad@prexup.com</a>.
+              Para cualquier consulta, solicitud de ejercicio de derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) o dudas sobre este documento, puedes contactarnos al correo oficial: <a href="mailto:privacidad@casaya.app" className="text-blue-400 hover:underline font-semibold">privacidad@casaya.app</a>.
             </p>
           </div>
         </section>
@@ -187,7 +187,7 @@ export const PrivacyPolicyPage: React.FC = () => {
               </p>
               <ol className="list-decimal pl-5 space-y-2 text-xs text-slate-300">
                 <li>
-                  <strong>Solicitud por Correo Electrónico:</strong> Envía un mensaje a <a href="mailto:soporte@prexup.com?subject=Solicitud%20de%20Eliminacion%20de%20Datos" className="text-blue-400 font-semibold hover:underline">soporte@prexup.com</a> indicando tu nombre y tu número de teléfono o correo asociado. Procesaremos la eliminación definitiva en un plazo máximo de <strong>48 horas hábiles</strong> y te enviaremos la confirmación correspondiente.
+                  <strong>Solicitud por Correo Electrónico:</strong> Envía un mensaje a <a href="mailto:soporte@casaya.app?subject=Solicitud%20de%20Eliminacion%20de%20Datos" className="text-blue-400 font-semibold hover:underline">soporte@casaya.app</a> indicando tu nombre y tu número de teléfono o correo asociado. Procesaremos la eliminación definitiva en un plazo máximo de <strong>48 horas hábiles</strong> y te enviaremos la confirmación correspondiente.
                 </li>
                 <li>
                   <strong>Desde la Configuración de Facebook / Meta:</strong>
@@ -229,20 +229,20 @@ export const PrivacyPolicyPage: React.FC = () => {
             Si tienes cualquier duda o requieres asistencia sobre nuestra Política de Privacidad o la gestión de datos en Meta / WhatsApp, puedes escribirnos directamente a:
           </p>
           <div className="flex flex-wrap items-center gap-4 text-xs font-semibold pt-1">
-            <a href="mailto:privacidad@prexup.com" className="flex items-center gap-1.5 text-blue-400 hover:underline">
+            <a href="mailto:privacidad@casaya.app" className="flex items-center gap-1.5 text-blue-400 hover:underline">
               <Mail className="w-3.5 h-3.5" />
-              <span>privacidad@prexup.com</span>
+              <span>privacidad@casaya.app</span>
             </a>
-            <a href="https://prexup.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-slate-300 hover:text-white">
+            <a href="https://casaya.app" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-slate-300 hover:text-white">
               <Globe className="w-3.5 h-3.5" />
-              <span>https://prexup.com</span>
+              <span>https://casaya.app</span>
             </a>
           </div>
         </section>
 
         {/* Footer */}
         <footer className="pt-6 border-t border-slate-800 text-center text-xs text-slate-500 space-y-1">
-          <p>© {new Date().getFullYear()} Prexup CRM. Todos los derechos reservados.</p>
+          <p>© {new Date().getFullYear()} CasaYa CRM. Todos los derechos reservados.</p>
           <div className="flex items-center justify-center gap-3 pt-1">
             <a href="#/terms" className="text-slate-400 hover:text-slate-200 underline">Términos de Servicio</a>
             <span>·</span>

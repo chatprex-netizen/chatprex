@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Eye, EyeOff, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
+import { Home, Building2, Eye, EyeOff, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -44,15 +44,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         {/* Logo y Título */}
         <div className="mb-8 flex flex-col items-center">
           <div className="flex items-center gap-3 justify-center">
-            <div className="flex shrink-0 items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/25">
-              <Building2 className="w-5 h-5 text-white" />
+            <div className="flex shrink-0 items-center justify-center w-10 h-10 bg-[#1154FF] text-white rounded-xl shadow-lg shadow-blue-500/25">
+              <Home className="w-5 h-5" />
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight m-0 leading-none">
-              PrexUp<span className="text-blue-400">CRM</span>
+            <h1 className="text-2xl font-extrabold text-white tracking-tight m-0 leading-none">
+              CasaYa <span className="text-[#38BDF8] text-base font-semibold">CRM</span>
             </h1>
           </div>
           <p className="text-slate-400 mt-3 text-xs text-center">
-            Gestión inmobiliaria inteligente
+            Plataforma Inmobiliaria Digital con Inteligencia Artificial
           </p>
         </div>
 
@@ -157,7 +157,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </a>
           </div>
           <p className="text-slate-500 text-[11px]">
-            © {new Date().getFullYear()} PrexUp · Todos los derechos reservados
+            © {new Date().getFullYear()} CasaYa · Todos los derechos reservados
           </p>
         </div>
       </div>

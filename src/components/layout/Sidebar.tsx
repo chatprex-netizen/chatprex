@@ -156,16 +156,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <img src={appBranding.logoUrl} alt="Logo" className="h-8 max-w-[120px] object-contain" />
             ) : (
               <>
-                <div className="w-8 h-8 rounded-lg bg-[#004aad] flex items-center justify-center shrink-0 text-white font-bold text-xs shadow-xs">
-                  CP
+                <div className="w-8 h-8 rounded-xl bg-[#1154FF] text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                  <Home className="w-4 h-4" />
                 </div>
                 {!isCollapsed && (
                   <div>
-                    <div className="font-bold text-sm text-white leading-tight">
-                      {appBranding?.appName || 'ChatPrex'}
+                    <div className="font-extrabold text-sm text-white leading-tight flex items-center gap-1.5">
+                      <span>{appBranding?.appName || 'CasaYa'}</span>
+                      <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-blue-500/20 text-[#38BDF8]">CRM</span>
                     </div>
-                    <div className="text-[11px] text-slate-400 font-normal">
-                      {appBranding?.appDescription || 'Gestión comercial'}
+                    <div className="text-[10px] text-slate-400 font-normal">
+                      {appBranding?.appDescription || 'Plataforma Inmobiliaria'}
                     </div>
                   </div>
                 )}

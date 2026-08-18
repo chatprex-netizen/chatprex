@@ -29,7 +29,7 @@ export const DataDeletionPage: React.FC = () => {
               <Trash2 className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-extrabold text-base tracking-tight text-white block">Prexup CRM</span>
+              <span className="font-extrabold text-base tracking-tight text-white block">CasaYa CRM</span>
               <span className="text-[10px] text-slate-400 block -mt-1 font-medium">Instrucciones de Exclusión y Eliminación de Datos</span>
             </div>
           </div>
@@ -241,7 +241,7 @@ export const DataDeletionPage: React.FC = () => {
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 font-bold shrink-0 text-[10px]">3</span>
-                  <span>Busca la aplicación <strong>Prexup CRM</strong> en la lista de aplicaciones activas.</span>
+                  <span>Busca la aplicación <strong>CasaYa CRM</strong> en la lista de aplicaciones activas.</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 font-bold shrink-0 text-[10px]">4</span>
@@ -261,7 +261,7 @@ export const DataDeletionPage: React.FC = () => {
               </p>
               <div className="pt-2 border-t border-slate-800 text-xs text-slate-400 space-y-1">
                 <div>Plazo máximo de respuesta: <strong className="text-slate-200">48 horas</strong></div>
-                <div>Oficial de Privacidad: <a href="mailto:privacidad@prexup.com" className="text-blue-400 hover:underline">privacidad@prexup.com</a></div>
+                <div>Oficial de Privacidad: <a href="mailto:privacidad@casaya.app" className="text-blue-400 hover:underline">privacidad@casaya.app</a></div>
               </div>
             </div>
           </div>
@@ -269,7 +269,7 @@ export const DataDeletionPage: React.FC = () => {
 
         {/* Footer */}
         <footer className="pt-6 border-t border-slate-800 text-center text-xs text-slate-500 space-y-1">
-          <p>© {new Date().getFullYear()} Prexup CRM. Todos los derechos reservados.</p>
+          <p>© {new Date().getFullYear()} CasaYa CRM. Todos los derechos reservados.</p>
           <div className="flex items-center justify-center gap-3 pt-1">
             <a href="#/terms" className="text-slate-400 hover:text-slate-200 underline">Términos de Servicio</a>
             <span>·</span>

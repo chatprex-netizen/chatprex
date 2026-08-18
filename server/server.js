@@ -44,8 +44,8 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Health check
-app.get(['/', '/health', '/api/health'], (_req, res) => {
-  res.json({ status: 'ok', db: 'postgresql', timestamp: new Date() });
+app.get(['/health', '/api/health'], (_req, res) => {
+  res.json({ status: 'ok', db: 'postgresql', app: 'CasaYa CRM', timestamp: new Date() });
 });
 
 // Mount CRM API Router
@@ -642,7 +642,7 @@ if (fs.existsSync(distPath)) {
 // ------------------------------------------------------------------
 
 app.listen(PORT, '0.0.0.0', async () => {
-  console.log(`\n🚀 Servidor Prexup CRM ejecutándose en http://0.0.0.0:${PORT}`);
+  console.log(`\n🚀 Servidor CasaYa CRM ejecutándose en http://0.0.0.0:${PORT}`);
   console.log(`🔗 Webhook URL: http://0.0.0.0:${PORT}/api/whatsapp/webhook`);
   console.log(`🧠 Knowledge API: http://0.0.0.0:${PORT}/api/ai/knowledge`);
 

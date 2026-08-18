@@ -1,7 +1,7 @@
 {
-  "name": "prexup-server",
+  "name": "casaya-server",
   "version": "1.0.0",
-  "description": "Backend para integracion de Meta WhatsApp Cloud API y Asistentes IA con PostgreSQL y pgvector",
+  "description": "Backend API para CasaYa CRM Inmobiliario",
   "type": "module",
   "main": "server.js",
   "scripts": {
