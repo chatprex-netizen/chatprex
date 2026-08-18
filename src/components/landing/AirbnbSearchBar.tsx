@@ -40,15 +40,24 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
 
   return (
     <div className="relative w-full max-w-4xl mx-auto z-30 font-sans">
+      
+      {/* Backdrop invisible para cerrar al hacer clic afuera */}
+      {activeDropdown && (
+        <div 
+          className="fixed inset-0 z-40 bg-transparent" 
+          onClick={closeDropdown} 
+        />
+      )}
+
       {/* Contenedor Cápsula Minimalista Translúcido Premium */}
-      <div className="bg-white/90 dark:bg-[#151821]/90 backdrop-blur-2xl rounded-2xl md:rounded-full border border-white/60 dark:border-white/[0.12] shadow-2xl p-1.5 md:p-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-1 transition-all">
+      <div className="relative z-50 bg-white/95 dark:bg-[#151821]/95 backdrop-blur-2xl rounded-2xl md:rounded-full border border-white/60 dark:border-white/[0.12] shadow-2xl p-1.5 md:p-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-1 transition-all">
         
         {/* 1. Ubicación */}
         <div className="relative flex-1">
           <button
             type="button"
             onClick={() => toggleDropdown('zone')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-black/5 dark:hover:bg-white/[0.06] transition-colors flex items-center gap-3 ${
+            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-black/5 dark:hover:bg-white/[0.06] transition-colors flex items-center gap-3 cursor-pointer ${
               activeDropdown === 'zone' ? 'bg-black/5 dark:bg-white/[0.06]' : ''
             }`}
           >
@@ -66,17 +75,21 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
 
           {/* Dropdown: Zonas */}
           {activeDropdown === 'zone' && (
-            <div className="absolute top-full left-0 mt-2 w-72 bg-white/98 dark:bg-[#151821]/98 backdrop-blur-2xl rounded-2xl border border-[#E5E7EB] dark:border-white/[0.12] shadow-2xl p-2.5 space-y-1 animate-fade-in z-50">
-              <div className="text-[11px] font-semibold text-slate-400 px-3 py-1 uppercase tracking-wider">Selecciona una zona</div>
+            <div className="absolute top-full left-0 mt-2 w-72 sm:w-80 bg-white dark:bg-[#151821] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.15] shadow-2xl p-3 space-y-1 animate-fade-in z-50">
+              <div className="text-[11px] font-bold text-slate-600 dark:text-slate-300 px-3 py-1 uppercase tracking-wider">
+                Selecciona una zona
+              </div>
               <button
                 type="button"
                 onClick={() => { onSelectZone(''); closeDropdown(); }}
-                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold flex items-center justify-between transition-colors ${
-                  !selectedZone ? 'bg-[#1154FF] text-white' : 'text-[#202020] dark:text-slate-200 hover:bg-[#F7F8FA] dark:hover:bg-white/[0.08]'
+                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                  !selectedZone 
+                    ? 'bg-[#1154FF] text-white shadow-sm' 
+                    : 'text-[#202020] dark:text-slate-100 hover:bg-[#F7F8FA] dark:hover:bg-[#1E2333]'
                 }`}
               >
                 <span>Todas las zonas</span>
-                {!selectedZone && <span className="text-[11px]">✓</span>}
+                {!selectedZone && <span className="text-xs">✓</span>}
               </button>
 
               {availableZones.map((z) => (
@@ -84,12 +97,14 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
                   key={z}
                   type="button"
                   onClick={() => { onSelectZone(z); closeDropdown(); }}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold flex items-center justify-between transition-colors ${
-                    selectedZone === z ? 'bg-[#1154FF] text-white' : 'text-[#202020] dark:text-slate-200 hover:bg-[#F7F8FA] dark:hover:bg-white/[0.08]'
+                  className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                    selectedZone === z 
+                      ? 'bg-[#1154FF] text-white shadow-sm' 
+                      : 'text-[#202020] dark:text-slate-100 hover:bg-[#F7F8FA] dark:hover:bg-[#1E2333]'
                   }`}
                 >
                   <span>{z}</span>
-                  {selectedZone === z && <span className="text-[11px]">✓</span>}
+                  {selectedZone === z && <span className="text-xs">✓</span>}
                 </button>
               ))}
             </div>
@@ -103,7 +118,7 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
           <button
             type="button"
             onClick={() => toggleDropdown('type')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-black/5 dark:hover:bg-white/[0.06] transition-colors flex items-center gap-3 ${
+            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-black/5 dark:hover:bg-white/[0.06] transition-colors flex items-center gap-3 cursor-pointer ${
               activeDropdown === 'type' ? 'bg-black/5 dark:bg-white/[0.06]' : ''
             }`}
           >
@@ -123,13 +138,17 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
 
           {/* Dropdown: Categoría */}
           {activeDropdown === 'type' && (
-            <div className="absolute top-full left-0 mt-2 w-72 bg-white/98 dark:bg-[#151821]/98 backdrop-blur-2xl rounded-2xl border border-[#E5E7EB] dark:border-white/[0.12] shadow-2xl p-2.5 space-y-1 animate-fade-in z-50">
-              <div className="text-[11px] font-semibold text-slate-400 px-3 py-1 uppercase tracking-wider">Categoría</div>
+            <div className="absolute top-full left-0 mt-2 w-72 sm:w-80 bg-white dark:bg-[#151821] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.15] shadow-2xl p-3 space-y-1.5 animate-fade-in z-50">
+              <div className="text-[11px] font-bold text-slate-600 dark:text-slate-300 px-3 py-1 uppercase tracking-wider">
+                Categoría de Inmueble
+              </div>
               <button
                 type="button"
                 onClick={() => { onSelectCategory('all'); closeDropdown(); }}
-                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold transition-colors ${
-                  selectedCategory === 'all' ? 'bg-[#1154FF] text-white' : 'hover:bg-[#F7F8FA] dark:hover:bg-white/[0.08] text-[#202020] dark:text-slate-200'
+                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold transition-colors cursor-pointer ${
+                  selectedCategory === 'all' 
+                    ? 'bg-[#1154FF] text-white shadow-sm' 
+                    : 'text-[#202020] dark:text-slate-100 hover:bg-[#F7F8FA] dark:hover:bg-[#1E2333]'
                 }`}
               >
                 Ver Todo el Catálogo
@@ -137,8 +156,10 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
               <button
                 type="button"
                 onClick={() => { onSelectCategory('proyectos'); closeDropdown(); }}
-                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold transition-colors ${
-                  selectedCategory === 'proyectos' ? 'bg-[#1154FF] text-white' : 'hover:bg-[#F7F8FA] dark:hover:bg-white/[0.08] text-[#202020] dark:text-slate-200'
+                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold transition-colors cursor-pointer ${
+                  selectedCategory === 'proyectos' 
+                    ? 'bg-[#1154FF] text-white shadow-sm' 
+                    : 'text-[#202020] dark:text-slate-100 hover:bg-[#F7F8FA] dark:hover:bg-[#1E2333]'
                 }`}
               >
                 Proyectos & Preventas (Lotes / Casas)
@@ -146,8 +167,10 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
               <button
                 type="button"
                 onClick={() => { onSelectCategory('independientes'); closeDropdown(); }}
-                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold transition-colors ${
-                  selectedCategory === 'independientes' ? 'bg-[#1154FF] text-white' : 'hover:bg-[#F7F8FA] dark:hover:bg-white/[0.08] text-[#202020] dark:text-slate-200'
+                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold transition-colors cursor-pointer ${
+                  selectedCategory === 'independientes' 
+                    ? 'bg-[#1154FF] text-white shadow-sm' 
+                    : 'text-[#202020] dark:text-slate-100 hover:bg-[#F7F8FA] dark:hover:bg-[#1E2333]'
                 }`}
               >
                 Propiedades Independientes
@@ -163,7 +186,7 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
           <button
             type="button"
             onClick={() => toggleDropdown('price')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-black/5 dark:hover:bg-white/[0.06] transition-colors flex items-center gap-3 ${
+            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-black/5 dark:hover:bg-white/[0.06] transition-colors flex items-center gap-3 cursor-pointer ${
               activeDropdown === 'price' ? 'bg-black/5 dark:bg-white/[0.06]' : ''
             }`}
           >
@@ -181,9 +204,11 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
 
           {/* Dropdown: Presupuesto */}
           {activeDropdown === 'price' && (
-            <div className="absolute top-full right-0 mt-2 w-80 bg-white/98 dark:bg-[#151821]/98 backdrop-blur-2xl rounded-2xl border border-[#E5E7EB] dark:border-white/[0.12] shadow-2xl p-4 space-y-3 animate-fade-in z-50">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Presupuesto Máximo</span>
+            <div className="absolute top-full right-0 mt-2 w-80 sm:w-88 bg-white dark:bg-[#151821] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.15] shadow-2xl p-4 space-y-3.5 animate-fade-in z-50">
+              <div className="flex items-center justify-between border-b border-[#F1F3F5] dark:border-white/[0.08] pb-2">
+                <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                  Presupuesto Máximo
+                </span>
                 <button
                   type="button"
                   onClick={onToggleCurrency}
@@ -194,10 +219,12 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
               </div>
 
               {/* Rango de Presupuesto */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs font-manrope font-bold text-[#202020] dark:text-white">
-                  <span>Cualquiera</span>
-                  <span>{selectedCurrency} {maxBudget > 0 ? maxBudget.toLocaleString('en-US') : 'Sin Límite'}</span>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs font-manrope font-bold">
+                  <span className="text-slate-500 dark:text-slate-400">Rango</span>
+                  <span className="text-[#1154FF] dark:text-[#38BDF8] text-sm">
+                    {maxBudget > 0 ? `Hasta ${selectedCurrency} ${maxBudget.toLocaleString('en-US')}` : 'Sin Límite'}
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -206,33 +233,40 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
                   step={selectedCurrency === 'S/' ? 10000 : 5000}
                   value={maxBudget}
                   onChange={(e) => onChangeMaxBudget(Number(e.target.value))}
-                  className="w-full h-1.5 bg-[#F1F3F5] dark:bg-[#1E2230] rounded-lg appearance-none cursor-pointer accent-[#1154FF] dark:accent-[#38BDF8]"
+                  className="w-full h-1.5 bg-slate-200 dark:bg-[#252B3E] rounded-lg appearance-none cursor-pointer accent-[#1154FF] dark:accent-[#38BDF8]"
                 />
               </div>
 
               {/* Botones rápidos de presupuesto */}
-              <div className="grid grid-cols-3 gap-1.5 pt-1">
-                <button
-                  type="button"
-                  onClick={() => { onChangeMaxBudget(0); closeDropdown(); }}
-                  className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-colors ${
-                    maxBudget === 0 ? 'bg-[#1154FF] text-white' : 'bg-[#F7F8FA] dark:bg-[#1E2230] text-[#202020] dark:text-slate-200 hover:bg-[#F1F3F5]'
-                  }`}
-                >
-                  Todos
-                </button>
-                {budgetOptions.slice(0, 5).map((amount) => (
+              <div className="space-y-1.5">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Atajos de Precio</div>
+                <div className="grid grid-cols-3 gap-1.5">
                   <button
-                    key={amount}
                     type="button"
-                    onClick={() => { onChangeMaxBudget(amount); closeDropdown(); }}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-colors ${
-                      maxBudget === amount ? 'bg-[#1154FF] text-white' : 'bg-[#F7F8FA] dark:bg-[#1E2230] text-[#202020] dark:text-slate-200 hover:bg-[#F1F3F5]'
+                    onClick={() => { onChangeMaxBudget(0); closeDropdown(); }}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      maxBudget === 0 
+                        ? 'bg-[#1154FF] text-white shadow-sm' 
+                        : 'bg-[#F1F3F5] dark:bg-[#1E2333] text-[#202020] dark:text-slate-100 border border-[#E5E7EB] dark:border-white/[0.08] hover:bg-[#E5E7EB] dark:hover:bg-[#252B3E]'
                     }`}
                   >
-                    &lt; {selectedCurrency} {amount / 1000}k
+                    Todos
                   </button>
-                ))}
+                  {budgetOptions.slice(0, 5).map((amount) => (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => { onChangeMaxBudget(amount); closeDropdown(); }}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        maxBudget === amount 
+                          ? 'bg-[#1154FF] text-white shadow-sm' 
+                          : 'bg-[#F1F3F5] dark:bg-[#1E2333] text-[#202020] dark:text-slate-100 border border-[#E5E7EB] dark:border-white/[0.08] hover:bg-[#E5E7EB] dark:hover:bg-[#252B3E]'
+                      }`}
+                    >
+                      &lt; {selectedCurrency} {amount / 1000}k
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}

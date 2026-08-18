@@ -19,15 +19,35 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: 'Proyectos & Inmuebles', href: '#proyectos' },
+    { label: 'Destacados', href: '#proyectos' },
+    { label: 'Catálogo Completo', href: '#/catalogo', isPage: true },
     { label: 'Financiamiento', href: '#financiamiento' },
     { label: 'Contacto', href: '#contacto' },
   ];
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, link: { label: string; href: string; isPage?: boolean }) => {
     setMobileMenuOpen(false);
-    const targetId = href.replace('#', '');
+    if (link.isPage) {
+      window.location.hash = link.href;
+      return;
+    }
+    
+    // Si estamos en otra página (ej. catalogo) y hacemos click en una sección del portal
+    const currentHash = (window.location.hash || '').toLowerCase();
+    if (currentHash.includes('catalog')) {
+      window.location.hash = `#/portal`;
+      setTimeout(() => {
+        const targetId = link.href.replace('#', '');
+        const element = document.getElementById(targetId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return;
+    }
+
+    e.preventDefault();
+    const targetId = link.href.replace('#', '');
     const element = document.getElementById(targetId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -58,8 +78,8 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             <a
               key={link.label}
               href={link.href}
-              onClick={(e) => handleNavClick(e, link.href)}
-              className="text-[14px] font-medium text-[#202020]/75 dark:text-slate-300 hover:text-[#1154FF] dark:hover:text-[#38BDF8] transition-colors"
+              onClick={(e) => handleNavClick(e, link)}
+              className="text-[14px] font-medium text-[#202020]/75 dark:text-slate-300 hover:text-[#1154FF] dark:hover:text-[#38BDF8] transition-colors cursor-pointer"
             >
               {link.label}
             </a>
@@ -121,8 +141,8 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               <a
                 key={link.label}
                 href={link.href}
-                onClick={(e) => handleNavClick(e, link.href)}
-                className="px-3 py-2.5 rounded-xl text-sm font-semibold text-[#202020] dark:text-slate-200 hover:bg-[#F7F8FA] dark:hover:bg-[#151821] transition-colors"
+                onClick={(e) => handleNavClick(e, link)}
+                className="px-3 py-2.5 rounded-xl text-sm font-semibold text-[#202020] dark:text-slate-200 hover:bg-[#F7F8FA] dark:hover:bg-[#151821] transition-colors cursor-pointer"
               >
                 {link.label}
               </a>

@@ -96,24 +96,34 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             {property.projectName ? `${property.projectName} - ${property.title}` : property.title}
           </h3>
 
-          <div className="flex items-center gap-2 text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-400 mt-1">
-            {property.areaTotal > 0 && (
-              <span className="flex items-center gap-0.5 font-medium text-[#202020] dark:text-slate-200">
-                <Maximize2 className="w-3 h-3 text-slate-400" />
-                {property.areaTotal} m²
-              </span>
-            )}
-            {property.bedrooms && property.bedrooms > 0 && (
-              <span className="font-medium text-[#202020] dark:text-slate-200">
-                {property.bedrooms} hab.
-              </span>
-            )}
-            {/* Badge SUNARP condicional */}
-            {(Array.isArray(property.features) && property.features.some(f => (f || '').toLowerCase().includes('sunarp') || (f || '').toLowerCase().includes('título') || (f || '').toLowerCase().includes('registrado'))) && (
-              <span className="hidden sm:flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
-                <ShieldCheck className="w-3 h-3" />
-                SUNARP
-              </span>
+          {/* Especificaciones y Características */}
+          <div className="space-y-1.5 mt-1">
+            <div className="flex items-center gap-2 text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-400">
+              {property.areaTotal > 0 && (
+                <span className="flex items-center gap-0.5 font-medium text-[#202020] dark:text-slate-200">
+                  <Maximize2 className="w-3 h-3 text-slate-400" />
+                  {property.areaTotal} m²
+                </span>
+              )}
+              {property.bedrooms && property.bedrooms > 0 && (
+                <span className="font-medium text-[#202020] dark:text-slate-200">
+                  {property.bedrooms} hab.
+                </span>
+              )}
+            </div>
+
+            {/* Características de la propiedad */}
+            {Array.isArray(property.features) && property.features.length > 0 && (
+              <div className="flex flex-wrap gap-1 pt-0.5">
+                {property.features.slice(0, 2).map((feat, idx) => (
+                  <span
+                    key={idx}
+                    className="px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#F1F3F5] dark:bg-[#1E2333] text-slate-600 dark:text-slate-300 truncate max-w-[120px]"
+                  >
+                    {feat}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
         </div>

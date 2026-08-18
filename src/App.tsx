@@ -21,6 +21,7 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { DataDeletionPage } from './pages/DataDeletionPage';
 import { PublicLandingPage } from './pages/PublicLandingPage';
+import { PublicCatalogPage } from './pages/PublicCatalogPage';
 import { PropertyModal } from './components/properties/PropertyModal';
 import { DealModal } from './components/pipeline/DealModal';
 import { ContactModal } from './components/contacts/ContactModal';
@@ -113,6 +114,8 @@ const VALID_PAGES: Page[] = [
   'data-deletion',
   'portal',
   'landing',
+  'catalog',
+  'catalogo',
 ];
 
 // Detección automática para dominios independientes (Landing vs CRM)
@@ -133,13 +136,20 @@ const readPageFromLocation = (): Page => {
 
   // 1. Detección directa de páginas públicas
   if (
+    hash.includes('catalog') ||
+    hash.includes('catalogo') ||
+    path.includes('catalog') ||
+    path.includes('catalogo')
+  ) {
+    return 'catalog';
+  }
+
+  if (
     hash.includes('landing') ||
     hash.includes('portal') ||
-    hash.includes('catalogo') ||
-    hash.includes('inmueble') ||
+    hash.includes('inicio') ||
     path.includes('landing') ||
-    path.includes('portal') ||
-    path.includes('catalogo')
+    path.includes('portal')
   ) {
     return 'portal';
   }
@@ -208,9 +218,13 @@ export const App: React.FC = () => {
     window.location.hash = `#/${normalized}`;
   };
 
-  // Páginas públicas accesibles sin inicio de sesión (Landing Page, Portal Web, Legal Meta)
+  // Páginas públicas accesibles sin inicio de sesión (Landing Page, Catálogo Completo, Legal Meta)
   if (currentPage === 'portal' || currentPage === 'landing') {
     return <PublicLandingPage />;
+  }
+
+  if (currentPage === 'catalog' || currentPage === 'catalogo') {
+    return <PublicCatalogPage />;
   }
 
   if (currentPage === 'privacy') {
@@ -309,6 +323,9 @@ export const App: React.FC = () => {
       case 'portal':
       case 'landing':
         return <PublicLandingPage />;
+      case 'catalog':
+      case 'catalogo':
+        return <PublicCatalogPage />;
       default:
         return (
           <DashboardPage

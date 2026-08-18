@@ -19,7 +19,6 @@ export const PublicLandingPage: React.FC = () => {
   const [selectedZone, setSelectedZone] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'proyectos' | 'independientes'>('all');
   const [maxBudget, setMaxBudget] = useState(0);
-  const [selectedFeature, setSelectedFeature] = useState('');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   const toggleCurrency = () => {
@@ -69,20 +68,9 @@ export const PublicLandingPage: React.FC = () => {
         if (normalizedPrice > maxBudget) return false;
       }
 
-      // 4. Filtro por Característica
-      if (selectedFeature) {
-        const featLower = selectedFeature.toLowerCase();
-        const inTitle = (p.title || '').toLowerCase().includes(featLower);
-        const inDesc = (p.description || '').toLowerCase().includes(featLower);
-        const inFeats = Array.isArray(p.features) && p.features.some(f => (f || '').toLowerCase().includes(featLower));
-        const inType = pType.includes(featLower);
-        const inProj = pProj.toLowerCase().includes(featLower);
-        if (!inTitle && !inDesc && !inFeats && !inType && !inProj) return false;
-      }
-
       return true;
     });
-  }, [propertyList, selectedCategory, selectedZone, maxBudget, selectedFeature, currency]);
+  }, [propertyList, selectedCategory, selectedZone, maxBudget, currency]);
 
   // Helper de contacto WhatsApp
   const handleOpenWhatsApp = (prop?: Property, customMsg?: string) => {
@@ -142,10 +130,10 @@ export const PublicLandingPage: React.FC = () => {
       />
 
       {/* 2. Hero Section con 3 Imágenes Animadas (Cambio cada 5s) */}
-      <section className="relative pt-12 pb-16 md:pt-20 md:pb-24 px-4 overflow-hidden border-b border-[#F1F3F5] dark:border-white/[0.08]">
+      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 px-4 border-b border-[#F1F3F5] dark:border-white/[0.08]">
         
         {/* Carrusel de Fondo Animado */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 overflow-hidden">
           {heroImages.map((img, idx) => (
             <div
               key={idx}
@@ -219,47 +207,67 @@ export const PublicLandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. Grilla de Propiedades & Lotes (4 cols PC, 2 cols Móvil) */}
+      {/* 3. Grilla de Proyectos y Propiedades Destacadas (Máximo 8 items) */}
       <section id="proyectos" className="max-w-7xl mx-auto px-3 sm:px-6 py-10 sm:py-14">
-        <div className="flex items-center justify-between mb-5 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
             <h2 className="font-manrope font-bold text-[20px] sm:text-[26px] md:text-[30px] text-[#202020] dark:text-white tracking-tight leading-[1.15]">
-              {selectedCategory === 'proyectos' ? 'Proyectos & Preventas' :
-               selectedCategory === 'independientes' ? 'Propiedades Independientes' :
-               'Catálogo Disponible'}
+              Proyectos y Propiedades Destacadas
             </h2>
-            <p className="text-[12px] sm:text-[13px] text-slate-400 mt-0.5">
-              {filteredProperties.length} {filteredProperties.length === 1 ? 'inmueble disponible' : 'inmuebles disponibles'}
+            <p className="text-[12px] sm:text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">
+              Selección exclusiva de inmuebles con alta plusvalía y disponibilidad inmediata
             </p>
           </div>
 
-          {(selectedZone || maxBudget > 0 || selectedFeature || selectedCategory !== 'all') && (
-            <button
-              onClick={() => {
-                setSelectedZone('');
-                setMaxBudget(0);
-                setSelectedFeature('');
-                setSelectedCategory('all');
-              }}
-              className="text-[12px] sm:text-[13px] font-semibold text-[#1154FF] dark:text-[#38BDF8] hover:underline cursor-pointer"
+          <div className="flex items-center gap-3 self-start sm:self-auto">
+            {(selectedZone || maxBudget > 0 || selectedCategory !== 'all') && (
+              <button
+                onClick={() => {
+                  setSelectedZone('');
+                  setMaxBudget(0);
+                  setSelectedCategory('all');
+                }}
+                className="text-[12px] sm:text-[13px] font-semibold text-[#1154FF] dark:text-[#38BDF8] hover:underline cursor-pointer"
+              >
+                Restablecer filtros
+              </button>
+            )}
+
+            <a
+              href="#/catalogo"
+              className="text-[12px] sm:text-[13px] font-bold text-[#1154FF] dark:text-[#38BDF8] hover:underline flex items-center gap-1 cursor-pointer"
             >
-              Restablecer filtros
-            </button>
-          )}
+              <span>Ver Catálogo Completo</span>
+              <span>→</span>
+            </a>
+          </div>
         </div>
 
         {filteredProperties.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
-            {filteredProperties.map((prop) => (
-              <PropertyCard
-                key={prop.id}
-                property={prop}
-                currency={currency}
-                onSelect={(p) => setSelectedProperty(p)}
-                onWhatsAppClick={(p) => handleOpenWhatsApp(p)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
+              {filteredProperties.slice(0, 8).map((prop) => (
+                <PropertyCard
+                  key={prop.id}
+                  property={prop}
+                  currency={currency}
+                  onSelect={(p) => setSelectedProperty(p)}
+                  onWhatsAppClick={(p) => handleOpenWhatsApp(p)}
+                />
+              ))}
+            </div>
+
+            {/* Botón Ver Catálogo Completo */}
+            <div className="mt-8 sm:mt-10 text-center">
+              <a
+                href="#/catalogo"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white dark:bg-[#151821] border border-[#E5E7EB] dark:border-white/[0.1] hover:border-[#1154FF] dark:hover:border-[#38BDF8] text-[#202020] dark:text-white font-manrope font-bold text-sm shadow-sm hover:shadow-md transition-all cursor-pointer group"
+              >
+                <span>Explorar Catálogo Completo ({propertyList.length} Inmuebles Disponibles)</span>
+                <span className="text-[#1154FF] dark:text-[#38BDF8] group-hover:translate-x-1 transition-transform">→</span>
+              </a>
+            </div>
+          </>
         ) : (
           <div className="text-center py-16 bg-white dark:bg-[#12151E] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.08] p-8 space-y-3 shadow-sm">
             <Compass className="w-8 h-8 text-slate-400 mx-auto" />
@@ -267,17 +275,12 @@ export const PublicLandingPage: React.FC = () => {
             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
               Intenta ampliando el rango de presupuesto o seleccionando otra ubicación.
             </p>
-            <button
-              onClick={() => {
-                setSelectedZone('');
-                setMaxBudget(0);
-                setSelectedFeature('');
-                setSelectedCategory('all');
-              }}
-              className="px-4 py-2 bg-[#1154FF] hover:bg-[#0c43cc] text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/25 cursor-pointer"
+            <a
+              href="#/catalogo"
+              className="inline-block px-5 py-2.5 bg-[#1154FF] hover:bg-[#0c43cc] text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/25 cursor-pointer"
             >
-              Ver Todo el Catálogo
-            </button>
+              Ver Todo el Catálogo Completo
+            </a>
           </div>
         )}
       </section>
