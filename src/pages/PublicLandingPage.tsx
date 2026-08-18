@@ -92,7 +92,7 @@ export const PublicLandingPage: React.FC = () => {
       if (prop) {
         msg = `¡Hola Elvis! Vi en el portal el inmueble "${prop.projectName ? `${prop.projectName} - ${prop.title}` : prop.title}" y deseo más información sobre el financiamiento y coordinar una visita.`;
       } else {
-        msg = '¡Hola Elvis! Deseo conocer la disponibilidad actual de lotes de campo y proyectos.';
+        msg = '¡Hola Elvis! Deseo conocer la disponibilidad actual de proyectos y propiedades.';
       }
     }
     const encoded = encodeURIComponent(msg);
@@ -132,7 +132,7 @@ export const PublicLandingPage: React.FC = () => {
   }, [heroImages.length]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#121212] text-[#202020] dark:text-slate-100 font-sans transition-colors selection:bg-[#1154FF] selection:text-white">
+    <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#0B0C10] text-[#202020] dark:text-slate-100 font-sans transition-colors selection:bg-[#1154FF] selection:text-white">
       
       {/* 1. Header Minimalista */}
       <LandingHeader
@@ -142,7 +142,7 @@ export const PublicLandingPage: React.FC = () => {
       />
 
       {/* 2. Hero Section con 3 Imágenes Animadas (Cambio cada 5s) */}
-      <section className="relative pt-12 pb-16 md:pt-20 md:pb-24 px-4 overflow-hidden border-b border-[#F1F3F5] dark:border-slate-800/80">
+      <section className="relative pt-12 pb-16 md:pt-20 md:pb-24 px-4 overflow-hidden border-b border-[#F1F3F5] dark:border-white/[0.08]">
         
         {/* Carrusel de Fondo Animado */}
         <div className="absolute inset-0 z-0">
@@ -162,26 +162,26 @@ export const PublicLandingPage: React.FC = () => {
               />
             </div>
           ))}
-          {/* Overlay suave para mantener contraste y legibilidad impecable */}
-          <div className="absolute inset-0 z-20 bg-gradient-to-b from-white/92 via-white/88 to-white/95 dark:from-[#121212]/92 dark:via-[#121212]/88 dark:to-[#121212]/95 backdrop-blur-[2px]" />
+          {/* Overlay cinematográfico oscuro para contraste perfecto */}
+          <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/75 via-black/55 to-[#0B0C10] backdrop-blur-[1.5px]" />
         </div>
 
         {/* Contenido del Hero */}
         <div className="relative z-30 max-w-4xl mx-auto text-center space-y-5">
           
           {/* Badge Superior */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-[#E5E7EB] dark:border-slate-700 shadow-sm text-xs font-semibold text-[#202020] dark:text-slate-200 animate-fade-in">
-            <span className="w-2 h-2 rounded-full bg-[#1154FF] animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/20 shadow-md text-xs font-semibold text-white animate-fade-in">
+            <span className="w-2 h-2 rounded-full bg-[#38bdf8] shadow-[0_0_8px_#38bdf8] animate-pulse" />
             <span>Proyectos en Preventa & Propiedades Exclusivas</span>
           </div>
 
-          {/* Titular Principal H1 (Escala: 34-40px mobile, 48-56px desktop, 800) */}
-          <h1 className="font-manrope font-extrabold text-[34px] sm:text-[44px] md:text-[52px] text-[#202020] dark:text-white tracking-tight leading-[1.08] max-w-3xl mx-auto">
-            Encuentra tu Próxima Propiedad o Proyecto Inmobiliario
+          {/* Titular Principal H1 con Contraste y Sombra de Lectura */}
+          <h1 className="font-manrope font-extrabold text-[34px] sm:text-[44px] md:text-[52px] text-white tracking-tight leading-[1.08] max-w-3xl mx-auto drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+            Encuentra tu Próxima <span className="text-[#38bdf8] drop-shadow-[0_2px_16px_rgba(56,189,248,0.5)]">Propiedad o Proyecto</span> Inmobiliario
           </h1>
 
-          {/* Subtítulo (Escala: 15-17px desktop, 400/500, line-height 1.55) */}
-          <p className="text-[15px] sm:text-[17px] text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-[1.55] font-normal">
+          {/* Subtítulo con Sombra Suave */}
+          <p className="text-[15px] sm:text-[17px] text-slate-100 max-w-2xl mx-auto leading-[1.55] font-medium drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">
             Casas, departamentos, lotes de campo y desarrollos en preventa con alta plusvalía y facilidades de financiamiento a tu medida.
           </p>
 
@@ -210,8 +210,8 @@ export const PublicLandingPage: React.FC = () => {
                 aria-label={`Ver foto ${idx + 1}`}
                 className={`h-1.5 rounded-full transition-all cursor-pointer ${
                   activeHeroImg === idx
-                    ? 'w-8 bg-[#1154FF]'
-                    : 'w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'
+                    ? 'w-8 bg-[#38bdf8] shadow-[0_0_6px_#38bdf8]'
+                    : 'w-2 bg-white/40 hover:bg-white/70'
                 }`}
               />
             ))}
@@ -241,7 +241,7 @@ export const PublicLandingPage: React.FC = () => {
                 setSelectedFeature('');
                 setSelectedCategory('all');
               }}
-              className="text-[12px] sm:text-[13px] font-semibold text-[#1154FF] hover:underline cursor-pointer"
+              className="text-[12px] sm:text-[13px] font-semibold text-[#1154FF] dark:text-[#38BDF8] hover:underline cursor-pointer"
             >
               Restablecer filtros
             </button>
@@ -261,10 +261,10 @@ export const PublicLandingPage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-[#F7F8FA] dark:bg-[#181818] rounded-2xl border border-[#E5E7EB] dark:border-slate-800 p-8 space-y-3">
+          <div className="text-center py-16 bg-white dark:bg-[#12151E] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.08] p-8 space-y-3 shadow-sm">
             <Compass className="w-8 h-8 text-slate-400 mx-auto" />
             <h3 className="font-manrope font-bold text-base text-[#202020] dark:text-white">No encontramos inmuebles con esos filtros</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
               Intenta ampliando el rango de presupuesto o seleccionando otra ubicación.
             </p>
             <button
@@ -274,7 +274,7 @@ export const PublicLandingPage: React.FC = () => {
                 setSelectedFeature('');
                 setSelectedCategory('all');
               }}
-              className="px-4 py-2 bg-[#1154FF] text-white rounded-xl text-xs font-semibold shadow-sm cursor-pointer"
+              className="px-4 py-2 bg-[#1154FF] hover:bg-[#0c43cc] text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/25 cursor-pointer"
             >
               Ver Todo el Catálogo
             </button>
@@ -282,19 +282,19 @@ export const PublicLandingPage: React.FC = () => {
         )}
       </section>
 
-      {/* 5. Simulador de Financiamiento */}
+      {/* 4. Simulador de Financiamiento */}
       <FinanceSimulator
         currency={currency}
         onSendSimulation={(msg) => handleOpenWhatsApp(undefined, msg)}
       />
 
-      {/* 6. Módulo de Contacto Dual */}
+      {/* 5. Módulo de Contacto Dual */}
       <DualContactSection
         currency={currency}
         onSendMessage={(msg) => handleOpenWhatsApp(undefined, msg)}
       />
 
-      {/* 8. Modal de Detalle */}
+      {/* 6. Modal de Detalle */}
       <PropertyDetailModal
         isOpen={Boolean(selectedProperty)}
         onClose={() => setSelectedProperty(null)}
@@ -303,13 +303,13 @@ export const PublicLandingPage: React.FC = () => {
         onWhatsAppClick={(p, msg) => handleOpenWhatsApp(p, msg)}
       />
 
-      {/* 9. Barra Móvil Fija */}
+      {/* 7. Barra Móvil Fija */}
       <MobileBottomNav
         onScrollTo={handleScrollTo}
-        onWhatsAppClick={() => handleOpenWhatsApp(undefined, '¡Hola! Quiero conocer la disponibilidad de lotes de campo.')}
+        onWhatsAppClick={() => handleOpenWhatsApp(undefined, '¡Hola! Quiero conocer la disponibilidad de proyectos y propiedades.')}
       />
 
-      {/* 10. Footer */}
+      {/* 8. Footer */}
       <LandingFooter />
     </div>
   );

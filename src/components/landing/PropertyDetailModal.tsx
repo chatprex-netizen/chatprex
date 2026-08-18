@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Property } from '../../types';
 import { 
-  X, MapPin, Maximize2, MessageCircle, ChevronLeft, ChevronRight, Share2, Sparkles, Building2, Trees
+  X, MapPin, MessageCircle, ChevronLeft, ChevronRight, Building2, Trees
 } from 'lucide-react';
 
 interface PropertyDetailModalProps {
@@ -54,13 +54,13 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in font-sans">
-      <div className="relative w-full max-w-lg sm:max-w-xl bg-white dark:bg-[#181818] rounded-t-3xl sm:rounded-3xl border border-[#E5E7EB] dark:border-slate-800 shadow-2xl overflow-hidden max-h-[90vh] sm:max-h-[85vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-md animate-fade-in font-sans">
+      <div className="relative w-full max-w-lg sm:max-w-xl bg-white dark:bg-[#151821] rounded-t-3xl sm:rounded-3xl border border-[#E5E7EB] dark:border-white/[0.1] shadow-2xl overflow-hidden max-h-[90vh] sm:max-h-[85vh] flex flex-col transition-colors">
         
         {/* Header Compacto con botón de Cierre */}
-        <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-white/95 dark:bg-[#181818]/95 backdrop-blur-md border-b border-[#F1F3F5] dark:border-slate-800">
+        <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-white/95 dark:bg-[#151821]/95 backdrop-blur-md border-b border-[#F1F3F5] dark:border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-[#F1F3F5] dark:bg-slate-800 text-[#1154FF] flex items-center gap-1">
+            <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-[#F1F3F5] dark:bg-[#1E2333] text-[#1154FF] dark:text-[#38BDF8] flex items-center gap-1">
               {isProject ? <Trees className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
               <span>{isProject ? (property.projectName || 'Proyecto') : 'Propiedad'}</span>
             </span>
@@ -72,7 +72,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           <button
             onClick={onClose}
             aria-label="Cerrar"
-            className="w-7 h-7 rounded-full bg-[#F7F8FA] dark:bg-slate-800 hover:bg-[#F1F3F5] dark:hover:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-full bg-[#F7F8FA] dark:bg-[#1E2333] hover:bg-[#F1F3F5] dark:hover:bg-[#252B3E] flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -95,13 +95,13 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <>
                   <button
                     onClick={() => setActiveImageIdx((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-black/70"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-black/80"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setActiveImageIdx((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-black/70"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-black/80"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -109,7 +109,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               )}
 
               {/* Indicador de fotos */}
-              <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-medium">
+              <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/70 text-white text-[10px] font-medium">
                 {activeImageIdx + 1} / {images.length}
               </div>
             </div>
@@ -122,7 +122,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                     key={idx}
                     onClick={() => setActiveImageIdx(idx)}
                     className={`relative w-14 h-10 rounded-lg overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                      activeImageIdx === idx ? 'border-[#1154FF]' : 'border-transparent opacity-50 hover:opacity-100'
+                      activeImageIdx === idx ? 'border-[#1154FF] dark:border-[#38BDF8]' : 'border-transparent opacity-50 hover:opacity-100'
                     }`}
                   >
                     <img src={img} alt="thumb" className="w-full h-full object-cover" />
@@ -133,7 +133,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           </div>
 
           {/* Título, Ubicación y Precio */}
-          <div className="space-y-1.5 border-b border-[#F1F3F5] dark:border-slate-800 pb-3">
+          <div className="space-y-1.5 border-b border-[#F1F3F5] dark:border-white/[0.08] pb-3">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
                 <h2 className="font-manrope font-bold text-[16px] sm:text-[18px] text-[#202020] dark:text-white leading-tight">
@@ -147,7 +147,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
               <div className="text-right shrink-0">
                 <span className="text-[10px] text-slate-400 uppercase font-semibold block">Precio</span>
-                <span className="font-manrope font-extrabold text-[18px] sm:text-[22px] text-[#1154FF] leading-none block">
+                <span className="font-manrope font-extrabold text-[18px] sm:text-[22px] text-[#1154FF] dark:text-[#38BDF8] leading-none block">
                   {displayPrice}
                 </span>
               </div>
@@ -156,28 +156,28 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
           {/* Bloque de Especificaciones (4 píldoras compactas) */}
           <div className="grid grid-cols-4 gap-1.5 sm:gap-2 text-center">
-            <div className="p-2 bg-[#F7F8FA] dark:bg-slate-800/80 rounded-xl border border-[#F1F3F5] dark:border-slate-700/60">
+            <div className="p-2 bg-[#F7F8FA] dark:bg-[#1E2333] rounded-xl border border-[#F1F3F5] dark:border-white/[0.08]">
               <span className="text-[9px] text-slate-400 uppercase font-medium block">Área</span>
               <span className="font-manrope font-bold text-[12px] text-[#202020] dark:text-white">
                 {property.areaTotal > 0 ? `${property.areaTotal}m²` : '-'}
               </span>
             </div>
 
-            <div className="p-2 bg-[#F7F8FA] dark:bg-slate-800/80 rounded-xl border border-[#F1F3F5] dark:border-slate-700/60">
+            <div className="p-2 bg-[#F7F8FA] dark:bg-[#1E2333] rounded-xl border border-[#F1F3F5] dark:border-white/[0.08]">
               <span className="text-[9px] text-slate-400 uppercase font-medium block">Hab.</span>
               <span className="font-manrope font-bold text-[12px] text-[#202020] dark:text-white">
                 {property.bedrooms ? `${property.bedrooms}` : '-'}
               </span>
             </div>
 
-            <div className="p-2 bg-[#F7F8FA] dark:bg-slate-800/80 rounded-xl border border-[#F1F3F5] dark:border-slate-700/60">
+            <div className="p-2 bg-[#F7F8FA] dark:bg-[#1E2333] rounded-xl border border-[#F1F3F5] dark:border-white/[0.08]">
               <span className="text-[9px] text-slate-400 uppercase font-medium block">Operación</span>
               <span className="font-manrope font-bold text-[12px] text-[#202020] dark:text-white capitalize truncate block">
                 {property.operation || 'Venta'}
               </span>
             </div>
 
-            <div className="p-2 bg-[#F7F8FA] dark:bg-slate-800/80 rounded-xl border border-[#F1F3F5] dark:border-slate-700/60">
+            <div className="p-2 bg-[#F7F8FA] dark:bg-[#1E2333] rounded-xl border border-[#F1F3F5] dark:border-white/[0.08]">
               <span className="text-[9px] text-slate-400 uppercase font-medium block">Estado</span>
               <span className="font-manrope font-bold text-[12px] text-emerald-600 dark:text-emerald-400 capitalize truncate block">
                 {property.status ? property.status.replace('_', ' ') : 'Disponible'}
@@ -191,7 +191,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               {property.features.map((feat, idx) => (
                 <span
                   key={idx}
-                  className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#F7F8FA] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-[#F1F3F5] dark:border-slate-700"
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#F7F8FA] dark:bg-[#1E2333] text-slate-600 dark:text-slate-300 border border-[#F1F3F5] dark:border-white/[0.08]"
                 >
                   {feat}
                 </span>
@@ -211,11 +211,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
         </div>
 
         {/* Footer del Modal: Botón directo WhatsApp */}
-        <div className="p-3 sm:p-4 bg-white dark:bg-[#181818] border-t border-[#F1F3F5] dark:border-slate-800">
+        <div className="p-3 sm:p-4 bg-white dark:bg-[#151821] border-t border-[#F1F3F5] dark:border-white/[0.08]">
           <button
             type="button"
             onClick={handleQuickWhatsApp}
-            className="w-full py-3 px-4 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[13px] sm:text-[14px] flex items-center justify-center gap-2 shadow-sm transition-all transform active:scale-98 cursor-pointer"
+            className="w-full py-3 px-4 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[13px] sm:text-[14px] flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition-all transform active:scale-98 cursor-pointer"
           >
             <MessageCircle className="w-4 h-4 fill-white text-[#1154FF]" />
             <span>Consultar Disponibilidad por WhatsApp</span>

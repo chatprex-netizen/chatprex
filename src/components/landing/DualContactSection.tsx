@@ -15,9 +15,9 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
   // Formulario Comprador
   const [buyerName, setBuyerName] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
-  const [buyerType, setBuyerType] = useState('Lote de Campo');
+  const [buyerType, setBuyerType] = useState('Lote / Terreno');
   const [buyerBudget, setBuyerBudget] = useState('');
-  const [buyerZone, setBuyerZone] = useState('Arequipa Campestre');
+  const [buyerZone, setBuyerZone] = useState('');
 
   // Formulario Vendedor / Desarrollador
   const [sellerName, setSellerName] = useState('');
@@ -31,7 +31,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
 
   const handleSubmitBuyer = (e: React.FormEvent) => {
     e.preventDefault();
-    const msg = `¡Hola! Mi nombre es ${buyerName || 'un interesado'}. Busco un ${buyerType} en ${buyerZone}, con presupuesto de ${currency} ${buyerBudget || 'a evaluar'}. Celular: ${buyerPhone}. ¿Qué opciones tienen disponibles?`;
+    const msg = `¡Hola! Mi nombre es ${buyerName || 'un interesado'}. Busco un ${buyerType} en ${buyerZone || 'zona a evaluar'}, con presupuesto de ${currency} ${buyerBudget || 'a evaluar'}. Celular: ${buyerPhone}. ¿Qué opciones tienen disponibles?`;
     onSendMessage(msg);
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 4000);
@@ -39,7 +39,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
 
   const handleSubmitSeller = (e: React.FormEvent) => {
     e.preventDefault();
-    const msg = `¡Hola! Mi nombre es ${sellerName || 'un propietario'}. Deseo comercializar un inmueble (${propertyType}) en ${propertyLocation || 'Arequipa'}. Precio estimado: ${currency} ${propertyEstimatedPrice || 'a convenir'}. Título Sunarp: ${hasSunarpTitle ? 'Sí' : 'En trámite'}. Celular: ${sellerPhone}.`;
+    const msg = `¡Hola! Mi nombre es ${sellerName || 'un propietario'}. Deseo comercializar un inmueble (${propertyType}) en ${propertyLocation || 'Perú'}. Precio estimado: ${currency} ${propertyEstimatedPrice || 'a convenir'}. Título Sunarp: ${hasSunarpTitle ? 'Sí' : 'En trámite'}. Celular: ${sellerPhone}.`;
     onSendMessage(msg);
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 4000);
@@ -47,13 +47,13 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
 
   return (
     <section id="contacto" className="w-full max-w-5xl mx-auto px-4 py-16 font-sans">
-      <div className="bg-white dark:bg-[#181818] rounded-3xl border border-[#E5E7EB] dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] shadow-sm overflow-hidden transition-colors">
         
         {/* Header & Tab Selector */}
-        <div className="p-6 sm:p-8 bg-[#F7F8FA] dark:bg-[#141414] border-b border-[#E5E7EB] dark:border-slate-800 text-center space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-white dark:bg-slate-800 text-[#1154FF] border border-[#E5E7EB] dark:border-slate-700">
+        <div className="p-6 sm:p-8 bg-[#F7F8FA] dark:bg-[#181C27] border-b border-[#E5E7EB] dark:border-white/[0.08] text-center space-y-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-white dark:bg-[#1E2333] text-[#1154FF] dark:text-[#38BDF8] border border-[#E5E7EB] dark:border-white/[0.08]">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Contacto & Asesoría Directa</span>
+            <span>Asesoría Inmobiliaria Personalizada</span>
           </div>
 
           <h2 className="font-manrope font-bold text-2xl sm:text-3xl text-[#202020] dark:text-white tracking-tight">
@@ -62,14 +62,14 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
 
           {/* Toggle Dual Comprador vs Vendedor */}
           <div className="flex justify-center">
-            <div className="inline-flex p-1 bg-[#F1F3F5] dark:bg-slate-800 rounded-xl border border-[#E5E7EB] dark:border-slate-700">
+            <div className="inline-flex p-1 bg-[#F1F3F5] dark:bg-[#1E2333] rounded-xl border border-[#E5E7EB] dark:border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setActiveTab('comprador')}
                 className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'comprador'
-                    ? 'bg-white dark:bg-slate-900 text-[#1154FF] shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-[#202020]'
+                    ? 'bg-white dark:bg-[#12151E] text-[#1154FF] dark:text-[#38BDF8] shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-[#202020] dark:hover:text-white'
                 }`}
               >
                 <UserPlus className="w-4 h-4" />
@@ -81,8 +81,8 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                 onClick={() => setActiveTab('vendedor')}
                 className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'vendedor'
-                    ? 'bg-white dark:bg-slate-900 text-[#1154FF] shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-[#202020]'
+                    ? 'bg-white dark:bg-[#12151E] text-[#1154FF] dark:text-[#38BDF8] shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-[#202020] dark:hover:text-white'
                 }`}
               >
                 <Building2 className="w-4 h-4" />
@@ -99,10 +99,10 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
             <form onSubmit={handleSubmitBuyer} className="max-w-xl mx-auto space-y-4 animate-fade-in">
               <div className="text-center space-y-1 pb-2">
                 <h3 className="font-manrope font-bold text-base sm:text-lg text-[#202020] dark:text-white">
-                  Encuentra el Lote o Propiedad Ideal
+                  Encuentra el Inmueble que Buscas
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Completa tus datos y te enviaremos la disponibilidad de inmediato por WhatsApp.
+                  Cuéntanos tus requerimientos y te contactaremos de inmediato por WhatsApp con opciones disponibles.
                 </p>
               </div>
 
@@ -117,7 +117,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                     value={buyerName}
                     onChange={(e) => setBuyerName(e.target.value)}
                     placeholder="Ej. Juan Pérez"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF] text-[#202020] dark:text-slate-100"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.1] outline-none focus:border-[#1154FF] dark:focus:border-[#38BDF8] text-[#202020] dark:text-slate-100 transition-colors"
                   />
                 </div>
 
@@ -131,7 +131,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                     value={buyerPhone}
                     onChange={(e) => setBuyerPhone(e.target.value)}
                     placeholder="+51 987 654 321"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF] text-[#202020] dark:text-slate-100"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.1] outline-none focus:border-[#1154FF] dark:focus:border-[#38BDF8] text-[#202020] dark:text-slate-100 transition-colors"
                   />
                 </div>
 
@@ -142,12 +142,12 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                   <select
                     value={buyerType}
                     onChange={(e) => setBuyerType(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF] text-[#202020] dark:text-slate-100"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.1] outline-none focus:border-[#1154FF] dark:focus:border-[#38BDF8] text-[#202020] dark:text-slate-100 transition-colors"
                   >
-                    <option value="Lote de Campo en Preventa">Lote de Campo en Preventa</option>
-                    <option value="Casa de Campo">Casa de Campo</option>
+                    <option value="Lote / Terreno de Campo">Lote / Terreno de Campo</option>
+                    <option value="Proyecto en Preventa">Proyecto en Preventa</option>
+                    <option value="Casa">Casa</option>
                     <option value="Departamento">Departamento</option>
-                    <option value="Terreno Comercial">Terreno Comercial</option>
                   </select>
                 </div>
 
@@ -160,28 +160,28 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                     value={buyerBudget}
                     onChange={(e) => setBuyerBudget(e.target.value)}
                     placeholder="Ej. 150,000"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF] text-[#202020] dark:text-slate-100"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.1] outline-none focus:border-[#1154FF] dark:focus:border-[#38BDF8] text-[#202020] dark:text-slate-100 transition-colors"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                  Zona de Interés
+                  Zona o Ciudad de Interés
                 </label>
                 <input
                   type="text"
                   value={buyerZone}
                   onChange={(e) => setBuyerZone(e.target.value)}
-                  placeholder="Ej. Arequipa Campestre, Chiguata, Sabandía..."
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF] text-[#202020] dark:text-slate-100"
+                  placeholder="Ej. Arequipa, Chiguata, Sabandía, Yanahuara..."
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.1] outline-none focus:border-[#1154FF] dark:focus:border-[#38BDF8] text-[#202020] dark:text-slate-100 transition-colors"
                 />
               </div>
 
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 px-6 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[14px] flex items-center justify-center gap-2 shadow-sm transition-all transform active:scale-98 cursor-pointer"
+                  className="w-full py-3.5 px-6 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[14px] flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition-all transform active:scale-98 cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 fill-white text-[#1154FF]" />
                   <span>Consultar Disponibilidad por WhatsApp</span>
@@ -196,7 +196,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                   Comercializa tu Inmueble con Nosotros
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Vendemos tu terreno, propiedad o proyecto con marketing digital e IA comercial.
+                  Vendemos tu terreno, proyecto o propiedad con nuestra red de compradores y marketing digital.
                 </p>
               </div>
 
@@ -211,7 +211,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                     value={sellerName}
                     onChange={(e) => setSellerName(e.target.value)}
                     placeholder="Ej. Carlos M."
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF] text-[#202020] dark:text-slate-100"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.1] outline-none focus:border-[#1154FF] dark:focus:border-[#38BDF8] text-[#202020] dark:text-slate-100 transition-colors"
                   />
                 </div>
 
@@ -225,7 +225,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                     value={sellerPhone}
                     onChange={(e) => setSellerPhone(e.target.value)}
                     placeholder="+51 987 654 321"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF] text-[#202020] dark:text-slate-100"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.1] outline-none focus:border-[#1154FF] dark:focus:border-[#38BDF8] text-[#202020] dark:text-slate-100 transition-colors"
                   />
                 </div>
 
@@ -236,9 +236,9 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                   <select
                     value={propertyType}
                     onChange={(e) => setPropertyType(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF] text-[#202020] dark:text-slate-100"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.1] outline-none focus:border-[#1154FF] dark:focus:border-[#38BDF8] text-[#202020] dark:text-slate-100 transition-colors"
                   >
-                    <option value="Terreno / Lote de Campo">Terreno / Lote de Campo</option>
+                    <option value="Terreno / Lote">Terreno / Lote</option>
                     <option value="Proyecto Completo">Proyecto Completo</option>
                     <option value="Casa">Casa</option>
                     <option value="Departamento">Departamento</option>
@@ -254,7 +254,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                     value={propertyEstimatedPrice}
                     onChange={(e) => setPropertyEstimatedPrice(e.target.value)}
                     placeholder="Ej. 250,000"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF] text-[#202020] dark:text-slate-100"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.1] outline-none focus:border-[#1154FF] dark:focus:border-[#38BDF8] text-[#202020] dark:text-slate-100 transition-colors"
                   />
                 </div>
               </div>
@@ -267,8 +267,8 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                   type="text"
                   value={propertyLocation}
                   onChange={(e) => setPropertyLocation(e.target.value)}
-                  placeholder="Distrito o referencia en Arequipa..."
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF] text-[#202020] dark:text-slate-100"
+                  placeholder="Distrito o referencia..."
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.1] outline-none focus:border-[#1154FF] dark:focus:border-[#38BDF8] text-[#202020] dark:text-slate-100 transition-colors"
                 />
               </div>
 
@@ -288,7 +288,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 px-6 rounded-xl bg-[#202020] dark:bg-white hover:bg-black dark:hover:bg-slate-100 text-white dark:text-[#202020] font-semibold text-[14px] flex items-center justify-center gap-2 shadow-sm transition-all transform active:scale-98 cursor-pointer"
+                  className="w-full py-3.5 px-6 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[14px] flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition-all transform active:scale-98 cursor-pointer"
                 >
                   <Building2 className="w-4 h-4" />
                   <span>Enviar Inmueble para Evaluación</span>

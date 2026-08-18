@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Building2, MessageCircle, Moon, Sun, Menu, X } from 'lucide-react';
+import { Building2, Moon, Sun, MessageCircle, Menu, X, ArrowRight } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useCRM } from '../../context/CRMContext';
 
 interface LandingHeaderProps {
   currency: 'S/' | 'USD';
   onToggleCurrency: () => void;
-  onWhatsAppClick: (customMessage?: string) => void;
+  onWhatsAppClick: (msg?: string) => void;
 }
 
 export const LandingHeader: React.FC<LandingHeaderProps> = ({
@@ -35,7 +35,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md border-b border-[#F1F3F5] dark:border-slate-800 transition-colors h-[68px] flex items-center">
+    <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#0B0C10]/90 backdrop-blur-xl border-b border-[#E5E7EB]/80 dark:border-white/[0.08] transition-colors h-[68px] flex items-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full flex items-center justify-between">
         
         {/* Logo | Marca */}
@@ -43,7 +43,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           {appBranding?.logoUrl ? (
             <img src={appBranding.logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-contain" />
           ) : (
-            <div className="w-8 h-8 rounded-lg bg-[#1154FF] text-white flex items-center justify-center font-manrope font-extrabold text-sm shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-[#1154FF] text-white flex items-center justify-center font-manrope font-extrabold text-sm shadow-md shadow-blue-500/20">
               <Building2 className="w-4 h-4" />
             </div>
           )}
@@ -59,7 +59,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               key={link.label}
               href={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
-              className="text-[14px] font-medium text-[#202020]/80 dark:text-slate-300 hover:text-[#1154FF] dark:hover:text-[#1154FF] transition-colors"
+              className="text-[14px] font-medium text-[#202020]/75 dark:text-slate-300 hover:text-[#1154FF] dark:hover:text-[#38BDF8] transition-colors"
             >
               {link.label}
             </a>
@@ -67,74 +67,79 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
         </nav>
 
         {/* Acciones y CTA Principal */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           
           {/* Selector de Moneda S/ | USD */}
           <button
             type="button"
             onClick={onToggleCurrency}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#202020] dark:text-slate-200 bg-[#F7F8FA] dark:bg-slate-800 hover:bg-[#F1F3F5] border border-[#F1F3F5] dark:border-slate-700 transition-colors"
-            title="Cambiar moneda"
+            aria-label="Cambiar Moneda"
+            className="px-2.5 py-1.5 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-xs font-bold text-[#202020] dark:text-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
           >
-            <span className="text-[#1154FF] font-bold">{currency}</span>
+            <span>{currency}</span>
+            <span className="text-[10px] text-slate-400 font-normal">
+              ({currency === 'S/' ? 'PEN' : 'USD'})
+            </span>
           </button>
 
-          {/* Toggle Modo Oscuro */}
+          {/* Toggle Modo Oscuro / Claro */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2 rounded-lg text-slate-500 hover:text-[#202020] dark:hover:text-white hover:bg-[#F7F8FA] dark:hover:bg-slate-800 transition-colors"
-            title="Tema"
+            aria-label="Cambiar Tema"
+            className="w-9 h-9 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-[#202020] dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
           >
-            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
+            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
           </button>
 
-          {/* CTA Principal */}
+          {/* CTA Principal Desktop: Quiero conocer disponibilidad */}
           <button
             type="button"
-            onClick={() => onWhatsAppClick('¡Hola! Deseo conocer la disponibilidad actual de lotes de campo y proyectos en preventa.')}
-            className="hidden sm:inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-sans font-semibold text-[14px] tracking-tight shadow-sm transition-all duration-150 transform active:scale-98 cursor-pointer"
+            onClick={() => onWhatsAppClick('¡Hola! Quiero conocer la disponibilidad de proyectos y propiedades.')}
+            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[13px] shadow-sm transition-all transform active:scale-98 cursor-pointer"
           >
-            Quiero conocer disponibilidad
+            <span>Quiero conocer disponibilidad</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
 
           {/* Botón Menú Móvil */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-[#F7F8FA] dark:hover:bg-slate-800"
+            className="lg:hidden p-2 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] text-[#202020] dark:text-slate-200 cursor-pointer"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      {/* Menú Desplegable Móvil */}
+      {/* Menú Móvil Desplegable */}
       {mobileMenuOpen && (
-        <div className="lg:hidden absolute top-[68px] left-0 right-0 bg-white dark:bg-[#121212] border-b border-[#F1F3F5] dark:border-slate-800 p-4 space-y-3 shadow-lg animate-fade-in">
-          <nav className="flex flex-col gap-2">
+        <div className="lg:hidden absolute top-[68px] left-0 right-0 bg-white/98 dark:bg-[#0B0C10]/98 backdrop-blur-2xl border-b border-[#E5E7EB] dark:border-white/[0.08] shadow-2xl p-5 space-y-4 animate-fade-in">
+          <nav className="flex flex-col space-y-2">
             {navLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
                 onClick={(e) => handleNavClick(e, link.href)}
-                className="px-3 py-2 text-sm font-semibold text-[#202020] dark:text-slate-200 hover:bg-[#F7F8FA] dark:hover:bg-slate-800 rounded-lg transition-colors"
+                className="px-3 py-2.5 rounded-xl text-sm font-semibold text-[#202020] dark:text-slate-200 hover:bg-[#F7F8FA] dark:hover:bg-[#151821] transition-colors"
               >
                 {link.label}
               </a>
             ))}
           </nav>
 
-          <div className="pt-2 border-t border-[#F1F3F5] dark:border-slate-800">
+          <div className="pt-2 border-t border-[#F1F3F5] dark:border-white/[0.08]">
             <button
               type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
-                onWhatsAppClick('¡Hola! Deseo conocer la disponibilidad actual de lotes de campo y proyectos.');
+                onWhatsAppClick('¡Hola! Quiero conocer la disponibilidad de proyectos y propiedades.');
               }}
-              className="w-full py-3 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-sm shadow-sm transition-all"
+              className="w-full py-3 px-4 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer"
             >
-              Quiero conocer disponibilidad
+              <MessageCircle className="w-4 h-4 fill-white text-[#1154FF]" />
+              <span>Quiero conocer disponibilidad</span>
             </button>
           </div>
         </div>
