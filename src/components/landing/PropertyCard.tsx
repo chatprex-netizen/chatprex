@@ -86,20 +86,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       </div>
 
       {/* Contenido de la Ficha */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
+      <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2 sm:space-y-3">
         <div>
           {/* Título */}
           <h3 
             onClick={() => onSelect(property)}
-            className="font-manrope font-bold text-[17px] text-[#202020] dark:text-white group-hover:text-[#1154FF] dark:group-hover:text-[#1154FF] transition-colors line-clamp-1 cursor-pointer leading-snug"
+            className="font-manrope font-bold text-[13px] sm:text-[16px] text-[#202020] dark:text-white group-hover:text-[#1154FF] dark:group-hover:text-[#1154FF] transition-colors line-clamp-1 cursor-pointer leading-snug"
           >
             {property.projectName ? `${property.projectName} - ${property.title}` : property.title}
           </h3>
 
-          <div className="flex items-center gap-3 text-[13px] text-slate-500 dark:text-slate-400 mt-1.5">
+          <div className="flex items-center gap-2 text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-400 mt-1">
             {property.areaTotal > 0 && (
-              <span className="flex items-center gap-1 font-medium text-[#202020] dark:text-slate-200">
-                <Maximize2 className="w-3.5 h-3.5 text-slate-400" />
+              <span className="flex items-center gap-0.5 font-medium text-[#202020] dark:text-slate-200">
+                <Maximize2 className="w-3 h-3 text-slate-400" />
                 {property.areaTotal} m²
               </span>
             )}
@@ -110,63 +110,48 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             )}
             {/* Badge SUNARP solo si la propiedad lo indica explícitamente */}
             {(Array.isArray(property.features) && property.features.some(f => (f || '').toLowerCase().includes('sunarp') || (f || '').toLowerCase().includes('título') || (f || '').toLowerCase().includes('registrado'))) && (
-              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold text-[12px]">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Título SUNARP
+              <span className="hidden sm:flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+                <ShieldCheck className="w-3 h-3" />
+                SUNARP
               </span>
             )}
           </div>
-
-          {/* Características */}
-          {property.features && property.features.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2.5">
-              {property.features.slice(0, 2).map((feat, idx) => (
-                <span
-                  key={idx}
-                  className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F7F8FA] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-[#F1F3F5] dark:border-slate-700"
-                >
-                  {feat}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Bloque de Precio y Financiación */}
-        <div className="pt-3 border-t border-[#F1F3F5] dark:border-slate-800 space-y-3">
-          <div className="flex items-baseline justify-between">
+        <div className="pt-2 sm:pt-2.5 border-t border-[#F1F3F5] dark:border-slate-800 space-y-2">
+          <div className="flex items-baseline justify-between gap-1">
             <div>
-              <span className="text-[11px] text-slate-400 block font-medium">Precio Total</span>
-              <span className="font-manrope font-extrabold text-[20px] text-[#202020] dark:text-white leading-none">
+              <span className="text-[10px] text-slate-400 block font-medium">Precio</span>
+              <span className="font-manrope font-extrabold text-[14px] sm:text-[17px] text-[#202020] dark:text-white leading-none">
                 {displayPrice}
               </span>
             </div>
 
             {isProject && (
-              <div className="text-right">
-                <span className="text-[10px] text-slate-400 block">Cuotas directas</span>
-                <span className="font-manrope font-bold text-[13px] text-[#1154FF] dark:text-[#1154FF]">
-                  {monthlyEstimate}/mes
+              <div className="text-right hidden sm:block">
+                <span className="text-[9px] text-slate-400 block">Cuotas</span>
+                <span className="font-manrope font-bold text-[11px] text-[#1154FF]">
+                  {monthlyEstimate}/m
                 </span>
               </div>
             )}
           </div>
 
           {/* Botones de Acción */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-1.5">
             <button
               onClick={() => onSelect(property)}
-              className="py-2.5 px-3 rounded-xl border border-[#E5E7EB] dark:border-slate-700 hover:bg-[#F7F8FA] dark:hover:bg-slate-800 text-[#202020] dark:text-slate-200 font-semibold text-[13px] flex items-center justify-center gap-1 transition-colors cursor-pointer"
+              className="py-1.5 sm:py-2 px-1.5 sm:px-2.5 rounded-lg sm:rounded-xl border border-[#E5E7EB] dark:border-slate-700 hover:bg-[#F7F8FA] dark:hover:bg-slate-800 text-[#202020] dark:text-slate-200 font-semibold text-[11px] sm:text-[12px] flex items-center justify-center gap-1 transition-colors cursor-pointer"
             >
               <span>Detalles</span>
-              <ArrowRight className="w-3.5 h-3.5" />
             </button>
 
             <button
               onClick={() => onWhatsAppClick(property)}
-              className="py-2.5 px-3 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[13px] flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer transform active:scale-98"
+              className="py-1.5 sm:py-2 px-1.5 sm:px-2.5 rounded-lg sm:rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[11px] sm:text-[12px] flex items-center justify-center gap-1 shadow-sm transition-all cursor-pointer transform active:scale-98"
             >
-              <MessageCircle className="w-4 h-4 fill-white text-[#1154FF]" />
+              <MessageCircle className="w-3.5 h-3.5 fill-white text-[#1154FF]" />
               <span>WhatsApp</span>
             </button>
           </div>

@@ -106,6 +106,31 @@ export const PublicLandingPage: React.FC = () => {
     }
   };
 
+  const [activeHeroImg, setActiveHeroImg] = useState(0);
+
+  const heroImages = [
+    {
+      url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&auto=format&fit=crop&q=80',
+      label: 'Residencias & Casas Modernas',
+    },
+    {
+      url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&auto=format&fit=crop&q=80',
+      label: 'Lotes Campestres & Vistas Panorámicas',
+    },
+    {
+      url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&auto=format&fit=crop&q=80',
+      label: 'Desarrollos & Proyectos en Preventa',
+    },
+  ];
+
+  // Cambio automático cada 5 segundos
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveHeroImg((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [heroImages.length]);
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#121212] text-[#202020] dark:text-slate-100 font-sans transition-colors selection:bg-[#1154FF] selection:text-white">
       
@@ -116,13 +141,37 @@ export const PublicLandingPage: React.FC = () => {
         onWhatsAppClick={(msg) => handleOpenWhatsApp(undefined, msg)}
       />
 
-      {/* 2. Hero Section */}
-      <section className="relative pt-12 pb-16 md:pt-16 md:pb-24 px-4 bg-[#F7F8FA] dark:bg-[#141414] border-b border-[#F1F3F5] dark:border-slate-800/80">
-        <div className="max-w-4xl mx-auto text-center space-y-5">
+      {/* 2. Hero Section con 3 Imágenes Animadas (Cambio cada 5s) */}
+      <section className="relative pt-12 pb-16 md:pt-20 md:pb-24 px-4 overflow-hidden border-b border-[#F1F3F5] dark:border-slate-800/80">
+        
+        {/* Carrusel de Fondo Animado */}
+        <div className="absolute inset-0 z-0">
+          {heroImages.map((img, idx) => (
+            <div
+              key={idx}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                activeHeroImg === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'
+              }`}
+            >
+              <img
+                src={img.url}
+                alt={img.label}
+                className={`w-full h-full object-cover transition-transform duration-[5000ms] ease-out ${
+                  activeHeroImg === idx ? 'scale-105' : 'scale-100'
+                }`}
+              />
+            </div>
+          ))}
+          {/* Overlay suave para mantener contraste y legibilidad impecable */}
+          <div className="absolute inset-0 z-20 bg-gradient-to-b from-white/92 via-white/88 to-white/95 dark:from-[#121212]/92 dark:via-[#121212]/88 dark:to-[#121212]/95 backdrop-blur-[2px]" />
+        </div>
+
+        {/* Contenido del Hero */}
+        <div className="relative z-30 max-w-4xl mx-auto text-center space-y-5">
           
           {/* Badge Superior */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 shadow-sm text-xs font-semibold text-[#202020] dark:text-slate-200 animate-fade-in">
-            <span className="w-2 h-2 rounded-full bg-[#1154FF]" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-[#E5E7EB] dark:border-slate-700 shadow-sm text-xs font-semibold text-[#202020] dark:text-slate-200 animate-fade-in">
+            <span className="w-2 h-2 rounded-full bg-[#1154FF] animate-pulse" />
             <span>Proyectos en Preventa & Propiedades Exclusivas</span>
           </div>
 
@@ -151,19 +200,35 @@ export const PublicLandingPage: React.FC = () => {
               availableZones={availableZones}
             />
           </div>
+
+          {/* Indicadores de 3 puntos interactivos */}
+          <div className="flex items-center justify-center gap-2 pt-2">
+            {heroImages.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveHeroImg(idx)}
+                aria-label={`Ver foto ${idx + 1}`}
+                className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                  activeHeroImg === idx
+                    ? 'w-8 bg-[#1154FF]'
+                    : 'w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* 3. Grilla de Propiedades & Lotes */}
-      <section id="proyectos" className="max-w-6xl mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-6">
+      {/* 3. Grilla de Propiedades & Lotes (4 cols PC, 2 cols Móvil) */}
+      <section id="proyectos" className="max-w-7xl mx-auto px-3 sm:px-6 py-10 sm:py-14">
+        <div className="flex items-center justify-between mb-5 sm:mb-6">
           <div>
-            <h2 className="font-manrope font-bold text-[22px] sm:text-[26px] md:text-[32px] text-[#202020] dark:text-white tracking-tight leading-[1.15]">
+            <h2 className="font-manrope font-bold text-[20px] sm:text-[26px] md:text-[30px] text-[#202020] dark:text-white tracking-tight leading-[1.15]">
               {selectedCategory === 'proyectos' ? 'Proyectos & Preventas' :
                selectedCategory === 'independientes' ? 'Propiedades Independientes' :
                'Catálogo Disponible'}
             </h2>
-            <p className="text-[13px] text-slate-400 mt-0.5">
+            <p className="text-[12px] sm:text-[13px] text-slate-400 mt-0.5">
               {filteredProperties.length} {filteredProperties.length === 1 ? 'inmueble disponible' : 'inmuebles disponibles'}
             </p>
           </div>
@@ -176,7 +241,7 @@ export const PublicLandingPage: React.FC = () => {
                 setSelectedFeature('');
                 setSelectedCategory('all');
               }}
-              className="text-[13px] font-semibold text-[#1154FF] hover:underline cursor-pointer"
+              className="text-[12px] sm:text-[13px] font-semibold text-[#1154FF] hover:underline cursor-pointer"
             >
               Restablecer filtros
             </button>
@@ -184,7 +249,7 @@ export const PublicLandingPage: React.FC = () => {
         </div>
 
         {filteredProperties.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
             {filteredProperties.map((prop) => (
               <PropertyCard
                 key={prop.id}
