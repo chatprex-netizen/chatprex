@@ -20,6 +20,7 @@ import { HubspotConfigPage } from './pages/HubspotConfigPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { DataDeletionPage } from './pages/DataDeletionPage';
+import { PublicLandingPage } from './pages/PublicLandingPage';
 import { PropertyModal } from './components/properties/PropertyModal';
 import { DealModal } from './components/pipeline/DealModal';
 import { ContactModal } from './components/contacts/ContactModal';
@@ -82,6 +83,11 @@ const PAGE_ALIASES: Record<string, Page> = {
   'terminos-de-servicio': 'terms',
   'terminos-y-condiciones': 'terms',
   'terms-of-service': 'terms',
+  'portal': 'portal',
+  'landing': 'portal',
+  'portal-web': 'portal',
+  'web': 'portal',
+  'catalogo': 'portal',
 };
 
 const VALID_PAGES: Page[] = [
@@ -105,10 +111,12 @@ const VALID_PAGES: Page[] = [
   'privacy',
   'terms',
   'data-deletion',
+  'portal',
+  'landing',
 ];
 
 const readPageFromLocation = (): Page => {
-  // 1. Revisar hash (#/privacy, #/terms, #/data-deletion, etc.)
+  // 1. Revisar hash (#/portal, #/landing, #/privacy, #/terms, etc.)
   const hashRaw = window.location.hash.replace(/^#\/?/, '').split('/')[0]?.toLowerCase();
   if (hashRaw) {
     const normalizedHash = PAGE_ALIASES[hashRaw] ?? hashRaw;
@@ -117,7 +125,7 @@ const readPageFromLocation = (): Page => {
     }
   }
 
-  // 2. Revisar pathname directo (/privacy, /terms, /data-deletion, etc.)
+  // 2. Revisar pathname directo (/portal, /landing, /privacy, etc.)
   const pathRaw = window.location.pathname.replace(/^\//, '').split('/')[0]?.toLowerCase();
   if (pathRaw) {
     const normalizedPath = PAGE_ALIASES[pathRaw] ?? pathRaw;
@@ -157,7 +165,11 @@ export const App: React.FC = () => {
     window.location.hash = `#/${normalized}`;
   };
 
-  // Páginas públicas accesibles sin inicio de sesión (Requisito de Meta / Facebook Apps)
+  // Páginas públicas accesibles sin inicio de sesión (Landing Page, Portal Web, Legal Meta)
+  if (currentPage === 'portal' || currentPage === 'landing') {
+    return <PublicLandingPage />;
+  }
+
   if (currentPage === 'privacy') {
     return <PrivacyPolicyPage />;
   }
@@ -251,6 +263,9 @@ export const App: React.FC = () => {
         return <HubspotConfigPage />;
       case 'settings':
         return <AdministrationPage />;
+      case 'portal':
+      case 'landing':
+        return <PublicLandingPage />;
       default:
         return (
           <DashboardPage

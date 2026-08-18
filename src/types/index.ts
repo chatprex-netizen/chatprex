@@ -18,7 +18,9 @@ export type Page =
   | 'finances'
   | 'privacy'
   | 'terms'
-  | 'data-deletion';
+  | 'data-deletion'
+  | 'portal'
+  | 'landing';
 
 export interface PaginatedResponse<T> {
   data: T[];

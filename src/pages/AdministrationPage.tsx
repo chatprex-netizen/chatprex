@@ -223,10 +223,72 @@ export const AdministrationPage: React.FC = () => {
           </div>
         )}
         {activeTab === 'web' && (
-          <div className="flex flex-col items-center justify-center h-full text-slate-500">
-            <Globe className="w-12 h-12 mb-4 opacity-50" />
-            <h2 className="text-xl font-semibold mb-2">Portal Web</h2>
-            <p className="text-sm">Configuración del portal en construcción.</p>
+          <div className="space-y-6 animate-fade-in text-xs max-w-4xl">
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-850 border border-blue-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-[#004aad]" />
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white">Portal Inmobiliario & Landing Page Pública</h2>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  Tu plataforma web de alto valor con buscador estilo Airbnb, catálogo interactivo y captación directa a WhatsApp.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href="#/portal"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2.5 rounded-xl bg-[#004aad] hover:bg-[#003b8a] text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span>Ver Portal Web Público</span>
+                </a>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Enlace de Campañas */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <h3 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2">
+                  🔗 Enlace para Anuncios (Ads) y Redes Sociales
+                </h3>
+                <p className="text-slate-500 text-[11px] leading-relaxed">
+                  Comparte este enlace en tus campañas de Facebook Ads, Instagram, TikTok y estados de WhatsApp para captar prospectos directamente.
+                </p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${window.location.origin}/#/portal`}
+                    className="flex-1 px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 font-mono"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/#/portal`);
+                      addNotification('Enlace Copiado', 'El enlace del portal público ha sido copiado al portapapeles.', 'success');
+                    }}
+                    className="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-800 dark:text-slate-200 font-bold rounded-lg text-xs transition-colors"
+                  >
+                    Copiar
+                  </button>
+                </div>
+              </div>
+
+              {/* Dominio Propio / Personalizado */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <h3 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2">
+                  🌐 Conexión de Dominio Propio
+                </h3>
+                <p className="text-slate-500 text-[11px] leading-relaxed">
+                  Puedes apuntar tu dominio principal (ej: <code>www.tuinmobiliaria.com</code>) o un subdominio mediante registro CNAME a tu servidor.
+                </p>
+                <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/30 text-[11px] text-blue-800 dark:text-blue-200">
+                  <strong>Estado:</strong> Listo y habilitado para enrutamiento público directo.
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

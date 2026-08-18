@@ -21,7 +21,8 @@ import {
   ChevronDown,
   ChevronRight,
   Workflow,
-  Link
+  Link,
+  Globe
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useCRM } from '../../context/CRMContext';
@@ -130,6 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       title: '',
       isCollapsible: false,
       items: [
+        { id: 'portal', label: 'Portal Web Público', icon: Globe, highlight: true },
         { id: 'settings', label: 'Configuración', icon: Settings },
       ]
     }
