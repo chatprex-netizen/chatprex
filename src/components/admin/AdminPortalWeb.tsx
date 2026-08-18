@@ -24,7 +24,8 @@ import {
   Building,
   Home,
   Check,
-  X
+  X,
+  Sliders
 } from 'lucide-react';
 import { useCRM } from '../../context/CRMContext';
 import { HeroImageItem, PortalConfig, Property, PropertyType, PropertyOperation } from '../../types';
@@ -42,21 +43,34 @@ export const AdminPortalWeb: React.FC = () => {
     projects
   } = useCRM();
 
-  // Subpestaña activa dentro de Portal Web
-  const [activeSubTab, setActiveSubTab] = useState<'banner' | 'properties'>('properties');
-
   // Estados locales del Hero Banner y Redes Sociales
-  const [heroBadge, setHeroBadge] = useState(portalConfig?.heroBadge || '');
-  const [heroTitle, setHeroTitle] = useState(portalConfig?.heroTitle || '');
-  const [heroHighlight, setHeroHighlight] = useState(portalConfig?.heroHighlight || '');
-  const [heroSubtitle, setHeroSubtitle] = useState(portalConfig?.heroSubtitle || '');
-  const [heroImages, setHeroImages] = useState<HeroImageItem[]>(portalConfig?.heroImages || []);
+  const [heroBadge, setHeroBadge] = useState(portalConfig?.heroBadge || 'Proyectos en Preventa & Propiedades Exclusivas');
+  const [heroTitle, setHeroTitle] = useState(portalConfig?.heroTitle || 'Encuentra tu Próxima');
+  const [heroHighlight, setHeroHighlight] = useState(portalConfig?.heroHighlight || 'Propiedad o Proyecto');
+  const [heroSubtitle, setHeroSubtitle] = useState(portalConfig?.heroSubtitle || 'Casas, departamentos, lotes de campo y desarrollos en preventa con alta plusvalía y facilidades de financiamiento a tu medida.');
+  const [heroImages, setHeroImages] = useState<HeroImageItem[]>(portalConfig?.heroImages || [
+    {
+      id: 'hero-1',
+      url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&auto=format&fit=crop&q=80',
+      label: 'Residencias & Casas Modernas',
+    },
+    {
+      id: 'hero-2',
+      url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&auto=format&fit=crop&q=80',
+      label: 'Lotes Campestres & Vistas Panorámicas',
+    },
+    {
+      id: 'hero-3',
+      url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&auto=format&fit=crop&q=80',
+      label: 'Desarrollos & Proyectos en Preventa',
+    },
+  ]);
 
-  const [socialWhatsApp, setSocialWhatsApp] = useState(portalConfig?.socialLinks?.whatsapp || '');
-  const [socialFacebook, setSocialFacebook] = useState(portalConfig?.socialLinks?.facebook || '');
-  const [socialInstagram, setSocialInstagram] = useState(portalConfig?.socialLinks?.instagram || '');
-  const [socialTikTok, setSocialTikTok] = useState(portalConfig?.socialLinks?.tiktok || '');
-  const [socialYouTube, setSocialYouTube] = useState(portalConfig?.socialLinks?.youtube || '');
+  const [socialWhatsApp, setSocialWhatsApp] = useState(portalConfig?.socialLinks?.whatsapp || 'https://wa.me/51957100984?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20proyectos%20y%20propiedades%20en%20CasaYa');
+  const [socialFacebook, setSocialFacebook] = useState(portalConfig?.socialLinks?.facebook || 'https://facebook.com');
+  const [socialInstagram, setSocialInstagram] = useState(portalConfig?.socialLinks?.instagram || 'https://instagram.com');
+  const [socialTikTok, setSocialTikTok] = useState(portalConfig?.socialLinks?.tiktok || 'https://tiktok.com');
+  const [socialYouTube, setSocialYouTube] = useState(portalConfig?.socialLinks?.youtube || 'https://youtube.com');
 
   const [contactPhone, setContactPhone] = useState(portalConfig?.contactInfo?.phone || '+51 957 100 984');
   const [contactEmail, setContactEmail] = useState(portalConfig?.contactInfo?.email || 'ventas@casaya.pe');
@@ -89,7 +103,7 @@ export const AdminPortalWeb: React.FC = () => {
   const [propZone, setPropZone] = useState('');
   const [propCity, setPropCity] = useState('Arequipa');
   const [propDescription, setPropDescription] = useState('');
-  const [propFeatures, setPropFeatures] = useState<string[]>(['Inscrito en SUNARP', 'Luz', 'Agua']);
+  const [propFeatures, setPropFeatures] = useState<string[]>(['Inscrito en SUNARP', 'Luz / Electricidad', 'Agua Potable']);
   const [propImages, setPropImages] = useState<string[]>([]);
   const [propFeatured, setPropFeatured] = useState<boolean>(true);
 
@@ -281,8 +295,8 @@ export const AdminPortalWeb: React.FC = () => {
     }
   };
 
-  // Guardar configuración del Banner & Redes
-  const handleSaveBanner = () => {
+  // Guardar configuración global del Portal Web (Hero + Redes + Contacto)
+  const handleSaveAllConfig = () => {
     const updatedConfig: PortalConfig = {
       heroBadge,
       heroTitle,
@@ -305,12 +319,12 @@ export const AdminPortalWeb: React.FC = () => {
 
     updatePortalConfig(updatedConfig);
     setSavedSuccess(true);
-    addNotification('Configuración Guardada', 'La landing page pública ha sido actualizada.', 'success');
-    setTimeout(() => setSavedSuccess(false), 3000);
+    addNotification('Configuración Guardada', 'Todas las secciones de la Landing Page (Hero, Propiedades y Redes) han sido actualizadas.', 'success');
+    setTimeout(() => setSavedSuccess(false), 4000);
   };
 
-  const handleResetBanner = () => {
-    if (confirm('¿Estás seguro de restablecer los datos del portal a los valores originales de CasaYa?')) {
+  const handleResetAllConfig = () => {
+    if (confirm('¿Estás seguro de restablecer todos los datos del portal a los valores originales de CasaYa?')) {
       resetPortalConfig();
       setTimeout(() => {
         window.location.reload();
@@ -339,20 +353,20 @@ export const AdminPortalWeb: React.FC = () => {
   const portalUrl = `${window.location.origin}/#/portal`;
 
   return (
-    <div className="space-y-6 animate-fade-in text-xs max-w-5xl pb-16 font-sans">
+    <div className="space-y-8 animate-fade-in text-xs max-w-5xl pb-24 font-sans">
       
-      {/* 1. Header del CMS con Banner Superior */}
+      {/* 1. Header Principal del Panel de Control */}
       <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-[#1154FF]/10 via-[#1154FF]/5 to-transparent border border-[#1154FF]/20 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-[#1154FF] text-white">
             <Globe className="w-3.5 h-3.5" />
-            <span>Gestor de Landing Page (CMS)</span>
+            <span>Panel de Control Integral de Landing Page</span>
           </div>
           <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
-            Panel de Control del Portal Web & Landing Page
+            Gestión Total de la Web Pública CasaYa
           </h2>
           <p className="text-xs text-slate-600 dark:text-slate-300">
-            Administra los inmuebles del catálogo, activa el check de propiedades destacadas en la portada y personaliza el banner y redes sociales.
+            Controla en una sola vista: <strong>Hero Banner</strong>, <strong>Propiedades Destacadas y Catálogo</strong>, <strong>Botones de Redes Sociales</strong> y <strong>Captación de Prospectos</strong>.
           </p>
         </div>
 
@@ -363,600 +377,563 @@ export const AdminPortalWeb: React.FC = () => {
             rel="noopener noreferrer"
             className="px-4 py-2.5 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
           >
-            <span>Ver Portal Web Público</span>
+            <span>Ver Portal Web en Vivo</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
       </div>
 
-      {/* 2. Pestañas de Navegación del CMS */}
-      <div className="flex items-center gap-2 p-1 bg-white dark:bg-[#12151E] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.08] shadow-xs">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('properties')}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            activeSubTab === 'properties'
-              ? 'bg-[#1154FF] text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-[#F7F8FA] dark:hover:bg-[#181C27]'
-          }`}
-        >
-          <Star className="w-4 h-4" />
-          <span>Propiedades Destacadas & Catálogo ({propertyList.length})</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('banner')}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            activeSubTab === 'banner'
-              ? 'bg-[#1154FF] text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-[#F7F8FA] dark:hover:bg-[#181C27]'
-          }`}
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>Hero Banner & Redes Sociales</span>
-        </button>
-      </div>
-
       {/* ========================================================================= */}
-      {/* VISTA 1: GESTIÓN DE PROPIEDADES DESTACADAS Y CATÁLOGO                      */}
+      {/* SECCIÓN 1: HERO BANNER PRINCIPAL (TEXTOS & CARRUSEL DE IMÁGENES)         */}
       {/* ========================================================================= */}
-      {activeSubTab === 'properties' && (
-        <div className="space-y-6 animate-fade-in">
-          
-          {/* Tarjeta de Resumen & Acciones */}
-          <div className="bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] p-5 sm:p-6 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h3 className="font-manrope font-bold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
-                  <Home className="w-4 h-4 text-[#1154FF] dark:text-[#38BDF8]" />
-                  <span>Inventario de Inmuebles para el Portal Web</span>
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Activa el check <strong className="text-amber-500">"Visible en Landing (Destacada)"</strong> para que el inmueble se muestre en la portada principal (hasta 8 inmuebles).
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleOpenCreateProperty}
-                className="px-4 py-2.5 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/20 transition-all cursor-pointer shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>+ Cargar Nueva Propiedad</span>
-              </button>
+      <section className="bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] p-5 sm:p-7 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F1F3F5] dark:border-white/[0.08] pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-[#1154FF]/10 text-[#1154FF] dark:text-[#38BDF8] flex items-center justify-center font-bold">
+              1
             </div>
-
-            {/* Barra de Filtros y Búsqueda */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-[#F1F3F5] dark:border-white/[0.08]">
-              <div className="relative flex-1 w-full">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  value={propertySearch}
-                  onChange={(e) => setPropertySearch(e.target.value)}
-                  placeholder="Buscar por título, proyecto, zona o tipo de inmueble..."
-                  className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#181C27] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
-                />
-              </div>
-
-              <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                <button
-                  type="button"
-                  onClick={() => setFilterFeaturedOnly('all')}
-                  className={`px-3 py-1.5 rounded-xl font-semibold text-xs whitespace-nowrap cursor-pointer ${
-                    filterFeaturedOnly === 'all'
-                      ? 'bg-[#202020] text-white dark:bg-white dark:text-black'
-                      : 'bg-[#F7F8FA] dark:bg-[#181C27] text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  Todos ({propertyList.length})
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFilterFeaturedOnly('featured')}
-                  className={`px-3 py-1.5 rounded-xl font-semibold text-xs whitespace-nowrap flex items-center gap-1 cursor-pointer ${
-                    filterFeaturedOnly === 'featured'
-                      ? 'bg-amber-500 text-white shadow-xs'
-                      : 'bg-[#F7F8FA] dark:bg-[#181C27] text-amber-600 dark:text-amber-400'
-                  }`}
-                >
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                  <span>Destacadas en Landing ({featuredCount})</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFilterFeaturedOnly('not-featured')}
-                  className={`px-3 py-1.5 rounded-xl font-semibold text-xs whitespace-nowrap cursor-pointer ${
-                    filterFeaturedOnly === 'not-featured'
-                      ? 'bg-[#202020] text-white dark:bg-white dark:text-black'
-                      : 'bg-[#F7F8FA] dark:bg-[#181C27] text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  Solo Catálogo ({propertyList.length - featuredCount})
-                </button>
-              </div>
-            </div>
+            <h3 className="font-manrope font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+              Hero Banner Principal (Textos & Carrusel de Fotos)
+            </h3>
           </div>
-
-          {/* Grilla de Propiedades con Switch Visible Sí/No */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredPanelProperties.map((prop) => {
-              const pCurrency = prop.currency || 'PEN';
-              const pSymbol = pCurrency === 'USD' ? 'USD $' : 'S/';
-              const pPrice = Number(prop.price) || 0;
-              const mainImg = Array.isArray(prop.images) && prop.images.length > 0 ? prop.images[0] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600';
-
-              return (
-                <div
-                  key={prop.id}
-                  className="bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] shadow-xs overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow"
-                >
-                  {/* Foto & Badges */}
-                  <div className="relative aspect-[16/10] bg-slate-900 overflow-hidden">
-                    <img
-                      src={mainImg}
-                      alt={prop.title}
-                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
-                    />
-
-                    {/* Badge de Proyecto */}
-                    {prop.projectName && (
-                      <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-white text-[10px] font-bold">
-                        {prop.projectName}
-                      </div>
-                    )}
-
-                    {/* Botón de Eliminación Rápida */}
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteProperty(prop.id, prop.title)}
-                      className="absolute top-2.5 right-2.5 w-7 h-7 rounded-lg bg-rose-600/90 text-white flex items-center justify-center hover:bg-rose-700 transition-colors shadow-sm cursor-pointer"
-                      title="Eliminar del catálogo"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* Precio en Badge */}
-                    <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-[#1154FF] text-white text-xs font-extrabold shadow-md">
-                      {pSymbol} {pPrice.toLocaleString('en-US')}
-                    </div>
-                  </div>
-
-                  {/* Detalles del Inmueble */}
-                  <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
-                        <span className="capitalize">{prop.type}</span>
-                        <span>•</span>
-                        <span>{prop.zone || prop.city || 'Perú'}</span>
-                      </div>
-
-                      <h4 className="font-manrope font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-1">
-                        {prop.title}
-                      </h4>
-
-                      {prop.description && (
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                          {prop.description}
-                        </p>
-                      )}
-
-                      {/* Características / Tags */}
-                      {Array.isArray(prop.features) && prop.features.length > 0 && (
-                        <div className="flex flex-wrap gap-1 pt-1">
-                          {prop.features.slice(0, 3).map((f, i) => (
-                            <span
-                              key={i}
-                              className="px-2 py-0.5 rounded-md bg-[#F7F8FA] dark:bg-[#181C27] text-slate-600 dark:text-slate-300 text-[10px] font-semibold border border-[#E5E7EB] dark:border-white/[0.08]"
-                            >
-                              {f}
-                            </span>
-                          ))}
-                          {prop.features.length > 3 && (
-                            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-[#181C27] text-slate-400 text-[10px]">
-                              +{prop.features.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Barra Inferior con Switch "Visible en Landing: Sí/No" y Editar */}
-                    <div className="pt-3 border-t border-[#F1F3F5] dark:border-white/[0.08] flex items-center justify-between gap-2">
-                      
-                      {/* Check / Toggle Switch Destacada */}
-                      <button
-                        type="button"
-                        onClick={() => handleToggleFeatured(prop.id, prop.featured)}
-                        className={`px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                          prop.featured
-                            ? 'bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'
-                            : 'bg-slate-100 dark:bg-[#181C27] border border-slate-200 dark:border-white/[0.08] text-slate-500 dark:text-slate-400 hover:bg-slate-200'
-                        }`}
-                        title={prop.featured ? 'Visible en la portada de la Landing' : 'Clic para mostrar en Landing'}
-                      >
-                        <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${prop.featured ? 'bg-amber-500 text-white' : 'bg-slate-300 dark:bg-slate-600 text-transparent'}`}>
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
-                        </div>
-                        <span>{prop.featured ? 'Destacada: Sí' : 'Destacada: No'}</span>
-                      </button>
-
-                      {/* Botón Editar */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEditProperty(prop)}
-                        className="px-3 py-1.5 rounded-xl bg-[#F7F8FA] dark:bg-[#181C27] hover:bg-[#1154FF] hover:text-white dark:hover:bg-[#1154FF] text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-1 border border-[#E5E7EB] dark:border-white/[0.08] transition-colors cursor-pointer"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span>Editar</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {filteredPanelProperties.length === 0 && (
-            <div className="p-12 text-center bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] space-y-3">
-              <Home className="w-8 h-8 text-slate-300 mx-auto" />
-              <div className="space-y-1">
-                <h4 className="font-bold text-sm text-slate-700 dark:text-slate-200">No se encontraron propiedades</h4>
-                <p className="text-xs text-slate-400">Prueba ajustando los términos de búsqueda o añade un nuevo inmueble.</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleOpenCreateProperty}
-                className="px-4 py-2 bg-[#1154FF] text-white font-bold text-xs rounded-xl shadow-sm cursor-pointer"
-              >
-                + Cargar Nueva Propiedad
-              </button>
-            </div>
-          )}
+          <span className="text-[11px] text-slate-400 font-medium">Animación de transición cada 5 segundos</span>
         </div>
-      )}
 
-      {/* ========================================================================= */}
-      {/* VISTA 2: GESTIÓN DE HERO BANNER & REDES SOCIALES                          */}
-      {/* ========================================================================= */}
-      {activeSubTab === 'banner' && (
-        <div className="space-y-6 animate-fade-in">
-          
-          {/* 2. Sección Hero Banner: Textos e Imágenes */}
-          <div className="bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] p-5 sm:p-7 shadow-sm space-y-6">
-            <div className="flex items-center justify-between border-b border-[#F1F3F5] dark:border-white/[0.08] pb-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#1154FF] dark:text-[#38BDF8]" />
-                <h3 className="font-manrope font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                  1. Hero Banner Principal (Textos & Carrusel de Imágenes)
-                </h3>
-              </div>
-              <span className="text-[11px] text-slate-400 font-medium">Animación de transición cada 5 segundos</span>
-            </div>
+        {/* Campos de Textos del Hero */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+              Badge Superior (Píldora)
+            </label>
+            <input
+              type="text"
+              value={heroBadge}
+              onChange={(e) => setHeroBadge(e.target.value)}
+              placeholder="Ej. Proyectos en Preventa & Propiedades Exclusivas"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+            />
+          </div>
 
-            {/* Campos de Textos del Hero */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                  Badge Superior (Píldora)
-                </label>
-                <input
-                  type="text"
-                  value={heroBadge}
-                  onChange={(e) => setHeroBadge(e.target.value)}
-                  placeholder="Ej. Proyectos en Preventa & Propiedades Exclusivas"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
-                />
-              </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+              Título Inicial (H1)
+            </label>
+            <input
+              type="text"
+              value={heroTitle}
+              onChange={(e) => setHeroTitle(e.target.value)}
+              placeholder="Ej. Encuentra tu Próxima"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+            />
+          </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                  Título Inicial (H1)
-                </label>
-                <input
-                  type="text"
-                  value={heroTitle}
-                  onChange={(e) => setHeroTitle(e.target.value)}
-                  placeholder="Ej. Encuentra tu Próxima"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
-                />
-              </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+              Texto Resaltado (Azul Eléctrico)
+            </label>
+            <input
+              type="text"
+              value={heroHighlight}
+              onChange={(e) => setHeroHighlight(e.target.value)}
+              placeholder="Ej. Propiedad o Proyecto"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-[#1154FF] dark:text-[#38BDF8] font-bold outline-none focus:border-[#1154FF]"
+            />
+          </div>
+        </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                  Texto Resaltado (Azul Eléctrico)
-                </label>
-                <input
-                  type="text"
-                  value={heroHighlight}
-                  onChange={(e) => setHeroHighlight(e.target.value)}
-                  placeholder="Ej. Propiedad o Proyecto"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-[#1154FF] dark:text-[#38BDF8] font-bold outline-none focus:border-[#1154FF]"
-                />
-              </div>
-            </div>
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+            Subtítulo Descriptivo del Hero
+          </label>
+          <textarea
+            rows={2}
+            value={heroSubtitle}
+            onChange={(e) => setHeroSubtitle(e.target.value)}
+            placeholder="Descripción atractiva para los compradores..."
+            className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+          />
+        </div>
 
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                Subtítulo Descriptivo del Hero
-              </label>
-              <textarea
-                rows={2}
-                value={heroSubtitle}
-                onChange={(e) => setHeroSubtitle(e.target.value)}
-                placeholder="Descripción atractiva para los compradores..."
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+        {/* Guía de Especificaciones de Imagen */}
+        <div className="p-3.5 rounded-2xl bg-blue-50/50 dark:bg-[#181C27] border border-blue-100 dark:border-white/[0.08] flex items-start gap-3">
+          <HelpCircle className="w-4 h-4 text-[#1154FF] dark:text-[#38BDF8] shrink-0 mt-0.5" />
+          <div className="space-y-0.5 text-[11px] text-slate-600 dark:text-slate-300">
+            <span className="font-bold text-slate-900 dark:text-white">Especificaciones recomendadas para las imágenes del banner:</span>
+            <p>
+              • <strong>Medidas:</strong> 1920 × 1080 px o 1600 × 900 px (Formato panorámico 16:9).<br/>
+              • <strong>Formatos aceptados:</strong> WebP, JPG, PNG.<br/>
+              • <strong>Peso sugerido:</strong> Menor a 2 MB para una carga ultra rápida en celulares.
+            </p>
+          </div>
+        </div>
+
+        {/* Galería de Imágenes del Banner */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold text-xs text-slate-900 dark:text-white">
+              Imágenes Activas en el Carrusel ({heroImages.length})
+            </span>
+
+            <div className="flex items-center gap-2">
+              <input
+                ref={heroFileInputRef}
+                type="file"
+                accept="image/png, image/jpeg, image/webp"
+                onChange={handleHeroFileUpload}
+                className="hidden"
               />
+              <button
+                type="button"
+                onClick={() => heroFileInputRef.current?.click()}
+                className="px-3.5 py-1.5 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Subir Imagen desde PC</span>
+              </button>
             </div>
+          </div>
 
-            {/* Guía de Especificaciones de Imagen */}
-            <div className="p-3.5 rounded-2xl bg-blue-50/50 dark:bg-[#181C27] border border-blue-100 dark:border-white/[0.08] flex items-start gap-3">
-              <HelpCircle className="w-4 h-4 text-[#1154FF] dark:text-[#38BDF8] shrink-0 mt-0.5" />
-              <div className="space-y-0.5 text-[11px] text-slate-600 dark:text-slate-300">
-                <span className="font-bold text-slate-900 dark:text-white">Especificaciones recomendadas para las imágenes del banner:</span>
-                <p>
-                  • <strong>Medidas:</strong> 1920 × 1080 px o 1600 × 900 px (Formato panorámico 16:9).<br/>
-                  • <strong>Formatos aceptados:</strong> WebP, JPG, PNG.<br/>
-                  • <strong>Peso sugerido:</strong> Menor a 2 MB para una carga ultra rápida en celulares.
-                </p>
-              </div>
-            </div>
-
-            {/* Galería de Imágenes del Banner */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-xs text-slate-900 dark:text-white">
-                  Imágenes Activas en el Carrusel ({heroImages.length})
-                </span>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    ref={heroFileInputRef}
-                    type="file"
-                    accept="image/png, image/jpeg, image/webp"
-                    onChange={handleHeroFileUpload}
-                    className="hidden"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {heroImages.map((img, idx) => (
+              <div
+                key={img.id}
+                className="p-3 bg-[#F7F8FA] dark:bg-[#181C27] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.08] space-y-2.5 group"
+              >
+                <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-slate-900">
+                  <img
+                    src={img.url}
+                    alt={img.label}
+                    className="w-full h-full object-cover"
                   />
+                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold">
+                    Foto {idx + 1}
+                  </div>
+
                   <button
                     type="button"
-                    onClick={() => heroFileInputRef.current?.click()}
-                    className="px-3 py-1.5 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+                    onClick={() => {
+                      if (heroImages.length <= 1) {
+                        addNotification('Mínimo requerido', 'El banner debe tener al menos 1 imagen activa.', 'warning');
+                        return;
+                      }
+                      setHeroImages(prev => prev.filter(item => item.id !== img.id));
+                    }}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-rose-600/90 text-white flex items-center justify-center hover:bg-rose-700 transition-colors shadow-sm cursor-pointer"
+                    title="Eliminar de carrusel"
                   >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Subir Imagen desde PC</span>
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
+
+                <div className="space-y-1">
+                  <label className="block text-[10px] uppercase font-semibold text-slate-400">
+                    Etiqueta / Descripción
+                  </label>
+                  <input
+                    type="text"
+                    value={img.label}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setHeroImages(prev => prev.map(item => item.id === img.id ? { ...item, label: val } : item));
+                    }}
+                    placeholder="Ej. Condominio Campestre Los Álamos"
+                    className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-white dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+                  />
+                </div>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {heroImages.map((img, idx) => (
-                  <div
-                    key={img.id}
-                    className="p-3 bg-[#F7F8FA] dark:bg-[#181C27] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.08] space-y-2.5 group"
-                  >
-                    <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-slate-900">
-                      <img
-                        src={img.url}
-                        alt={img.label}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold">
-                        Foto {idx + 1}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (heroImages.length <= 1) {
-                            addNotification('Mínimo requerido', 'El banner debe tener al menos 1 imagen activa.', 'warning');
-                            return;
-                          }
-                          setHeroImages(prev => prev.filter(item => item.id !== img.id));
-                        }}
-                        className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-rose-600/90 text-white flex items-center justify-center hover:bg-rose-700 transition-colors shadow-sm cursor-pointer"
-                        title="Eliminar de carrusel"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-[10px] uppercase font-semibold text-slate-400">
-                        Etiqueta / Descripción
-                      </label>
-                      <input
-                        type="text"
-                        value={img.label}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setHeroImages(prev => prev.map(item => item.id === img.id ? { ...item, label: val } : item));
-                        }}
-                        placeholder="Ej. Condominio Campestre Los Álamos"
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-white dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Sección Redes Sociales & Contacto */}
-          <div className="bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] p-5 sm:p-7 shadow-sm space-y-6">
-            <div className="flex items-center gap-2 border-b border-[#F1F3F5] dark:border-white/[0.08] pb-3">
-              <Share2 className="w-4 h-4 text-[#1154FF] dark:text-[#38BDF8]" />
-              <h3 className="font-manrope font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                2. Redes Sociales & Canales de Contacto Directo
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* WhatsApp */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                  Enlace de WhatsApp Directo
-                </label>
-                <input
-                  type="text"
-                  value={socialWhatsApp}
-                  onChange={(e) => setSocialWhatsApp(e.target.value)}
-                  placeholder="https://wa.me/51957100984?text=..."
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
-                />
-              </div>
-
-              {/* Facebook */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                  Enlace Página de Facebook
-                </label>
-                <input
-                  type="text"
-                  value={socialFacebook}
-                  onChange={(e) => setSocialFacebook(e.target.value)}
-                  placeholder="https://facebook.com/tupagina"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
-                />
-              </div>
-
-              {/* Instagram */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                  Enlace Perfil de Instagram
-                </label>
-                <input
-                  type="text"
-                  value={socialInstagram}
-                  onChange={(e) => setSocialInstagram(e.target.value)}
-                  placeholder="https://instagram.com/tuperfil"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
-                />
-              </div>
-
-              {/* TikTok */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                  Enlace Cuenta de TikTok
-                </label>
-                <input
-                  type="text"
-                  value={socialTikTok}
-                  onChange={(e) => setSocialTikTok(e.target.value)}
-                  placeholder="https://tiktok.com/@tuusuario"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
-                />
-              </div>
-
-              {/* YouTube */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                  Enlace Canal de YouTube
-                </label>
-                <input
-                  type="text"
-                  value={socialYouTube}
-                  onChange={(e) => setSocialYouTube(e.target.value)}
-                  placeholder="https://youtube.com/@tucanal"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
-                />
-              </div>
-
-              {/* Teléfono Visible */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                  Teléfono Oficial de Contacto
-                </label>
-                <input
-                  type="text"
-                  value={contactPhone}
-                  onChange={(e) => setContactPhone(e.target.value)}
-                  placeholder="+51 957 100 984"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* 4. Enlace para Campañas & Dominio */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-5 bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] shadow-sm space-y-3">
-              <h3 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2">
-                🔗 Enlace Oficial para Anuncios (Ads) & Tráfico Web
-              </h3>
-              <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
-                Usa este enlace en tus campañas de Facebook Ads, TikTok Ads y estados de WhatsApp para dirigir todo el tráfico a tu portal inmobiliario.
-              </p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={portalUrl}
-                  className="flex-1 px-3 py-2 text-xs bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] rounded-xl text-slate-700 dark:text-slate-200 font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(portalUrl);
-                    addNotification('Enlace Copiado', 'El enlace público del portal ha sido copiado.', 'success');
-                  }}
-                  className="px-3.5 py-2 bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copiar</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="p-5 bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] shadow-sm space-y-3">
-              <h3 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2">
-                🌐 Enrutamiento & Dominio Propio
-              </h3>
-              <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
-                Tu landing page y tu CRM funcionan de forma multi-dominio e independiente. Puedes conectar cualquier dominio (ej. <code>www.casaya.pe</code>) mediante DNS.
-              </p>
-              <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span><strong>Estado:</strong> Sistema listo y habilitado para navegación pública y captación.</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 5. Barra Inferior de Guardado y Restablecer para Banner */}
-          <div className="sticky bottom-4 z-20 p-4 bg-white/95 dark:bg-[#151821]/95 backdrop-blur-md rounded-2xl border border-[#E5E7EB] dark:border-white/[0.1] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              {savedSuccess && (
-                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-fade-in">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Cambios guardados con éxito en la Landing Page</span>
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2.5 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={handleResetBanner}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#1E2333] hover:bg-[#F1F3F5] text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Restablecer Originales</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSaveBanner}
-                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition-all transform active:scale-98 cursor-pointer"
-              >
-                <Save className="w-4 h-4" />
-                <span>Guardar Configuración del Banner</span>
-              </button>
-            </div>
+            ))}
           </div>
         </div>
-      )}
+      </section>
+
+      {/* ========================================================================= */}
+      {/* SECCIÓN 2: PROPIEDADES DESTACADAS & CATÁLOGO (CARGA, DETALLES Y CHECK)   */}
+      {/* ========================================================================= */}
+      <section className="bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] p-5 sm:p-7 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F1F3F5] dark:border-white/[0.08] pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+              2
+            </div>
+            <div>
+              <h3 className="font-manrope font-bold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Propiedades Destacadas & Catálogo Completo</span>
+                <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                  {featuredCount} Destacadas Activas
+                </span>
+              </h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Activa el check <strong className="text-amber-600 dark:text-amber-400">"Visible en Landing (Destacada)"</strong> en cada inmueble para mostrarlo en la portada (hasta 8 inmuebles).
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleOpenCreateProperty}
+            className="px-4 py-2.5 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/20 transition-all cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Cargar Nueva Propiedad</span>
+          </button>
+        </div>
+
+        {/* Barra de Filtros y Búsqueda */}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative flex-1 w-full">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={propertySearch}
+              onChange={(e) => setPropertySearch(e.target.value)}
+              placeholder="Buscar propiedad por título, proyecto, zona..."
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#181C27] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+            <button
+              type="button"
+              onClick={() => setFilterFeaturedOnly('all')}
+              className={`px-3 py-1.5 rounded-xl font-semibold text-xs whitespace-nowrap cursor-pointer ${
+                filterFeaturedOnly === 'all'
+                  ? 'bg-[#202020] text-white dark:bg-white dark:text-black'
+                  : 'bg-[#F7F8FA] dark:bg-[#181C27] text-slate-600 dark:text-slate-400'
+              }`}
+            >
+              Todos ({propertyList.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilterFeaturedOnly('featured')}
+              className={`px-3 py-1.5 rounded-xl font-semibold text-xs whitespace-nowrap flex items-center gap-1 cursor-pointer ${
+                filterFeaturedOnly === 'featured'
+                  ? 'bg-amber-500 text-white shadow-xs'
+                  : 'bg-[#F7F8FA] dark:bg-[#181C27] text-amber-600 dark:text-amber-400'
+              }`}
+            >
+              <Star className="w-3.5 h-3.5 fill-current" />
+              <span>Solo Destacadas en Landing ({featuredCount})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilterFeaturedOnly('not-featured')}
+              className={`px-3 py-1.5 rounded-xl font-semibold text-xs whitespace-nowrap cursor-pointer ${
+                filterFeaturedOnly === 'not-featured'
+                  ? 'bg-[#202020] text-white dark:bg-white dark:text-black'
+                  : 'bg-[#F7F8FA] dark:bg-[#181C27] text-slate-600 dark:text-slate-400'
+              }`}
+            >
+              Solo Catálogo ({propertyList.length - featuredCount})
+            </button>
+          </div>
+        </div>
+
+        {/* Grilla de Propiedades con Check Visible Sí/No */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredPanelProperties.map((prop) => {
+            const pCurrency = prop.currency || 'PEN';
+            const pSymbol = pCurrency === 'USD' ? 'USD $' : 'S/';
+            const pPrice = Number(prop.price) || 0;
+            const mainImg = Array.isArray(prop.images) && prop.images.length > 0 ? prop.images[0] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600';
+
+            return (
+              <div
+                key={prop.id}
+                className="bg-[#F7F8FA] dark:bg-[#181C27] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.08] shadow-xs overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow"
+              >
+                {/* Foto & Badges */}
+                <div className="relative aspect-[16/10] bg-slate-900 overflow-hidden">
+                  <img
+                    src={mainImg}
+                    alt={prop.title}
+                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                  />
+
+                  {/* Badge de Proyecto */}
+                  {prop.projectName && (
+                    <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-white text-[10px] font-bold">
+                      {prop.projectName}
+                    </div>
+                  )}
+
+                  {/* Botón de Eliminación Rápida */}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteProperty(prop.id, prop.title)}
+                    className="absolute top-2.5 right-2.5 w-7 h-7 rounded-lg bg-rose-600/90 text-white flex items-center justify-center hover:bg-rose-700 transition-colors shadow-sm cursor-pointer"
+                    title="Eliminar del catálogo"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Precio en Badge */}
+                  <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-[#1154FF] text-white text-xs font-extrabold shadow-md">
+                    {pSymbol} {pPrice.toLocaleString('en-US')}
+                  </div>
+                </div>
+
+                {/* Detalles del Inmueble */}
+                <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
+                      <span className="capitalize">{prop.type}</span>
+                      <span>•</span>
+                      <span>{prop.zone || prop.city || 'Perú'}</span>
+                    </div>
+
+                    <h4 className="font-manrope font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-1">
+                      {prop.title}
+                    </h4>
+
+                    {prop.description && (
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                        {prop.description}
+                      </p>
+                    )}
+
+                    {/* Características / Tags */}
+                    {Array.isArray(prop.features) && prop.features.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {prop.features.slice(0, 3).map((f, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-0.5 rounded-md bg-white dark:bg-[#1E2333] text-slate-600 dark:text-slate-300 text-[10px] font-semibold border border-[#E5E7EB] dark:border-white/[0.08]"
+                          >
+                            {f}
+                          </span>
+                        ))}
+                        {prop.features.length > 3 && (
+                          <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-[#1E2333] text-slate-500 text-[10px]">
+                            +{prop.features.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Barra Inferior con Switch "Visible en Landing: Sí/No" y Editar */}
+                  <div className="pt-3 border-t border-[#E5E7EB] dark:border-white/[0.08] flex items-center justify-between gap-2">
+                    
+                    {/* Check / Toggle Switch Destacada */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleFeatured(prop.id, prop.featured)}
+                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        prop.featured
+                          ? 'bg-amber-500 text-white shadow-xs'
+                          : 'bg-white dark:bg-[#1E2333] border border-slate-200 dark:border-white/[0.08] text-slate-500 dark:text-slate-400 hover:bg-slate-100'
+                      }`}
+                      title={prop.featured ? 'Visible en portada de Landing' : 'Clic para mostrar en portada'}
+                    >
+                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${prop.featured ? 'bg-white text-amber-600' : 'bg-slate-300 dark:bg-slate-600 text-transparent'}`}>
+                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                      </div>
+                      <span>{prop.featured ? 'Visible en Landing: SÍ' : 'Visible en Landing: NO'}</span>
+                    </button>
+
+                    {/* Botón Editar */}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditProperty(prop)}
+                      className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#1E2333] hover:bg-[#1154FF] hover:text-white dark:hover:bg-[#1154FF] text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-1 border border-[#E5E7EB] dark:border-white/[0.08] transition-colors cursor-pointer"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>Editar</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* SECCIÓN 3: BOTONES DE REDES SOCIALES & CANALES DE CONTACTO DIRECTO       */}
+      {/* ========================================================================= */}
+      <section className="bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] p-5 sm:p-7 shadow-sm space-y-6">
+        <div className="flex items-center gap-2 border-b border-[#F1F3F5] dark:border-white/[0.08] pb-3">
+          <div className="w-7 h-7 rounded-lg bg-[#1154FF]/10 text-[#1154FF] dark:text-[#38BDF8] flex items-center justify-center font-bold">
+            3
+          </div>
+          <h3 className="font-manrope font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+            Botones de Redes Sociales & Información de Contacto
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* WhatsApp */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+              Enlace de WhatsApp Directo
+            </label>
+            <input
+              type="text"
+              value={socialWhatsApp}
+              onChange={(e) => setSocialWhatsApp(e.target.value)}
+              placeholder="https://wa.me/51957100984?text=..."
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+            />
+          </div>
+
+          {/* Facebook */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+              Enlace Página de Facebook
+            </label>
+            <input
+              type="text"
+              value={socialFacebook}
+              onChange={(e) => setSocialFacebook(e.target.value)}
+              placeholder="https://facebook.com/tupagina"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+            />
+          </div>
+
+          {/* Instagram */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+              Enlace Perfil de Instagram
+            </label>
+            <input
+              type="text"
+              value={socialInstagram}
+              onChange={(e) => setSocialInstagram(e.target.value)}
+              placeholder="https://instagram.com/tuperfil"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+            />
+          </div>
+
+          {/* TikTok */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+              Enlace Cuenta de TikTok
+            </label>
+            <input
+              type="text"
+              value={socialTikTok}
+              onChange={(e) => setSocialTikTok(e.target.value)}
+              placeholder="https://tiktok.com/@tuusuario"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+            />
+          </div>
+
+          {/* YouTube */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+              Enlace Canal de YouTube
+            </label>
+            <input
+              type="text"
+              value={socialYouTube}
+              onChange={(e) => setSocialYouTube(e.target.value)}
+              placeholder="https://youtube.com/@tucanal"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+            />
+          </div>
+
+          {/* Teléfono Visible */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+              Teléfono Oficial de Contacto
+            </label>
+            <input
+              type="text"
+              value={contactPhone}
+              onChange={(e) => setContactPhone(e.target.value)}
+              placeholder="+51 957 100 984"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* SECCIÓN 4: ENLACES PARA ANUNCIOS (ADS) & ENRUTAMIENTO DE DOMINIO          */}
+      {/* ========================================================================= */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-5 bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] shadow-sm space-y-3">
+          <h3 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2">
+            🔗 Enlace Oficial para Anuncios (Ads) & Tráfico Web
+          </h3>
+          <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+            Usa este enlace en tus campañas de Facebook Ads, TikTok Ads y estados de WhatsApp para dirigir todo el tráfico a tu portal inmobiliario.
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              readOnly
+              value={portalUrl}
+              className="flex-1 px-3 py-2 text-xs bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] rounded-xl text-slate-700 dark:text-slate-200 font-mono"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(portalUrl);
+                addNotification('Enlace Copiado', 'El enlace público del portal ha sido copiado.', 'success');
+              }}
+              className="px-3.5 py-2 bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>Copiar</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="p-5 bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] shadow-sm space-y-3">
+          <h3 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2">
+            🌐 Enrutamiento & Dominio Propio
+          </h3>
+          <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+            Tu landing page y tu CRM funcionan de forma multi-dominio e independiente. Puedes conectar cualquier dominio (ej. <code>www.casaya.pe</code>) mediante DNS.
+          </p>
+          <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span><strong>Estado:</strong> Sistema listo y habilitado para navegación pública y captación.</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 5. BARRA FLOTANTE INFERIOR: GUARDAR TODO Y RESTABLECER                    */}
+      {/* ========================================================================= */}
+      <div className="sticky bottom-4 z-30 p-4 bg-white/95 dark:bg-[#151821]/95 backdrop-blur-md rounded-2xl border border-[#E5E7EB] dark:border-white/[0.1] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          {savedSuccess ? (
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-fade-in">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>¡Todas las secciones de la Landing Page han sido guardadas con éxito!</span>
+            </span>
+          ) : (
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              Guarda tus cambios para sincronizar Hero Banner, Destacadas y Redes Sociales en la web en vivo.
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={handleResetAllConfig}
+            className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#1E2333] hover:bg-[#F1F3F5] text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Restablecer Originales</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSaveAllConfig}
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition-all transform active:scale-98 cursor-pointer"
+          >
+            <Save className="w-4 h-4" />
+            <span>Guardar Todos los Cambios</span>
+          </button>
+        </div>
+      </div>
 
       {/* ========================================================================= */}
       {/* MODAL COMPLETO DE CREACIÓN / EDICIÓN DE PROPIEDAD PARA EL PORTAL WEB      */}

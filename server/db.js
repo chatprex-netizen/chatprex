@@ -381,7 +381,69 @@ export async function initDb() {
         embedding vector(1536), -- Vector para modelos OpenAI text-embedding-3-small
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Tabla para Configuración del Portal Web / Landing Page CMS
+      CREATE TABLE IF NOT EXISTS portal_config (
+        id TEXT PRIMARY KEY DEFAULT 'main',
+        hero_badge TEXT,
+        hero_title TEXT,
+        hero_highlight TEXT,
+        hero_subtitle TEXT,
+        hero_images JSONB,
+        social_links JSONB,
+        contact_info JSONB,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
+
+    // Seed / Init portal_config
+    const { rows: portalConfigRows } = await client.query("SELECT * FROM portal_config WHERE id = 'main'");
+    if (portalConfigRows.length === 0) {
+      const defaultHeroImages = JSON.stringify([
+        {
+          id: 'hero-1',
+          url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&auto=format&fit=crop&q=80',
+          label: 'Residencias & Casas Modernas',
+        },
+        {
+          id: 'hero-2',
+          url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&auto=format&fit=crop&q=80',
+          label: 'Lotes Campestres & Vistas Panorámicas',
+        },
+        {
+          id: 'hero-3',
+          url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&auto=format&fit=crop&q=80',
+          label: 'Desarrollos & Proyectos en Preventa',
+        },
+      ]);
+      const defaultSocialLinks = JSON.stringify({
+        whatsapp: 'https://wa.me/51957100984?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20proyectos%20y%20propiedades%20en%20CasaYa',
+        facebook: 'https://facebook.com',
+        instagram: 'https://instagram.com',
+        tiktok: 'https://tiktok.com',
+        youtube: 'https://youtube.com',
+      });
+      const defaultContactInfo = JSON.stringify({
+        phone: '+51 957 100 984',
+        email: 'ventas@casaya.pe',
+        city: 'Arequipa, Perú',
+      });
+
+      await client.query(`
+        INSERT INTO portal_config (id, hero_badge, hero_title, hero_highlight, hero_subtitle, hero_images, social_links, contact_info)
+        VALUES ('main', $1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (id) DO NOTHING
+      `, [
+        'Proyectos en Preventa & Propiedades Exclusivas',
+        'Encuentra tu Próxima',
+        'Propiedad o Proyecto',
+        'Casas, departamentos, lotes de campo y desarrollos en preventa con alta plusvalía y facilidades de financiamiento a tu medida.',
+        defaultHeroImages,
+        defaultSocialLinks,
+        defaultContactInfo
+      ]);
+      console.log('🌱 Seed: Configuración del portal web inicializada.');
+    }
 
     // ──────────────────────────────────────────────
     // SEED DATA

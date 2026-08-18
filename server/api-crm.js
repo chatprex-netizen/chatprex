@@ -1224,4 +1224,83 @@ router.get('/api/crm/debug/db', async (_req, res) => {
   }
 });
 
+// ══════════════════════════════════════════════════
+// PORTAL CONFIG (LANDING PAGE CMS)
+// ══════════════════════════════════════════════════
+
+router.get('/api/crm/portal-config', async (_req, res) => {
+  try {
+    const { rows } = await query("SELECT * FROM portal_config WHERE id = 'main'");
+    if (!rows[0]) {
+      return res.json({
+        heroBadge: 'Proyectos en Preventa & Propiedades Exclusivas',
+        heroTitle: 'Encuentra tu Próxima',
+        heroHighlight: 'Propiedad o Proyecto',
+        heroSubtitle: 'Casas, departamentos, lotes de campo y desarrollos en preventa con alta plusvalía y facilidades de financiamiento a tu medida.',
+        heroImages: [
+          { id: 'hero-1', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&auto=format&fit=crop&q=80', label: 'Residencias & Casas Modernas' },
+          { id: 'hero-2', url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&auto=format&fit=crop&q=80', label: 'Lotes Campestres & Vistas Panorámicas' },
+          { id: 'hero-3', url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&auto=format&fit=crop&q=80', label: 'Desarrollos & Proyectos en Preventa' }
+        ],
+        socialLinks: {
+          whatsapp: 'https://wa.me/51957100984?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20proyectos%20y%20propiedades%20en%20CasaYa',
+          facebook: 'https://facebook.com',
+          instagram: 'https://instagram.com',
+          tiktok: 'https://tiktok.com',
+          youtube: 'https://youtube.com'
+        },
+        contactInfo: {
+          phone: '+51 957 100 984',
+          email: 'ventas@casaya.pe',
+          city: 'Arequipa, Perú'
+        }
+      });
+    }
+    const r = rows[0];
+    res.json({
+      heroBadge: r.hero_badge,
+      heroTitle: r.hero_title,
+      heroHighlight: r.hero_highlight,
+      heroSubtitle: r.hero_subtitle,
+      heroImages: typeof r.hero_images === 'string' ? JSON.parse(r.hero_images) : r.hero_images,
+      socialLinks: typeof r.social_links === 'string' ? JSON.parse(r.social_links) : r.social_links,
+      contactInfo: typeof r.contact_info === 'string' ? JSON.parse(r.contact_info) : r.contact_info
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/api/crm/portal-config', async (req, res) => {
+  try {
+    const { heroBadge, heroTitle, heroHighlight, heroSubtitle, heroImages, socialLinks, contactInfo } = req.body;
+    
+    await query(`
+      INSERT INTO portal_config (id, hero_badge, hero_title, hero_highlight, hero_subtitle, hero_images, social_links, contact_info, updated_at)
+      VALUES ('main', $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+      ON CONFLICT (id) DO UPDATE SET
+        hero_badge = EXCLUDED.hero_badge,
+        hero_title = EXCLUDED.hero_title,
+        hero_highlight = EXCLUDED.hero_highlight,
+        hero_subtitle = EXCLUDED.hero_subtitle,
+        hero_images = EXCLUDED.hero_images,
+        social_links = EXCLUDED.social_links,
+        contact_info = EXCLUDED.contact_info,
+        updated_at = CURRENT_TIMESTAMP
+    `, [
+      heroBadge,
+      heroTitle,
+      heroHighlight,
+      heroSubtitle,
+      JSON.stringify(heroImages || []),
+      JSON.stringify(socialLinks || {}),
+      JSON.stringify(contactInfo || {})
+    ]);
+
+    res.json({ success: true, message: 'Configuración del portal actualizada en base de datos' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

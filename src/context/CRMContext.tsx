@@ -279,17 +279,25 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : DEFAULT_PORTAL_CONFIG;
   });
 
-  const updatePortalConfig = (config: Partial<PortalConfig>) => {
-    setPortalConfig((prev) => {
-      const updated = { ...prev, ...config };
-      localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'portalConfig', JSON.stringify(updated));
-      return updated;
-    });
+  const updatePortalConfig = async (config: Partial<PortalConfig>) => {
+    const updated = { ...portalConfig, ...config };
+    setPortalConfig(updated);
+    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'portalConfig', JSON.stringify(updated));
+    try {
+      await apiClient.put('/portal-config', updated);
+    } catch (err) {
+      console.warn('No se pudo sincronizar portal-config con backend:', err);
+    }
   };
 
-  const resetPortalConfig = () => {
+  const resetPortalConfig = async () => {
     setPortalConfig(DEFAULT_PORTAL_CONFIG);
     localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'portalConfig', JSON.stringify(DEFAULT_PORTAL_CONFIG));
+    try {
+      await apiClient.put('/portal-config', DEFAULT_PORTAL_CONFIG);
+    } catch (err) {
+      console.warn('No se pudo resetear portal-config en backend:', err);
+    }
   };
 
   useEffect(() => {
@@ -311,7 +319,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const [
         propertiesData, dealsData, contactsData, contractsData, 
         financeData, pipelineStagesData, leadChannelsData, projectsData, agentsData,
-        tasksData, appointmentsData, notificationsData
+        tasksData, appointmentsData, notificationsData, portalConfigData
       ] = await Promise.allSettled([
         apiClient.get<PaginatedResponse<Property>>('/properties?limit=100'),
         apiClient.get<PaginatedResponse<Deal>>('/deals?limit=100'),
@@ -325,7 +333,13 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiClient.get<Task[]>('/tasks'),
         apiClient.get<Appointment[]>('/appointments'),
         apiClient.get<NotificationItem[]>('/notifications'),
+        apiClient.get<PortalConfig>('/portal-config'),
       ]);
+
+      if (portalConfigData.status === 'fulfilled' && portalConfigData.value?.heroTitle) {
+        setPortalConfig(portalConfigData.value);
+        localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'portalConfig', JSON.stringify(portalConfigData.value));
+      }
 
       if (propertiesData.status === 'fulfilled' && propertiesData.value?.data) {
         if (propertiesData.value.data.length > 0) {
