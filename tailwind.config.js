@@ -66,6 +66,7 @@ export default {
           active: '#a060ff',
           text: '#9ca3af',
           textActive: '#ffffff',
+        },
         landing: {
           blue: '#1154FF',
           dark: '#202020',
