@@ -203,8 +203,8 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : {
       logoUrl: null,
       faviconUrl: null,
-      appName: 'ChatPrex',
-      appDescription: 'Gestión inteligente para tu negocio',
+      appName: 'CasaYa',
+      appDescription: 'Plataforma inmobiliaria digital con inteligencia artificial',
     };
   });
 

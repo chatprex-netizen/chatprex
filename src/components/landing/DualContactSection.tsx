@@ -15,7 +15,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
   // Formulario Comprador
   const [buyerName, setBuyerName] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
-  const [buyerType, setBuyerType] = useState('Lote / Terreno');
+  const [buyerType, setBuyerType] = useState('Lote / Terreno de Campo');
   const [buyerBudget, setBuyerBudget] = useState('');
   const [buyerZone, setBuyerZone] = useState('');
 
@@ -31,7 +31,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
 
   const handleSubmitBuyer = (e: React.FormEvent) => {
     e.preventDefault();
-    const msg = `¡Hola! Mi nombre es ${buyerName || 'un interesado'}. Busco un ${buyerType} en ${buyerZone || 'zona a evaluar'}, con presupuesto de ${currency} ${buyerBudget || 'a evaluar'}. Celular: ${buyerPhone}. ¿Qué opciones tienen disponibles?`;
+    const msg = `¡Hola CasaYa! Mi nombre es ${buyerName || 'un interesado'}. Busco un ${buyerType} en ${buyerZone || 'zona a evaluar'}, con presupuesto de ${currency} ${buyerBudget || 'a evaluar'}. Celular: ${buyerPhone}. ¿Qué opciones tienen disponibles?`;
     onSendMessage(msg);
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 4000);
@@ -39,34 +39,40 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
 
   const handleSubmitSeller = (e: React.FormEvent) => {
     e.preventDefault();
-    const msg = `¡Hola! Mi nombre es ${sellerName || 'un propietario'}. Deseo comercializar un inmueble (${propertyType}) en ${propertyLocation || 'Perú'}. Precio estimado: ${currency} ${propertyEstimatedPrice || 'a convenir'}. Título Sunarp: ${hasSunarpTitle ? 'Sí' : 'En trámite'}. Celular: ${sellerPhone}.`;
+    const msg = `¡Hola CasaYa! Mi nombre es ${sellerName || 'un propietario'}. Deseo comercializar un inmueble (${propertyType}) en ${propertyLocation || 'Perú'}. Precio estimado: ${currency} ${propertyEstimatedPrice || 'a convenir'}. Título Sunarp: ${hasSunarpTitle ? 'Sí' : 'En trámite'}. Celular: ${sellerPhone}.`;
     onSendMessage(msg);
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 4000);
   };
 
   return (
-    <section id="contacto" className="w-full max-w-5xl mx-auto px-4 py-16 font-sans">
-      <div className="bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] shadow-sm overflow-hidden transition-colors">
+    <section id="contacto" className="scroll-mt-20 w-full max-w-3xl mx-auto px-4 py-12 sm:py-16 font-sans">
+      
+      {/* Tarjeta Unificada: Cabecera, Selector y Formulario en el Mismo Recuadro */}
+      <div className="bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] shadow-sm p-6 sm:p-10 space-y-6 transition-colors">
         
-        {/* Header & Tab Selector */}
-        <div className="p-6 sm:p-8 bg-[#F7F8FA] dark:bg-[#181C27] border-b border-[#E5E7EB] dark:border-white/[0.08] text-center space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-white dark:bg-[#1E2333] text-[#1154FF] dark:text-[#38BDF8] border border-[#E5E7EB] dark:border-white/[0.08]">
+        {/* Cabecera & Selector de Pestañas Integrado */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-[#F7F8FA] dark:bg-[#1E2333] text-[#1154FF] dark:text-[#38BDF8] border border-[#E5E7EB] dark:border-white/[0.08]">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Asesoría Inmobiliaria Personalizada</span>
+            <span>Asesoría Inmobiliaria Inteligente</span>
           </div>
 
           <h2 className="font-manrope font-bold text-2xl sm:text-3xl text-[#202020] dark:text-white tracking-tight">
             ¿En qué podemos ayudarte?
           </h2>
 
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+            Conectamos compradores con inmuebles exclusivos y asesoramos a propietarios para una venta rápida.
+          </p>
+
           {/* Toggle Dual Comprador vs Vendedor */}
-          <div className="flex justify-center">
-            <div className="inline-flex p-1 bg-[#F1F3F5] dark:bg-[#1E2333] rounded-xl border border-[#E5E7EB] dark:border-white/[0.08]">
+          <div className="flex justify-center pt-2">
+            <div className="inline-flex p-1 bg-[#F1F3F5] dark:bg-[#1E2333] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setActiveTab('comprador')}
-                className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'comprador'
                     ? 'bg-white dark:bg-[#12151E] text-[#1154FF] dark:text-[#38BDF8] shadow-sm'
                     : 'text-slate-500 dark:text-slate-400 hover:text-[#202020] dark:hover:text-white'
@@ -79,7 +85,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab('vendedor')}
-                className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'vendedor'
                     ? 'bg-white dark:bg-[#12151E] text-[#1154FF] dark:text-[#38BDF8] shadow-sm'
                     : 'text-slate-500 dark:text-slate-400 hover:text-[#202020] dark:hover:text-white'
@@ -92,20 +98,14 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
           </div>
         </div>
 
+        {/* Separador Sutil */}
+        <div className="w-full h-px bg-[#F1F3F5] dark:bg-white/[0.06]" />
+
         {/* Formularios */}
-        <div className="p-6 sm:p-10">
+        <div>
           {activeTab === 'comprador' ? (
             /* Formulario Comprador */
-            <form onSubmit={handleSubmitBuyer} className="max-w-xl mx-auto space-y-4 animate-fade-in">
-              <div className="text-center space-y-1 pb-2">
-                <h3 className="font-manrope font-bold text-base sm:text-lg text-[#202020] dark:text-white">
-                  Encuentra el Inmueble que Buscas
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Cuéntanos tus requerimientos y te contactaremos de inmediato por WhatsApp con opciones disponibles.
-                </p>
-              </div>
-
+            <form onSubmit={handleSubmitBuyer} className="space-y-4 animate-fade-in">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
@@ -190,16 +190,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
             </form>
           ) : (
             /* Formulario Vendedor */
-            <form onSubmit={handleSubmitSeller} className="max-w-xl mx-auto space-y-4 animate-fade-in">
-              <div className="text-center space-y-1 pb-2">
-                <h3 className="font-manrope font-bold text-base sm:text-lg text-[#202020] dark:text-white">
-                  Comercializa tu Inmueble con Nosotros
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Vendemos tu terreno, proyecto o propiedad con nuestra red de compradores y marketing digital.
-                </p>
-              </div>
-
+            <form onSubmit={handleSubmitSeller} className="space-y-4 animate-fade-in">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">

@@ -74,13 +74,13 @@ export const PublicLandingPage: React.FC = () => {
 
   // Helper de contacto WhatsApp
   const handleOpenWhatsApp = (prop?: Property, customMsg?: string) => {
-    const phone = '51957100984'; // Asesor Elvis Meza
+    const phone = '51957100984';
     let msg = customMsg;
     if (!msg) {
       if (prop) {
-        msg = `¡Hola Elvis! Vi en el portal el inmueble "${prop.projectName ? `${prop.projectName} - ${prop.title}` : prop.title}" y deseo más información sobre el financiamiento y coordinar una visita.`;
+        msg = `¡Hola CasaYa! Vi en el portal el inmueble "${prop.projectName ? `${prop.projectName} - ${prop.title}` : prop.title}" y deseo más información sobre el financiamiento y coordinar una visita.`;
       } else {
-        msg = '¡Hola Elvis! Deseo conocer la disponibilidad actual de proyectos y propiedades.';
+        msg = '¡Hola CasaYa! Deseo conocer la disponibilidad actual de proyectos y propiedades.';
       }
     }
     const encoded = encodeURIComponent(msg);

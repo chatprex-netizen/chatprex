@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Moon, Sun, MessageCircle, Menu, X, ArrowRight } from 'lucide-react';
+import { Home, Moon, Sun, MessageCircle, Menu, X, ArrowRight } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useCRM } from '../../context/CRMContext';
 
@@ -18,8 +18,9 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   const { appBranding } = useCRM();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const brandName = appBranding?.appName && appBranding.appName !== 'ChatPrex' ? appBranding.appName : 'CasaYa';
+
   const navLinks = [
-    { label: 'Destacados', href: '#proyectos' },
     { label: 'Catálogo Completo', href: '#/catalogo', isPage: true },
     { label: 'Financiamiento', href: '#financiamiento' },
     { label: 'Contacto', href: '#contacto' },
@@ -54,32 +55,45 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
     }
   };
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const currentHash = (window.location.hash || '').toLowerCase();
+    if (currentHash.includes('catalog') || currentHash.includes('catalogo')) {
+      window.location.hash = '#/portal';
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#0B0C10]/90 backdrop-blur-xl border-b border-[#E5E7EB]/80 dark:border-white/[0.08] transition-colors h-[68px] flex items-center">
+    <header className="sticky top-0 z-50 bg-white/95 dark:bg-[#0B0C10]/95 backdrop-blur-xl border-b border-[#E5E7EB]/80 dark:border-white/[0.08] transition-colors h-[68px] flex items-center shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full flex items-center justify-between">
         
-        {/* Logo | Marca */}
-        <a href="#/portal" className="flex items-center gap-3 group shrink-0 cursor-pointer">
+        {/* Logo | Marca CasaYa */}
+        <a 
+          href="#/portal" 
+          onClick={handleLogoClick}
+          className="flex items-center gap-2.5 group shrink-0 cursor-pointer"
+        >
           {appBranding?.logoUrl ? (
             <img src={appBranding.logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-contain" />
           ) : (
-            <div className="w-8 h-8 rounded-lg bg-[#1154FF] text-white flex items-center justify-center font-manrope font-extrabold text-sm shadow-md shadow-blue-500/20">
-              <Building2 className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-[#1154FF] text-white flex items-center justify-center font-manrope font-extrabold text-sm shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
+              <Home className="w-5 h-5 stroke-[2.2]" />
             </div>
           )}
-          <span className="font-manrope font-extrabold text-base tracking-tight text-[#202020] dark:text-white">
-            {appBranding?.appName || 'Inmobiliaria Premium'}
+          <span className="font-manrope font-extrabold text-lg sm:text-xl tracking-tight text-[#202020] dark:text-white group-hover:text-[#1154FF] dark:group-hover:text-[#38BDF8] transition-colors">
+            {brandName}
           </span>
         </a>
 
-        {/* Navegación Desktop Minimalista */}
-        <nav className="hidden lg:flex items-center gap-7">
+        {/* Navegación Desktop Siempre Visible en PC */}
+        <nav className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
               onClick={(e) => handleNavClick(e, link)}
-              className="text-[14px] font-medium text-[#202020]/75 dark:text-slate-300 hover:text-[#1154FF] dark:hover:text-[#38BDF8] transition-colors cursor-pointer"
+              className="text-[14px] font-medium text-[#202020]/80 dark:text-slate-200 hover:text-[#1154FF] dark:hover:text-[#38BDF8] transition-colors cursor-pointer"
             >
               {link.label}
             </a>

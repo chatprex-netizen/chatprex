@@ -49,7 +49,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const isProject = pType === 'proyecto_preventa' || pOp === 'preventa' || pProj.length > 0;
 
   const handleQuickWhatsApp = () => {
-    const msg = `¡Hola Elvis! Vi en la web el inmueble "${property.projectName ? `${property.projectName} - ${property.title}` : property.title}" (${displayPrice}). Deseo coordinar una visita y conocer facilidades de pago.`;
+    const msg = `¡Hola CasaYa! Vi en la web el inmueble "${property.projectName ? `${property.projectName} - ${property.title}` : property.title}" (${displayPrice}). Deseo coordinar una visita y conocer facilidades de pago.`;
     onWhatsAppClick(property, msg);
   };
 

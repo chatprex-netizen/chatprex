@@ -55,7 +55,7 @@ export const FinanceSimulator: React.FC<FinanceSimulatorProps> = ({
   };
 
   return (
-    <section id="financiamiento" className="w-full max-w-5xl mx-auto px-3 sm:px-4 py-10 sm:py-14 font-sans">
+    <section id="financiamiento" className="scroll-mt-20 w-full max-w-5xl mx-auto px-3 sm:px-4 py-10 sm:py-14 font-sans">
       <div className="rounded-3xl bg-white dark:bg-[#12151E] border border-[#E5E7EB] dark:border-white/[0.08] p-5 sm:p-8 text-[#202020] dark:text-white transition-colors shadow-sm">
         
         {/* Header del Simulador con Selector de Moneda */}
