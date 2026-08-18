@@ -162,7 +162,8 @@ const readPageFromLocation = (): Page => {
     }
   }
 
-  return 'dashboard';
+  // Página principal por defecto para visitantes y público en general
+  return 'portal';
 };
 
 export const App: React.FC = () => {
