@@ -120,7 +120,7 @@ export const PublicLandingPage: React.FC = () => {
   }, [heroImages.length]);
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#0B0C10] text-[#202020] dark:text-slate-100 font-sans transition-colors selection:bg-[#1154FF] selection:text-white">
+    <div className="min-h-screen pt-[68px] bg-[#F7F8FA] dark:bg-[#0B0C10] text-[#202020] dark:text-slate-100 font-sans transition-colors selection:bg-[#1154FF] selection:text-white">
       
       {/* 1. Header Minimalista */}
       <LandingHeader

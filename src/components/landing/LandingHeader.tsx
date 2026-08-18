@@ -51,7 +51,9 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
     const targetId = link.href.replace('#', '');
     const element = document.getElementById(targetId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const yOffset = -74;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
@@ -65,7 +67,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 dark:bg-[#0B0C10]/95 backdrop-blur-xl border-b border-[#E5E7EB]/80 dark:border-white/[0.08] transition-colors h-[68px] flex items-center shadow-xs">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#0B0C10]/95 backdrop-blur-xl border-b border-[#E5E7EB]/80 dark:border-white/[0.08] transition-colors h-[68px] flex items-center shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full flex items-center justify-between">
         
         {/* Logo | Marca CasaYa */}
