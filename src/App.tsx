@@ -116,8 +116,36 @@ const VALID_PAGES: Page[] = [
 ];
 
 const readPageFromLocation = (): Page => {
-  // 1. Revisar hash (#/portal, #/landing, #/privacy, #/terms, etc.)
-  const hashRaw = window.location.hash.replace(/^#\/?/, '').split('/')[0]?.toLowerCase();
+  const hash = (window.location.hash || '').toLowerCase();
+  const path = (window.location.pathname || '').toLowerCase();
+
+  // Detección directa y prioritaria para páginas públicas
+  if (
+    hash.includes('landing') ||
+    hash.includes('portal') ||
+    hash.includes('catalogo') ||
+    hash.includes('inmueble') ||
+    path.includes('landing') ||
+    path.includes('portal') ||
+    path.includes('catalogo')
+  ) {
+    return 'portal';
+  }
+
+  if (hash.includes('privacy') || hash.includes('privacidad') || path.includes('privacy') || path.includes('privacidad')) {
+    return 'privacy';
+  }
+
+  if (hash.includes('terms') || hash.includes('terminos') || path.includes('terms') || path.includes('terminos')) {
+    return 'terms';
+  }
+
+  if (hash.includes('data-deletion') || hash.includes('eliminacion') || path.includes('data-deletion') || path.includes('eliminacion')) {
+    return 'data-deletion';
+  }
+
+  // 1. Revisar hash normal
+  const hashRaw = hash.replace(/^#\/?/, '').split('/')[0]?.split('?')[0];
   if (hashRaw) {
     const normalizedHash = PAGE_ALIASES[hashRaw] ?? hashRaw;
     if (VALID_PAGES.includes(normalizedHash as Page)) {
@@ -125,8 +153,8 @@ const readPageFromLocation = (): Page => {
     }
   }
 
-  // 2. Revisar pathname directo (/portal, /landing, /privacy, etc.)
-  const pathRaw = window.location.pathname.replace(/^\//, '').split('/')[0]?.toLowerCase();
+  // 2. Revisar pathname normal
+  const pathRaw = path.replace(/^\//, '').split('/')[0]?.split('?')[0];
   if (pathRaw) {
     const normalizedPath = PAGE_ALIASES[pathRaw] ?? pathRaw;
     if (VALID_PAGES.includes(normalizedPath as Page)) {
