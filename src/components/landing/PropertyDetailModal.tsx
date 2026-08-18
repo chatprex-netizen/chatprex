@@ -26,13 +26,14 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
   if (!isOpen || !property) return null;
 
-  const images = property.images && property.images.length > 0 
+  const images = Array.isArray(property.images) && property.images.length > 0 
     ? property.images 
     : ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80'];
 
+  const rawPrice = Number(property.price) || 0;
+  const propCurrency = property.currency || 'S/';
+
   const displayPrice = (() => {
-    const rawPrice = property.price || 0;
-    const propCurrency = property.currency || 'S/';
     if (propCurrency === currency) {
       return `${currency} ${rawPrice.toLocaleString('en-US')}`;
     }
@@ -45,7 +46,10 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     return `${currency} ${rawPrice.toLocaleString('en-US')}`;
   })();
 
-  const isProject = property.type === 'proyecto_preventa' || property.operation === 'preventa' || (property.projectName && property.projectName.length > 0);
+  const pType = (property.type || '').toLowerCase();
+  const pOp = (property.operation || '').toLowerCase();
+  const pProj = (property.projectName || '').trim();
+  const isProject = pType === 'proyecto_preventa' || pOp === 'preventa' || pProj.length > 0;
 
   const handleBookVisit = (e: React.FormEvent) => {
     e.preventDefault();

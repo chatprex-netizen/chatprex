@@ -16,7 +16,7 @@ export const LandingFooter: React.FC = () => {
               <div className="w-7 h-7 rounded-lg bg-[#004aad] text-white flex items-center justify-center">
                 <Building2 className="w-4 h-4" />
               </div>
-              <span>{appBranding.appName || 'Inmobiliaria Premium'}</span>
+              <span>{appBranding?.appName || 'Inmobiliaria Premium'}</span>
             </div>
             <p className="text-xs text-slate-400 max-w-sm leading-relaxed">
               Especialistas en el desarrollo y comercialización de terrenos campestres exclusivos en Arequipa y propiedades de alta plusvalía en el Perú.

@@ -23,7 +23,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
         
         {/* Logo & Marca */}
         <a href="#/portal" className="flex items-center gap-2.5 group cursor-pointer">
-          {appBranding.logoUrl ? (
+          {appBranding?.logoUrl ? (
             <img src={appBranding.logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-contain" />
           ) : (
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#004aad] to-[#2563eb] text-white flex items-center justify-center font-black text-sm shadow-md shadow-blue-500/20">
@@ -32,7 +32,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           )}
           <div>
             <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight leading-tight group-hover:text-[#004aad] transition-colors">
-              {appBranding.appName || 'Inmobiliaria Premium'}
+              {appBranding?.appName || 'Inmobiliaria Premium'}
             </div>
             <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider hidden sm:block">
               Lotes de Campo & Propiedades Exclusivas

@@ -74,7 +74,7 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
                 <span>🌍 Todas las ubicaciones</span>
                 {!selectedZone && <span className="text-[10px]">✓</span>}
               </button>
-              {availableZones.map((z) => (
+              {(availableZones || []).map((z) => (
                 <button
                   key={z}
                   type="button"

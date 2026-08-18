@@ -15,10 +15,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onSelect,
   onWhatsAppClick,
 }) => {
+  if (!property) return null;
+
   // Conversión referencial si la propiedad está en otra moneda
+  const rawPrice = Number(property.price) || 0;
+  const propCurrency = property.currency || 'S/';
+
   const displayPrice = (() => {
-    const rawPrice = property.price || 0;
-    const propCurrency = property.currency || 'S/';
     if (propCurrency === currency) {
       return `${currency} ${rawPrice.toLocaleString('en-US')}`;
     }
@@ -36,14 +39,18 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
   // Cálculo de cuota estimada sin intereses (36 cuotas dando 30% inicial)
   const monthlyEstimate = (() => {
-    const rawPrice = property.price || 0;
     const saldo = rawPrice * 0.70;
     const cuota = Math.round(saldo / 36);
     return `${property.currency || currency} ${cuota.toLocaleString('en-US')}`;
   })();
 
-  const isProject = property.type === 'proyecto_preventa' || property.operation === 'preventa' || (property.projectName && property.projectName.length > 0);
-  const mainImage = property.images && property.images.length > 0 ? property.images[0] : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80';
+  const pType = (property.type || '').toLowerCase();
+  const pOp = (property.operation || '').toLowerCase();
+  const pProj = (property.projectName || '').trim();
+  const isProject = pType === 'proyecto_preventa' || pOp === 'preventa' || pProj.length > 0;
+  
+  const images = Array.isArray(property.images) ? property.images : [];
+  const mainImage = images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80';
 
   return (
     <div className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-md hover:shadow-2xl hover:border-blue-500/30 transition-all duration-300 flex flex-col overflow-hidden">

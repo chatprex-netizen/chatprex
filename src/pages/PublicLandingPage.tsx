@@ -28,35 +28,43 @@ export const PublicLandingPage: React.FC = () => {
     setCurrency(prev => prev === 'S/' ? 'USD' : 'S/');
   };
 
+  const propertyList = Array.isArray(properties) ? properties : [];
+
   // Lista única de zonas disponibles
   const availableZones = useMemo(() => {
     const zones = new Set<string>();
-    properties.forEach(p => {
-      if (p.zone) zones.add(p.zone);
-      if (p.city) zones.add(p.city);
+    propertyList.forEach(p => {
+      if (p?.zone) zones.add(p.zone);
+      if (p?.city) zones.add(p.city);
     });
     return Array.from(zones);
-  }, [properties]);
+  }, [propertyList]);
 
   // Filtrado reactivo de propiedades
   const filteredProperties = useMemo(() => {
-    return properties.filter(p => {
+    return propertyList.filter(p => {
+      if (!p) return false;
+
       // 1. Filtro por Categoría (Proyectos vs Independientes)
-      const isProject = p.type === 'proyecto_preventa' || p.operation === 'preventa' || (p.projectName && p.projectName.length > 0);
+      const pType = (p.type || '').toLowerCase();
+      const pOp = (p.operation || '').toLowerCase();
+      const pProj = (p.projectName || '').trim();
+      const isProject = pType === 'proyecto_preventa' || pOp === 'preventa' || pProj.length > 0;
       if (selectedCategory === 'proyectos' && !isProject) return false;
       if (selectedCategory === 'independientes' && isProject) return false;
 
       // 2. Filtro por Zona
       if (selectedZone) {
-        const zoneMatch = (p.zone && p.zone.toLowerCase().includes(selectedZone.toLowerCase())) ||
-                          (p.city && p.city.toLowerCase().includes(selectedZone.toLowerCase())) ||
-                          (p.address && p.address.toLowerCase().includes(selectedZone.toLowerCase()));
+        const zoneLower = selectedZone.toLowerCase();
+        const zoneMatch = (p.zone && p.zone.toLowerCase().includes(zoneLower)) ||
+                          (p.city && p.city.toLowerCase().includes(zoneLower)) ||
+                          (p.address && p.address.toLowerCase().includes(zoneLower));
         if (!zoneMatch) return false;
       }
 
       // 3. Filtro por Presupuesto
       if (maxBudget > 0) {
-        const rawPrice = p.price || 0;
+        const rawPrice = Number(p.price) || 0;
         let normalizedPrice = rawPrice;
         if (p.currency === 'USD' && currency === 'S/') normalizedPrice = rawPrice * 3.75;
         if (p.currency === 'S/' && currency === 'USD') normalizedPrice = rawPrice / 3.75;
@@ -66,16 +74,17 @@ export const PublicLandingPage: React.FC = () => {
       // 4. Filtro por Característica / Badge
       if (selectedFeature) {
         const featLower = selectedFeature.toLowerCase();
-        const inTitle = p.title.toLowerCase().includes(featLower);
-        const inDesc = p.description.toLowerCase().includes(featLower);
-        const inFeats = p.features && p.features.some(f => f.toLowerCase().includes(featLower));
-        const inType = p.type.toLowerCase().includes(featLower);
-        if (!inTitle && !inDesc && !inFeats && !inType) return false;
+        const inTitle = (p.title || '').toLowerCase().includes(featLower);
+        const inDesc = (p.description || '').toLowerCase().includes(featLower);
+        const inFeats = Array.isArray(p.features) && p.features.some(f => (f || '').toLowerCase().includes(featLower));
+        const inType = pType.includes(featLower);
+        const inProj = pProj.toLowerCase().includes(featLower);
+        if (!inTitle && !inDesc && !inFeats && !inType && !inProj) return false;
       }
 
       return true;
     });
-  }, [properties, selectedCategory, selectedZone, maxBudget, selectedFeature, currency]);
+  }, [propertyList, selectedCategory, selectedZone, maxBudget, selectedFeature, currency]);
 
   // Helper de contacto WhatsApp
   const handleOpenWhatsApp = (prop?: Property, customMsg?: string) => {
