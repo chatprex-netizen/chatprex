@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MessageCircle, Building2, UserPlus, CheckCircle2, Sparkles } from 'lucide-react';
+import { useCRM } from '../../context/CRMContext';
 
 interface DualContactSectionProps {
   currency: 'S/' | 'USD';
@@ -10,6 +11,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
   currency,
   onSendMessage,
 }) => {
+  const { addContact } = useCRM();
   const [activeTab, setActiveTab] = useState<'comprador' | 'vendedor'>('comprador');
 
   // Formulario Comprador
@@ -29,16 +31,68 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
 
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmitBuyer = (e: React.FormEvent) => {
+  const handleSubmitBuyer = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 1. Registro automático en la base de contactos del CRM con canal "Web"
+    try {
+      if (addContact) {
+        await addContact({
+          name: buyerName || 'Contacto Web Comprador',
+          phone: buyerPhone || '',
+          email: '',
+          type: 'comprador',
+          channel: 'Web',
+          budget: Number(buyerBudget.replace(/\D/g, '')) || 0,
+          currency: currency === 'S/' ? 'PEN' : 'USD',
+          preferredZones: buyerZone ? [buyerZone] : [],
+          preferredTypes: [buyerType as any],
+          leadScore: 50,
+          leadTemperature: 'interesado',
+          notes: `[Captación Web CasaYa]\nBusca: ${buyerType}\nZona: ${buyerZone || 'No especificada'}\nPresupuesto: ${currency} ${buyerBudget || '0'}`,
+          assignedAgentId: 'agent-1',
+          pipelineStage: 'nuevo_prospecto',
+        });
+      }
+    } catch (err) {
+      console.warn('No se pudo autoguardar contacto en CRM:', err);
+    }
+
+    // 2. Redirección a WhatsApp
     const msg = `¡Hola CasaYa! Mi nombre es ${buyerName || 'un interesado'}. Busco un ${buyerType} en ${buyerZone || 'zona a evaluar'}, con presupuesto de ${currency} ${buyerBudget || 'a evaluar'}. Celular: ${buyerPhone}. ¿Qué opciones tienen disponibles?`;
     onSendMessage(msg);
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 4000);
   };
 
-  const handleSubmitSeller = (e: React.FormEvent) => {
+  const handleSubmitSeller = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 1. Registro automático en la base de contactos del CRM con canal "Web"
+    try {
+      if (addContact) {
+        await addContact({
+          name: sellerName || 'Contacto Web Propietario',
+          phone: sellerPhone || '',
+          email: '',
+          type: 'propietario',
+          channel: 'Web',
+          budget: Number(propertyEstimatedPrice.replace(/\D/g, '')) || 0,
+          currency: currency === 'S/' ? 'PEN' : 'USD',
+          preferredZones: propertyLocation ? [propertyLocation] : [],
+          preferredTypes: [propertyType as any],
+          leadScore: 60,
+          leadTemperature: 'interesado',
+          notes: `[Captación Web CasaYa - Propietario]\nInmueble: ${propertyType}\nUbicación: ${propertyLocation || 'No especificada'}\nPrecio estimado: ${currency} ${propertyEstimatedPrice || '0'}\nTítulo SUNARP: ${hasSunarpTitle ? 'Sí' : 'En trámite'}`,
+          assignedAgentId: 'agent-1',
+          pipelineStage: 'nuevo_prospecto',
+        });
+      }
+    } catch (err) {
+      console.warn('No se pudo autoguardar contacto en CRM:', err);
+    }
+
+    // 2. Redirección a WhatsApp
     const msg = `¡Hola CasaYa! Mi nombre es ${sellerName || 'un propietario'}. Deseo comercializar un inmueble (${propertyType}) en ${propertyLocation || 'Perú'}. Precio estimado: ${currency} ${propertyEstimatedPrice || 'a convenir'}. Título Sunarp: ${hasSunarpTitle ? 'Sí' : 'En trámite'}. Celular: ${sellerPhone}.`;
     onSendMessage(msg);
     setSubmitted(true);

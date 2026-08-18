@@ -369,3 +369,29 @@ export interface AppBranding {
   appName: string;
   appDescription: string;
 }
+
+export interface HeroImageItem {
+  id: string;
+  url: string;
+  label: string;
+}
+
+export interface PortalConfig {
+  heroBadge: string;
+  heroTitle: string;
+  heroHighlight: string;
+  heroSubtitle: string;
+  heroImages: HeroImageItem[];
+  socialLinks: {
+    whatsapp: string;
+    facebook: string;
+    instagram: string;
+    tiktok: string;
+    youtube: string;
+  };
+  contactInfo: {
+    phone: string;
+    email: string;
+    city: string;
+  };
+}

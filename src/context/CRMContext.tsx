@@ -22,10 +22,48 @@ import {
   PropertyStatus,
   PaginatedResponse,
   AppBranding,
-  AIConfig
+  AIConfig,
+  PortalConfig,
+  HeroImageItem
 } from '../types';
 import { apiClient } from '../lib/api-client';
 import { INITIAL_PROPERTIES } from '../data/initialData';
+
+export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
+  heroBadge: 'Proyectos en Preventa & Propiedades Exclusivas',
+  heroTitle: 'Encuentra tu Próxima',
+  heroHighlight: 'Propiedad o Proyecto',
+  heroSubtitle: 'Casas, departamentos, lotes de campo y desarrollos en preventa con alta plusvalía y facilidades de financiamiento a tu medida.',
+  heroImages: [
+    {
+      id: 'hero-1',
+      url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&auto=format&fit=crop&q=80',
+      label: 'Residencias & Casas Modernas',
+    },
+    {
+      id: 'hero-2',
+      url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&auto=format&fit=crop&q=80',
+      label: 'Lotes Campestres & Vistas Panorámicas',
+    },
+    {
+      id: 'hero-3',
+      url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&auto=format&fit=crop&q=80',
+      label: 'Desarrollos & Proyectos en Preventa',
+    },
+  ],
+  socialLinks: {
+    whatsapp: 'https://wa.me/51957100984?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20proyectos%20y%20propiedades%20en%20CasaYa',
+    facebook: 'https://facebook.com',
+    instagram: 'https://instagram.com',
+    tiktok: 'https://tiktok.com',
+    youtube: 'https://youtube.com',
+  },
+  contactInfo: {
+    phone: '+51 957 100 984',
+    email: 'ventas@casaya.pe',
+    city: 'Arequipa, Perú',
+  },
+};
 
 export interface NotificationItem {
   id: string;
@@ -65,6 +103,9 @@ interface CRMContextType {
   updateBranding: (branding: Partial<AppBranding>) => void;
   aiConfig: AIConfig;
   updateAIConfig: (config: Partial<AIConfig>) => void;
+  portalConfig: PortalConfig;
+  updatePortalConfig: (config: Partial<PortalConfig>) => void;
+  resetPortalConfig: () => void;
   
   // Acciones de Etapas, Canales y Proyectos
   addPipelineStage: (stage: Omit<PipelineStageConfig, 'id'>) => Promise<void>;
@@ -231,6 +272,24 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'aiConfig', JSON.stringify(updated));
       return updated;
     });
+  };
+
+  const [portalConfig, setPortalConfig] = useState<PortalConfig>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'portalConfig');
+    return saved ? JSON.parse(saved) : DEFAULT_PORTAL_CONFIG;
+  });
+
+  const updatePortalConfig = (config: Partial<PortalConfig>) => {
+    setPortalConfig((prev) => {
+      const updated = { ...prev, ...config };
+      localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'portalConfig', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const resetPortalConfig = () => {
+    setPortalConfig(DEFAULT_PORTAL_CONFIG);
+    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'portalConfig', JSON.stringify(DEFAULT_PORTAL_CONFIG));
   };
 
   useEffect(() => {
@@ -1182,7 +1241,10 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       appBranding,
       updateBranding,
       aiConfig,
-      updateAIConfig
+      updateAIConfig,
+      portalConfig,
+      updatePortalConfig,
+      resetPortalConfig,
     }}>
       {children}
     </CRMContext.Provider>

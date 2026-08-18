@@ -12,7 +12,7 @@ import { LandingFooter } from '../components/landing/LandingFooter';
 import { Compass } from 'lucide-react';
 
 export const PublicLandingPage: React.FC = () => {
-  const { properties } = useCRM();
+  const { properties, portalConfig } = useCRM();
 
   // Estados de Filtros y Moneda
   const [currency, setCurrency] = useState<'S/' | 'USD'>('S/');
@@ -69,12 +69,16 @@ export const PublicLandingPage: React.FC = () => {
       }
 
       return true;
+    }).sort((a, b) => {
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      return 0;
     });
   }, [propertyList, selectedCategory, selectedZone, maxBudget, currency]);
 
   // Helper de contacto WhatsApp
   const handleOpenWhatsApp = (prop?: Property, customMsg?: string) => {
-    const phone = '51957100984';
+    const phone = portalConfig?.contactInfo?.phone?.replace(/\D/g, '') || '51957100984';
     let msg = customMsg;
     if (!msg) {
       if (prop) {
@@ -90,26 +94,33 @@ export const PublicLandingPage: React.FC = () => {
   const handleScrollTo = (sectionId: string) => {
     const el = document.getElementById(sectionId);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      const yOffset = -74;
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
   const [activeHeroImg, setActiveHeroImg] = useState(0);
 
-  const heroImages = [
-    {
-      url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&auto=format&fit=crop&q=80',
-      label: 'Residencias & Casas Modernas',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&auto=format&fit=crop&q=80',
-      label: 'Lotes Campestres & Vistas Panorámicas',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&auto=format&fit=crop&q=80',
-      label: 'Desarrollos & Proyectos en Preventa',
-    },
-  ];
+  const heroImages = Array.isArray(portalConfig?.heroImages) && portalConfig.heroImages.length > 0
+    ? portalConfig.heroImages
+    : [
+        {
+          id: '1',
+          url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&auto=format&fit=crop&q=80',
+          label: 'Residencias & Casas Modernas',
+        },
+        {
+          id: '2',
+          url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&auto=format&fit=crop&q=80',
+          label: 'Lotes Campestres & Vistas Panorámicas',
+        },
+        {
+          id: '3',
+          url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&auto=format&fit=crop&q=80',
+          label: 'Desarrollos & Proyectos en Preventa',
+        },
+      ];
 
   // Cambio automático cada 5 segundos
   React.useEffect(() => {
@@ -136,7 +147,7 @@ export const PublicLandingPage: React.FC = () => {
         <div className="absolute inset-0 z-0 overflow-hidden">
           {heroImages.map((img, idx) => (
             <div
-              key={idx}
+              key={img.id || idx}
               className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
                 activeHeroImg === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'
               }`}
@@ -160,17 +171,21 @@ export const PublicLandingPage: React.FC = () => {
           {/* Badge Superior */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/20 shadow-md text-xs font-semibold text-white animate-fade-in">
             <span className="w-2 h-2 rounded-full bg-[#38bdf8] shadow-[0_0_8px_#38bdf8] animate-pulse" />
-            <span>Proyectos en Preventa & Propiedades Exclusivas</span>
+            <span>{portalConfig?.heroBadge || 'Proyectos en Preventa & Propiedades Exclusivas'}</span>
           </div>
 
           {/* Titular Principal H1 con Contraste y Sombra de Lectura */}
           <h1 className="font-manrope font-extrabold text-[34px] sm:text-[44px] md:text-[52px] text-white tracking-tight leading-[1.08] max-w-3xl mx-auto drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
-            Encuentra tu Próxima <span className="text-[#38bdf8] drop-shadow-[0_2px_16px_rgba(56,189,248,0.5)]">Propiedad o Proyecto</span> Inmobiliario
+            {portalConfig?.heroTitle || 'Encuentra tu Próxima'}{' '}
+            <span className="text-[#38bdf8] drop-shadow-[0_2px_16px_rgba(56,189,248,0.5)]">
+              {portalConfig?.heroHighlight || 'Propiedad o Proyecto'}
+            </span>{' '}
+            Inmobiliario
           </h1>
 
           {/* Subtítulo con Sombra Suave */}
           <p className="text-[15px] sm:text-[17px] text-slate-100 max-w-2xl mx-auto leading-[1.55] font-medium drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">
-            Casas, departamentos, lotes de campo y desarrollos en preventa con alta plusvalía y facilidades de financiamiento a tu medida.
+            {portalConfig?.heroSubtitle || 'Casas, departamentos, lotes de campo y desarrollos en preventa con alta plusvalía y facilidades de financiamiento a tu medida.'}
           </p>
 
           {/* Buscador Estilo Airbnb */}
