@@ -11,10 +11,10 @@ import { LegalSecuritySection } from '../components/landing/LegalSecuritySection
 import { DualContactSection } from '../components/landing/DualContactSection';
 import { MobileBottomNav } from '../components/landing/MobileBottomNav';
 import { LandingFooter } from '../components/landing/LandingFooter';
-import { Trees, Sun, Sparkles, MessageCircle, ArrowRight, ShieldCheck, MapPin, Compass } from 'lucide-react';
+import { Compass } from 'lucide-react';
 
 export const PublicLandingPage: React.FC = () => {
-  const { properties, projects } = useCRM();
+  const { properties } = useCRM();
 
   // Estados de Filtros y Moneda
   const [currency, setCurrency] = useState<'S/' | 'USD'>('S/');
@@ -30,7 +30,7 @@ export const PublicLandingPage: React.FC = () => {
 
   const propertyList = Array.isArray(properties) ? properties : [];
 
-  // Lista única de zonas disponibles
+  // Lista de zonas disponibles
   const availableZones = useMemo(() => {
     const zones = new Set<string>();
     propertyList.forEach(p => {
@@ -45,7 +45,7 @@ export const PublicLandingPage: React.FC = () => {
     return propertyList.filter(p => {
       if (!p) return false;
 
-      // 1. Filtro por Categoría (Proyectos vs Independientes)
+      // 1. Filtro por Categoría
       const pType = (p.type || '').toLowerCase();
       const pOp = (p.operation || '').toLowerCase();
       const pProj = (p.projectName || '').trim();
@@ -71,7 +71,7 @@ export const PublicLandingPage: React.FC = () => {
         if (normalizedPrice > maxBudget) return false;
       }
 
-      // 4. Filtro por Característica / Badge
+      // 4. Filtro por Característica
       if (selectedFeature) {
         const featLower = selectedFeature.toLowerCase();
         const inTitle = (p.title || '').toLowerCase().includes(featLower);
@@ -94,7 +94,7 @@ export const PublicLandingPage: React.FC = () => {
       if (prop) {
         msg = `¡Hola Elvis! Vi en el portal el inmueble "${prop.projectName ? `${prop.projectName} - ${prop.title}` : prop.title}" y deseo más información sobre el financiamiento y coordinar una visita.`;
       } else {
-        msg = '¡Hola Elvis! Deseo recibir el catálogo actualizado de lotes de campo exclusivos en Arequipa y preventas disponibles.';
+        msg = '¡Hola Elvis! Deseo conocer la disponibilidad actual de lotes de campo y proyectos.';
       }
     }
     const encoded = encodeURIComponent(msg);
@@ -109,41 +109,37 @@ export const PublicLandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors selection:bg-[#004aad] selection:text-white">
+    <div className="min-h-screen bg-white dark:bg-[#121212] text-[#202020] dark:text-slate-100 font-sans transition-colors selection:bg-[#1154FF] selection:text-white">
       
-      {/* 1. Header Fijo */}
+      {/* 1. Header Minimalista */}
       <LandingHeader
         currency={currency}
         onToggleCurrency={toggleCurrency}
-        onWhatsAppClick={() => handleOpenWhatsApp()}
+        onWhatsAppClick={(msg) => handleOpenWhatsApp(undefined, msg)}
       />
 
-      {/* 2. Hero Section de Alto Impacto */}
-      <section className="relative pt-12 pb-20 md:pt-16 md:pb-28 px-4 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-[#f8fafc] dark:from-slate-900 dark:via-slate-900/60 dark:to-slate-950">
-        
-        {/* Glow Effects de fondo */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-4xl h-72 bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-5xl mx-auto text-center space-y-6 relative z-10">
+      {/* 2. Hero Section */}
+      <section className="relative pt-12 pb-16 md:pt-16 md:pb-24 px-4 bg-[#F7F8FA] dark:bg-[#141414] border-b border-[#F1F3F5] dark:border-slate-800/80">
+        <div className="max-w-4xl mx-auto text-center space-y-5">
           
           {/* Badge Superior */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 dark:bg-slate-850/90 backdrop-blur-md border border-slate-200 dark:border-slate-700/80 shadow-sm text-xs font-bold text-slate-800 dark:text-slate-200 animate-fade-in">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Exclusividad en Arequipa • Sol y Campiña los 365 días del año</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 shadow-sm text-xs font-semibold text-[#202020] dark:text-slate-200 animate-fade-in">
+            <span className="w-2 h-2 rounded-full bg-[#1154FF]" />
+            <span>Terrenos de Campo Exclusivos en Arequipa</span>
           </div>
 
-          {/* Titular Principal Persuasivo */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.1] max-w-4xl mx-auto">
+          {/* Titular Principal H1 (Escala: 34-40px mobile, 48-56px desktop, 800) */}
+          <h1 className="font-manrope font-extrabold text-[34px] sm:text-[44px] md:text-[52px] text-[#202020] dark:text-white tracking-tight leading-[1.08] max-w-3xl mx-auto">
             Tu Casa de Campo Soñada a 25 min de la Ciudad
           </h1>
 
-          {/* Subtítulo Aspiracional */}
-          <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
-            Lotes campestres desde 500 m² hasta 1,000 m² con servicios de luz y agua, títulos independizados en SUNARP y financiamiento directo sin intereses.
+          {/* Subtítulo (Escala: 15-17px desktop, 400/500, line-height 1.55) */}
+          <p className="text-[15px] sm:text-[17px] text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-[1.55] font-normal">
+            Lotes campestres desde 500 m² con servicios de luz y agua, títulos independizados en SUNARP y financiamiento directo sin intereses.
           </p>
 
           {/* Buscador Estilo Airbnb */}
-          <div className="pt-4">
+          <div className="pt-3">
             <AirbnbSearchBar
               selectedZone={selectedZone}
               onSelectZone={setSelectedZone}
@@ -153,15 +149,15 @@ export const PublicLandingPage: React.FC = () => {
               onToggleCurrency={toggleCurrency}
               maxBudget={maxBudget}
               onChangeMaxBudget={setMaxBudget}
-              onSearch={() => handleScrollTo('catalogo')}
+              onSearch={() => handleScrollTo('proyectos')}
               availableZones={availableZones}
             />
           </div>
         </div>
       </section>
 
-      {/* 3. Pestañas de Categoría & Filtros Táctiles */}
-      <section id="catalogo" className="pt-6 pb-4">
+      {/* 3. Pestañas de Categoría */}
+      <section id="proyectos" className="pt-10 pb-4">
         <CategoryTabs
           activeCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
@@ -174,12 +170,12 @@ export const PublicLandingPage: React.FC = () => {
       <section className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              {selectedCategory === 'proyectos' ? 'Proyectos y Desarrollos Campestres' :
-               selectedCategory === 'independientes' ? 'Propiedades y Casas Independientes' :
-               'Catálogo Exclusivo Disponible'}
+            <h2 className="font-manrope font-bold text-[22px] sm:text-[26px] md:text-[32px] text-[#202020] dark:text-white tracking-tight leading-[1.15]">
+              {selectedCategory === 'proyectos' ? 'Proyectos & Preventas' :
+               selectedCategory === 'independientes' ? 'Propiedades Independientes' :
+               'Catálogo Disponible'}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-[13px] text-slate-400 mt-0.5">
               {filteredProperties.length} {filteredProperties.length === 1 ? 'inmueble disponible' : 'inmuebles disponibles'} con entrega inmediata
             </p>
           </div>
@@ -192,7 +188,7 @@ export const PublicLandingPage: React.FC = () => {
                 setSelectedFeature('');
                 setSelectedCategory('all');
               }}
-              className="text-xs font-bold text-[#004aad] dark:text-blue-400 hover:underline cursor-pointer"
+              className="text-[13px] font-semibold text-[#1154FF] hover:underline cursor-pointer"
             >
               Restablecer filtros
             </button>
@@ -212,9 +208,9 @@ export const PublicLandingPage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 space-y-3">
-            <Compass className="w-10 h-10 text-slate-400 mx-auto" />
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">No encontramos propiedades con esos filtros</h3>
+          <div className="text-center py-16 bg-[#F7F8FA] dark:bg-[#181818] rounded-2xl border border-[#E5E7EB] dark:border-slate-800 p-8 space-y-3">
+            <Compass className="w-8 h-8 text-slate-400 mx-auto" />
+            <h3 className="font-manrope font-bold text-base text-[#202020] dark:text-white">No encontramos inmuebles con esos filtros</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
               Intenta ampliando el rango de presupuesto o seleccionando otra ubicación.
             </p>
@@ -225,32 +221,30 @@ export const PublicLandingPage: React.FC = () => {
                 setSelectedFeature('');
                 setSelectedCategory('all');
               }}
-              className="px-4 py-2 bg-[#004aad] text-white rounded-xl text-xs font-bold shadow-md cursor-pointer"
+              className="px-4 py-2 bg-[#1154FF] text-white rounded-xl text-xs font-semibold shadow-sm cursor-pointer"
             >
-              Ver Todas las Propiedades
+              Ver Todo el Catálogo
             </button>
           </div>
         )}
       </section>
 
-      {/* 5. Simulador Interactivo de Financiamiento */}
-      <div id="simulador">
-        <FinanceSimulator
-          currency={currency}
-          onSendSimulation={(msg) => handleOpenWhatsApp(undefined, msg)}
-        />
-      </div>
+      {/* 5. Simulador de Financiamiento */}
+      <FinanceSimulator
+        currency={currency}
+        onSendSimulation={(msg) => handleOpenWhatsApp(undefined, msg)}
+      />
 
-      {/* 6. Seguridad Jurídica y SUNARP */}
+      {/* 6. Beneficios y Ubicación */}
       <LegalSecuritySection />
 
-      {/* 7. Módulo Dual de Contacto & Captación */}
+      {/* 7. Módulo de Contacto Dual */}
       <DualContactSection
         currency={currency}
         onSendMessage={(msg) => handleOpenWhatsApp(undefined, msg)}
       />
 
-      {/* 8. Modal de Detalle Inmersivo */}
+      {/* 8. Modal de Detalle */}
       <PropertyDetailModal
         isOpen={Boolean(selectedProperty)}
         onClose={() => setSelectedProperty(null)}
@@ -259,13 +253,13 @@ export const PublicLandingPage: React.FC = () => {
         onWhatsAppClick={(p, msg) => handleOpenWhatsApp(p, msg)}
       />
 
-      {/* 9. Barra Inferior Fija para Celulares (Mobile App Feel) */}
+      {/* 9. Barra Móvil Fija */}
       <MobileBottomNav
         onScrollTo={handleScrollTo}
-        onWhatsAppClick={() => handleOpenWhatsApp()}
+        onWhatsAppClick={() => handleOpenWhatsApp(undefined, '¡Hola! Quiero conocer la disponibilidad de lotes de campo.')}
       />
 
-      {/* 10. Footer Legal */}
+      {/* 10. Footer */}
       <LandingFooter />
     </div>
   );

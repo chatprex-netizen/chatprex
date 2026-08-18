@@ -35,25 +35,25 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
   const closeDropdown = () => setActiveDropdown(null);
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto z-30">
-      {/* Search Pill Container */}
-      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl md:rounded-full border border-slate-200/90 dark:border-slate-700/80 shadow-2xl p-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-1 transition-all hover:shadow-blue-500/10">
+    <div className="relative w-full max-w-4xl mx-auto z-30 font-sans">
+      {/* Contenedor Cápsula Minimalista */}
+      <div className="bg-white dark:bg-[#181818] rounded-2xl md:rounded-full border border-[#E5E7EB] dark:border-slate-800 shadow-sm p-1.5 md:p-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-1 transition-all">
         
-        {/* 1. Ubicación / Zona */}
+        {/* 1. Ubicación */}
         <div className="relative flex-1">
           <button
             type="button"
             onClick={() => toggleDropdown('zone')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-3 ${
-              activeDropdown === 'zone' ? 'bg-slate-100 dark:bg-slate-800' : ''
+            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-[#F7F8FA] dark:hover:bg-slate-800/60 transition-colors flex items-center gap-3 ${
+              activeDropdown === 'zone' ? 'bg-[#F7F8FA] dark:bg-slate-800/60' : ''
             }`}
           >
-            <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-[#004aad] shrink-0">
+            <div className="w-8 h-8 rounded-full bg-[#F1F3F5] dark:bg-slate-800 flex items-center justify-center text-[#1154FF] shrink-0">
               <MapPin className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ubicación</div>
-              <div className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Ubicación</div>
+              <div className="text-[14px] font-manrope font-bold text-[#202020] dark:text-white truncate">
                 {selectedZone || 'Todas las zonas'}
               </div>
             </div>
@@ -62,55 +62,55 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
 
           {/* Dropdown: Zonas */}
           {activeDropdown === 'zone' && (
-            <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-3 space-y-1 animate-fade-in z-50">
-              <div className="text-[11px] font-bold text-slate-400 px-2 py-1">Selecciona una zona</div>
+            <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-[#E5E7EB] dark:border-slate-800 shadow-md p-2.5 space-y-1 animate-fade-in z-50">
+              <div className="text-[11px] font-semibold text-slate-400 px-3 py-1 uppercase tracking-wider">Selecciona una zona</div>
               <button
                 type="button"
                 onClick={() => { onSelectZone(''); closeDropdown(); }}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between ${
-                  !selectedZone ? 'bg-[#004aad] text-white' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold flex items-center justify-between transition-colors ${
+                  !selectedZone ? 'bg-[#1154FF] text-white' : 'text-[#202020] dark:text-slate-200 hover:bg-[#F7F8FA] dark:hover:bg-slate-800'
                 }`}
               >
-                <span>🌍 Todas las ubicaciones</span>
-                {!selectedZone && <span className="text-[10px]">✓</span>}
+                <span>Todas las ubicaciones</span>
+                {!selectedZone && <span className="text-[11px]">✓</span>}
               </button>
               {(availableZones || []).map((z) => (
                 <button
                   key={z}
                   type="button"
                   onClick={() => { onSelectZone(z); closeDropdown(); }}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between ${
-                    selectedZone === z ? 'bg-[#004aad] text-white' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold flex items-center justify-between transition-colors ${
+                    selectedZone === z ? 'bg-[#1154FF] text-white' : 'text-[#202020] dark:text-slate-200 hover:bg-[#F7F8FA] dark:hover:bg-slate-800'
                   }`}
                 >
-                  <span>📍 {z}</span>
-                  {selectedZone === z && <span className="text-[10px]">✓</span>}
+                  <span>{z}</span>
+                  {selectedZone === z && <span className="text-[11px]">✓</span>}
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        <div className="hidden md:block w-px h-8 bg-slate-200 dark:bg-slate-800" />
+        <div className="hidden md:block w-px h-7 bg-[#E5E7EB] dark:bg-slate-800" />
 
         {/* 2. Categoría / Tipo */}
         <div className="relative flex-1">
           <button
             type="button"
             onClick={() => toggleDropdown('type')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-3 ${
-              activeDropdown === 'type' ? 'bg-slate-100 dark:bg-slate-800' : ''
+            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-[#F7F8FA] dark:hover:bg-slate-800/60 transition-colors flex items-center gap-3 ${
+              activeDropdown === 'type' ? 'bg-[#F7F8FA] dark:bg-slate-800/60' : ''
             }`}
           >
-            <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 shrink-0">
+            <div className="w-8 h-8 rounded-full bg-[#F1F3F5] dark:bg-slate-800 flex items-center justify-center text-[#1154FF] shrink-0">
               <Building className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tipo de Inmueble</div>
-              <div className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tipo</div>
+              <div className="text-[14px] font-manrope font-bold text-[#202020] dark:text-white truncate">
                 {selectedCategory === 'all' ? 'Todos los tipos' :
-                 selectedCategory === 'proyectos' ? '🏗️ Proyectos / Preventas' :
-                 '🏡 Propiedades Independientes'}
+                 selectedCategory === 'proyectos' ? 'Proyectos & Preventas' :
+                 'Propiedades Independientes'}
               </div>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -118,56 +118,56 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
 
           {/* Dropdown: Categoría */}
           {activeDropdown === 'type' && (
-            <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-3 space-y-1.5 animate-fade-in z-50">
-              <div className="text-[11px] font-bold text-slate-400 px-2 py-1">Categoría de inmueble</div>
+            <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-[#E5E7EB] dark:border-slate-800 shadow-md p-2.5 space-y-1 animate-fade-in z-50">
+              <div className="text-[11px] font-semibold text-slate-400 px-3 py-1 uppercase tracking-wider">Categoría</div>
               <button
                 type="button"
                 onClick={() => { onSelectCategory('all'); closeDropdown(); }}
-                className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold ${
-                  selectedCategory === 'all' ? 'bg-[#004aad] text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold transition-colors ${
+                  selectedCategory === 'all' ? 'bg-[#1154FF] text-white' : 'hover:bg-[#F7F8FA] dark:hover:bg-slate-800 text-[#202020] dark:text-slate-200'
                 }`}
               >
-                ✨ Ver Todo el Catálogo
+                Ver Todo el Catálogo
               </button>
               <button
                 type="button"
                 onClick={() => { onSelectCategory('proyectos'); closeDropdown(); }}
-                className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold ${
-                  selectedCategory === 'proyectos' ? 'bg-[#004aad] text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold transition-colors ${
+                  selectedCategory === 'proyectos' ? 'bg-[#1154FF] text-white' : 'hover:bg-[#F7F8FA] dark:hover:bg-slate-800 text-[#202020] dark:text-slate-200'
                 }`}
               >
-                🏗️ Proyectos & Preventas (Lotes / Casas campo)
+                Proyectos & Preventas (Lotes / Casas)
               </button>
               <button
                 type="button"
                 onClick={() => { onSelectCategory('independientes'); closeDropdown(); }}
-                className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold ${
-                  selectedCategory === 'independientes' ? 'bg-[#004aad] text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold transition-colors ${
+                  selectedCategory === 'independientes' ? 'bg-[#1154FF] text-white' : 'hover:bg-[#F7F8FA] dark:hover:bg-slate-800 text-[#202020] dark:text-slate-200'
                 }`}
               >
-                🏡 Propiedades Independientes (Casas, Dptos)
+                Propiedades Independientes
               </button>
             </div>
           )}
         </div>
 
-        <div className="hidden md:block w-px h-8 bg-slate-200 dark:bg-slate-800" />
+        <div className="hidden md:block w-px h-7 bg-[#E5E7EB] dark:bg-slate-800" />
 
-        {/* 3. Presupuesto & Moneda */}
+        {/* 3. Presupuesto */}
         <div className="relative flex-1">
           <button
             type="button"
             onClick={() => toggleDropdown('price')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-3 ${
-              activeDropdown === 'price' ? 'bg-slate-100 dark:bg-slate-800' : ''
+            className={`w-full text-left px-4 py-2.5 rounded-xl md:rounded-full hover:bg-[#F7F8FA] dark:hover:bg-slate-800/60 transition-colors flex items-center gap-3 ${
+              activeDropdown === 'price' ? 'bg-[#F7F8FA] dark:bg-slate-800/60' : ''
             }`}
           >
-            <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 shrink-0">
+            <div className="w-8 h-8 rounded-full bg-[#F1F3F5] dark:bg-slate-800 flex items-center justify-center text-[#1154FF] shrink-0">
               <DollarSign className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Presupuesto Máximo</div>
-              <div className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Presupuesto</div>
+              <div className="text-[14px] font-manrope font-bold text-[#202020] dark:text-white truncate">
                 {maxBudget > 0 ? `Hasta ${selectedCurrency} ${maxBudget.toLocaleString('en-US')}` : 'Cualquier precio'}
               </div>
             </div>
@@ -176,25 +176,25 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
 
           {/* Dropdown: Presupuesto */}
           {activeDropdown === 'price' && (
-            <div className="absolute top-full left-0 md:right-0 mt-2 w-80 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 space-y-4 animate-fade-in z-50">
+            <div className="absolute top-full left-0 md:right-0 mt-2 w-80 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-[#E5E7EB] dark:border-slate-800 shadow-md p-4 space-y-4 animate-fade-in z-50">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 dark:text-white">Filtro de Presupuesto</span>
+                <span className="text-[13px] font-manrope font-bold text-[#202020] dark:text-white">Rango de Inversión</span>
                 <button
                   type="button"
                   onClick={onToggleCurrency}
-                  className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950 text-[#004aad] dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                  className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#F1F3F5] dark:bg-slate-800 text-[#1154FF]"
                 >
-                  Moneda: {selectedCurrency}
+                  {selectedCurrency}
                 </button>
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
+                <div className="flex justify-between text-xs font-manrope font-semibold text-slate-500 dark:text-slate-400">
                   <span>{selectedCurrency} 50,000</span>
-                  <span className="text-[#004aad] font-extrabold">
+                  <span className="text-[#1154FF] font-bold">
                     {maxBudget > 0 ? `${selectedCurrency} ${maxBudget.toLocaleString('en-US')}` : 'Sin límite'}
                   </span>
-                  <span>{selectedCurrency} 1,000,000+</span>
+                  <span>{selectedCurrency} 1M+</span>
                 </div>
                 <input
                   type="range"
@@ -203,7 +203,7 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
                   step="25000"
                   value={maxBudget || 1000000}
                   onChange={(e) => onChangeMaxBudget(Number(e.target.value))}
-                  className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#004aad]"
+                  className="w-full h-1.5 bg-[#F1F3F5] dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#1154FF]"
                 />
               </div>
 
@@ -211,14 +211,14 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
                 <button
                   type="button"
                   onClick={() => { onChangeMaxBudget(0); closeDropdown(); }}
-                  className="flex-1 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+                  className="flex-1 py-2 text-xs font-semibold text-slate-500 hover:bg-[#F7F8FA] dark:hover:bg-slate-800 rounded-xl"
                 >
                   Limpiar
                 </button>
                 <button
                   type="button"
                   onClick={closeDropdown}
-                  className="flex-1 py-2 text-xs font-bold bg-[#004aad] text-white rounded-xl shadow-md"
+                  className="flex-1 py-2 text-xs font-semibold bg-[#1154FF] hover:bg-[#0c43cc] text-white rounded-xl shadow-sm"
                 >
                   Aplicar
                 </button>
@@ -232,15 +232,14 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
           <button
             type="button"
             onClick={() => { closeDropdown(); onSearch(); }}
-            className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-[#004aad] to-[#2563eb] hover:from-[#003b8a] hover:to-[#1d4ed8] text-white rounded-xl md:rounded-full font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all transform active:scale-95"
+            className="w-full md:w-auto px-6 py-2.5 bg-[#1154FF] hover:bg-[#0c43cc] text-white rounded-xl md:rounded-full font-sans font-semibold text-[14px] flex items-center justify-center gap-2 shadow-sm transition-all transform active:scale-98 cursor-pointer"
           >
             <Search className="w-4 h-4" />
-            <span>Buscar Inmuebles</span>
+            <span>Buscar</span>
           </button>
         </div>
       </div>
 
-      {/* Backdrop for closing dropdowns */}
       {activeDropdown && (
         <div className="fixed inset-0 z-40" onClick={closeDropdown} />
       )}

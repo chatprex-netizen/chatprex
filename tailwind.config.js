@@ -66,10 +66,16 @@ export default {
           active: '#a060ff',
           text: '#9ca3af',
           textActive: '#ffffff',
-        }
+        landing: {
+          blue: '#1154FF',
+          dark: '#202020',
+          bgLight: '#F7F8FA',
+          bgSecondary: '#F1F3F5',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        manrope: ['Manrope', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         'subtle': 'none',

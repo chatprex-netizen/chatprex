@@ -1,69 +1,104 @@
 import React from 'react';
-import { ShieldCheck, Sun, TrendingUp, Key, Zap, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Zap, Key, TrendingUp, Sun, MapPin } from 'lucide-react';
 
 export const LegalSecuritySection: React.FC = () => {
   const pillars = [
     {
       icon: ShieldCheck,
-      color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800',
       title: 'Títulos Independizados en SUNARP',
-      description: 'Cada lote y propiedad cuenta con partida registral independiente en Registros Públicos. Seguridad jurídica total en tu compraventa.',
+      description: 'Partida registral independiente en Registros Públicos. Seguridad jurídica total en tu compra.',
     },
     {
       icon: Zap,
-      color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800',
-      title: 'Servicios de Luz y Agua Garantizados',
-      description: 'Instalaciones completas de redes de agua potable, energía eléctrica subterránea, alumbrado público y pórtico de acceso 24/7.',
+      title: 'Servicios de Luz y Agua',
+      description: 'Redes completas de agua potable, electricidad, alumbrado y pórtico de seguridad.',
     },
     {
       icon: Key,
-      color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800',
       title: 'Entrega Inmediata y Posesión',
-      description: 'Construye tu casa de campo de inmediato o capitaliza tu inversión desde el primer día con delimitación topográfica certificada.',
+      description: 'Construye tu casa de campo o capitaliza tu inversión desde el primer día.',
     },
     {
       icon: TrendingUp,
-      color: 'text-purple-500 bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-800',
-      title: 'Plusvalía Anual Garantizada (+18%)',
-      description: 'Ubicados en los polos de mayor desarrollo y expansión campestre de Arequipa, garantizando la valorización constante de tu patrimonio.',
+      title: 'Plusvalía Garantizada (+18%)',
+      description: 'Ubicados en los polos de mayor desarrollo y expansión campestre de Arequipa.',
     },
   ];
 
   return (
-    <section className="w-full max-w-6xl mx-auto px-4 py-12">
-      <div className="text-center max-w-2xl mx-auto space-y-2 mb-10">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+    <section id="beneficios" className="w-full max-w-6xl mx-auto px-4 py-16 font-sans">
+      
+      {/* Encabezado */}
+      <div className="text-center max-w-2xl mx-auto space-y-2 mb-12">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-[#F7F8FA] dark:bg-slate-800 text-[#1154FF] border border-[#E5E7EB] dark:border-slate-700">
           <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Garantía & Respaldo Inmobiliario</span>
+          <span>Garantía & Seguridad</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+        <h2 className="font-manrope font-bold text-2xl sm:text-3xl md:text-4xl tracking-tight text-[#202020] dark:text-white">
           Tu Inversión 100% Segura y Certificada
         </h2>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          Respaldamos cada metro cuadrado con documentación legal transparente y obras de habilitación de primer nivel.
+        <p className="text-[15px] text-slate-500 dark:text-slate-400">
+          Documentación legal transparente y obras de habilitación de primer nivel.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Grid de 4 Pilares */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {pillars.map((p, idx) => {
           const Icon = p.icon;
           return (
             <div
               key={idx}
-              className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 space-y-3"
+              className="p-6 rounded-2xl bg-white dark:bg-[#181818] border border-[#E5E7EB] dark:border-slate-800 shadow-sm hover:border-[#1154FF]/40 transition-colors space-y-3"
             >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${p.color}`}>
-                <Icon className="w-6 h-6" />
+              <div className="w-10 h-10 rounded-xl bg-[#F7F8FA] dark:bg-slate-800 flex items-center justify-center text-[#1154FF]">
+                <Icon className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+              <h3 className="font-manrope font-bold text-[16px] text-[#202020] dark:text-white leading-snug">
                 {p.title}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              <p className="text-[14px] text-slate-500 dark:text-slate-400 leading-relaxed font-normal">
                 {p.description}
               </p>
             </div>
           );
         })}
+      </div>
+
+      {/* Sección Ubicación Estratégica (id="ubicacion") */}
+      <div id="ubicacion" className="mt-16 p-6 sm:p-10 rounded-3xl bg-[#F7F8FA] dark:bg-[#181818] border border-[#E5E7EB] dark:border-slate-800">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-white dark:bg-slate-800 text-[#1154FF] border border-[#E5E7EB] dark:border-slate-700">
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Ubicación Privilegiada</span>
+            </div>
+            <h3 className="font-manrope font-bold text-2xl sm:text-3xl text-[#202020] dark:text-white leading-tight">
+              A solo 25 minutos del centro de Arequipa
+            </h3>
+            <p className="text-[15px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              Disfruta del mejor clima de la región, aire puro y vistas despejadas a la campiña. Acceso directo por vías asfaltadas y cercanía a centros comerciales y colegios.
+            </p>
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-[#E5E7EB] dark:border-slate-800">
+                <span className="font-manrope font-extrabold text-lg text-[#1154FF] block">365 días</span>
+                <span className="text-xs text-slate-500 font-medium">Sol garantizado</span>
+              </div>
+              <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-[#E5E7EB] dark:border-slate-800">
+                <span className="font-manrope font-extrabold text-lg text-[#1154FF] block">25 min</span>
+                <span className="text-xs text-slate-500 font-medium">De la Plaza de Armas</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-sm border border-[#E5E7EB] dark:border-slate-800">
+            <img
+              src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1000&auto=format&fit=crop&q=80"
+              alt="Campiña Arequipa"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
       </div>
     </section>
   );

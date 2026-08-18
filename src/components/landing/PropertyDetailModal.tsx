@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Property } from '../../types';
 import { 
   X, MapPin, Maximize2, ShieldCheck, CheckCircle2, 
-  MessageCircle, Calendar, Phone, Share2, Sparkles, Building, Trees, ArrowRight, UserCheck
+  MessageCircle, Calendar, Phone, Share2, Sparkles, Building, Trees, ArrowRight
 } from 'lucide-react';
 
 interface PropertyDetailModalProps {
@@ -60,32 +60,32 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto font-sans">
+      <div className="relative w-full max-w-3xl bg-white dark:bg-[#181818] rounded-3xl border border-[#E5E7EB] dark:border-slate-800 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
         
-        {/* Header con botón de cierre */}
-        <div className="sticky top-0 z-20 flex items-center justify-between px-5 py-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800">
+        {/* Header */}
+        <div className="sticky top-0 z-20 flex items-center justify-between px-5 py-3.5 bg-white/95 dark:bg-[#181818]/95 backdrop-blur-md border-b border-[#F1F3F5] dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950 text-[#004aad] dark:text-blue-300">
-              {isProject ? '🏗️ Proyecto en Preventa' : '🏡 Propiedad Independiente'}
+            <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-[#F1F3F5] dark:bg-slate-800 text-[#1154FF]">
+              {isProject ? 'Proyecto en Preventa' : 'Propiedad'}
             </span>
-            <span className="text-xs font-bold text-slate-500 font-mono">
-              Cód: {property.code || 'INM-001'}
+            <span className="text-xs font-medium text-slate-400 font-mono">
+              {property.code || 'INM-001'}
             </span>
           </div>
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-[#F7F8FA] dark:bg-slate-800 hover:bg-[#F1F3F5] dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Contenido Deslizable */}
+        {/* Contenido */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           
-          {/* Galería de Fotos */}
+          {/* Galería */}
           <div className="space-y-2">
             <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-950">
               <img
@@ -93,7 +93,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 alt={property.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-bold">
+              <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-md bg-black/60 text-white text-[11px] font-medium">
                 {activeImageIdx + 1} / {images.length}
               </div>
             </div>
@@ -106,7 +106,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                     key={idx}
                     onClick={() => setActiveImageIdx(idx)}
                     className={`relative w-20 h-14 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                      activeImageIdx === idx ? 'border-[#004aad] scale-95' : 'border-transparent opacity-60 hover:opacity-100'
+                      activeImageIdx === idx ? 'border-[#1154FF]' : 'border-transparent opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={img} alt="thumb" className="w-full h-full object-cover" />
@@ -116,89 +116,73 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             )}
           </div>
 
-          {/* Datos Principales y Precio */}
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+          {/* Datos y Precio */}
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-[#F1F3F5] dark:border-slate-800 pb-5">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
+              <h2 className="font-manrope font-bold text-xl sm:text-2xl text-[#202020] dark:text-white leading-tight">
                 {property.projectName ? `${property.projectName} - ${property.title}` : property.title}
               </h2>
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1.5">
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-medium">
                 <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
                 <span>{property.address || 'Ubicación exclusiva'} • {property.zone ? `${property.zone}, ${property.city}` : property.city}</span>
               </div>
             </div>
 
-            <div className="sm:text-right shrink-0 bg-blue-50/50 dark:bg-blue-950/30 p-3.5 rounded-2xl border border-blue-100 dark:border-blue-900/40">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Inversión Total</span>
-              <span className="text-2xl font-black text-[#004aad] dark:text-blue-300 block">
+            <div className="sm:text-right shrink-0 bg-[#F7F8FA] dark:bg-slate-800 p-3.5 rounded-2xl border border-[#E5E7EB] dark:border-slate-700">
+              <span className="text-[11px] text-slate-400 uppercase font-semibold tracking-wider block">Inversión Total</span>
+              <span className="font-manrope font-extrabold text-2xl text-[#1154FF] block">
                 {displayPrice}
               </span>
-              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
                 Financiamiento directo sin intereses
               </span>
             </div>
           </div>
 
-          {/* Especificaciones Rápidas */}
+          {/* Especificaciones */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {property.areaTotal > 0 && (
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700">
-                <span className="text-[10px] text-slate-400 font-bold block">Área Total</span>
-                <span className="text-sm font-extrabold text-slate-900 dark:text-white">{property.areaTotal} m²</span>
+              <div className="p-3 bg-[#F7F8FA] dark:bg-slate-800 rounded-xl border border-[#E5E7EB] dark:border-slate-700">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase block">Área</span>
+                <span className="font-manrope font-bold text-sm text-[#202020] dark:text-white">{property.areaTotal} m²</span>
               </div>
             )}
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700">
-              <span className="text-[10px] text-slate-400 font-bold block">Situación Legal</span>
-              <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">Título SUNARP</span>
+            <div className="p-3 bg-[#F7F8FA] dark:bg-slate-800 rounded-xl border border-[#E5E7EB] dark:border-slate-700">
+              <span className="text-[10px] text-slate-400 font-semibold uppercase block">Legal</span>
+              <span className="font-manrope font-bold text-sm text-emerald-600 dark:text-emerald-400">Título SUNARP</span>
             </div>
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700">
-              <span className="text-[10px] text-slate-400 font-bold block">Servicios</span>
-              <span className="text-sm font-extrabold text-slate-900 dark:text-white">Luz y Agua</span>
+            <div className="p-3 bg-[#F7F8FA] dark:bg-slate-800 rounded-xl border border-[#E5E7EB] dark:border-slate-700">
+              <span className="text-[10px] text-slate-400 font-semibold uppercase block">Servicios</span>
+              <span className="font-manrope font-bold text-sm text-[#202020] dark:text-white">Luz y Agua</span>
             </div>
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700">
-              <span className="text-[10px] text-slate-400 font-bold block">Entrega</span>
-              <span className="text-sm font-extrabold text-slate-900 dark:text-white">Inmediata</span>
+            <div className="p-3 bg-[#F7F8FA] dark:bg-slate-800 rounded-xl border border-[#E5E7EB] dark:border-slate-700">
+              <span className="text-[10px] text-slate-400 font-semibold uppercase block">Entrega</span>
+              <span className="font-manrope font-bold text-sm text-[#202020] dark:text-white">Inmediata</span>
             </div>
           </div>
 
           {/* Descripción */}
           <div className="space-y-2">
-            <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">Descripción del Inmueble</h4>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              {property.description || 'Lote campestre de alta plusvalía ubicado en zona privilegiada con sol todo el año, seguridad y comodidades de primer nivel.'}
+            <h4 className="font-manrope font-bold text-xs uppercase tracking-wider text-slate-400">Descripción</h4>
+            <p className="text-[14px] text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+              {property.description || 'Lote campestre de alta plusvalía ubicado en zona privilegiada con sol todo el año y seguridad permanente.'}
             </p>
           </div>
 
-          {/* Características y Amenidades */}
-          {property.features && property.features.length > 0 && (
-            <div className="space-y-2.5">
-              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">Amenidades y Beneficios</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {property.features.map((feat, idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>{feat}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Asesor Asignado y Formulario de Visita */}
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-850 border border-blue-100 dark:border-slate-700 space-y-4">
+          {/* Formulario de Visita */}
+          <div className="p-5 rounded-2xl bg-[#F7F8FA] dark:bg-slate-800 border border-[#E5E7EB] dark:border-slate-700 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#004aad] text-white flex items-center justify-center font-bold text-sm">
+                <div className="w-9 h-9 rounded-xl bg-[#1154FF] text-white flex items-center justify-center font-manrope font-bold text-xs">
                   EM
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-900 dark:text-white">Elvis Meza</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400">Asesor Senior de Proyectos Campestres</div>
+                  <div className="font-manrope font-bold text-xs text-[#202020] dark:text-white">Elvis Meza</div>
+                  <div className="text-[11px] text-slate-400">Asesor Comercial</div>
                 </div>
               </div>
 
-              <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded-full">
                 En línea
               </span>
             </div>
@@ -210,25 +194,23 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   value={visitorName}
                   onChange={(e) => setVisitorName(e.target.value)}
                   placeholder="Tu Nombre completo..."
-                  className="px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-[#004aad]"
+                  className="px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF]"
                 />
                 <input
                   type="date"
                   value={preferredDate}
                   onChange={(e) => setPreferredDate(e.target.value)}
-                  className="px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-[#004aad]"
+                  className="px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-[#E5E7EB] dark:border-slate-700 outline-none focus:border-[#1154FF]"
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2">
-                <button
-                  type="submit"
-                  className="flex-1 py-3 px-4 bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all cursor-pointer"
-                >
-                  <MessageCircle className="w-4 h-4 fill-white text-[#25D366]" />
-                  <span>Agendar Visita con Movilidad por WhatsApp</span>
-                </button>
-              </div>
+              <button
+                type="submit"
+                className="w-full py-3 px-4 bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4 fill-white text-[#1154FF]" />
+                <span>Agendar Visita Guiada por WhatsApp</span>
+              </button>
             </form>
           </div>
         </div>
