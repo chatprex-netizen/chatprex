@@ -115,11 +115,23 @@ const VALID_PAGES: Page[] = [
   'landing',
 ];
 
+// Detección automática para dominios independientes (Landing vs CRM)
+const isCRMDomain = (): boolean => {
+  const hostname = (window.location.hostname || '').toLowerCase();
+  return (
+    hostname.startsWith('crm.') ||
+    hostname.startsWith('app.') ||
+    hostname.startsWith('admin.') ||
+    hostname.startsWith('panel.') ||
+    hostname.includes('crm-')
+  );
+};
+
 const readPageFromLocation = (): Page => {
   const hash = (window.location.hash || '').toLowerCase();
   const path = (window.location.pathname || '').toLowerCase();
 
-  // Detección directa y prioritaria para páginas públicas
+  // 1. Detección directa de páginas públicas
   if (
     hash.includes('landing') ||
     hash.includes('portal') ||
@@ -144,7 +156,7 @@ const readPageFromLocation = (): Page => {
     return 'data-deletion';
   }
 
-  // 1. Revisar hash normal
+  // 2. Revisar hash explícito del CRM (#/dashboard, #/pipeline, #/properties, etc.)
   const hashRaw = hash.replace(/^#\/?/, '').split('/')[0]?.split('?')[0];
   if (hashRaw) {
     const normalizedHash = PAGE_ALIASES[hashRaw] ?? hashRaw;
@@ -153,7 +165,7 @@ const readPageFromLocation = (): Page => {
     }
   }
 
-  // 2. Revisar pathname normal
+  // 3. Revisar pathname normal
   const pathRaw = path.replace(/^\//, '').split('/')[0]?.split('?')[0];
   if (pathRaw) {
     const normalizedPath = PAGE_ALIASES[pathRaw] ?? pathRaw;
@@ -162,8 +174,10 @@ const readPageFromLocation = (): Page => {
     }
   }
 
-  // Página principal por defecto para visitantes y público en general
-  return 'portal';
+  // 4. Enrutamiento por Dominio Independiente:
+  // - Si es dominio CRM (app.dominio.com / crm.dominio.com) -> Dashboard
+  // - Si es dominio Web/Público (www.dominio.com / dominio.com) -> Landing Page
+  return isCRMDomain() ? 'dashboard' : 'portal';
 };
 
 export const App: React.FC = () => {
