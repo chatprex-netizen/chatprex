@@ -1,12 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { Palette, Image as ImageIcon, UploadCloud, X, Check, Globe } from 'lucide-react';
+import { Palette, Image as ImageIcon, UploadCloud, X, Check, Globe, Building2, Phone, Mail, DollarSign, Moon, Sun, RotateCcw } from 'lucide-react';
 import { useCRM } from '../../context/CRMContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export const AdminBranding: React.FC = () => {
-  const { appBranding, updateBranding } = useCRM();
+  const { appBranding, updateBranding, resetToDemoData } = useCRM();
+  const { theme, toggleTheme } = useTheme();
   
-  const [appName, setAppName] = useState(appBranding.appName);
-  const [appDescription, setAppDescription] = useState(appBranding.appDescription);
+  const [appName, setAppName] = useState(appBranding.appName || 'Inmobiliaria CRM');
+  const [appDescription, setAppDescription] = useState(appBranding.appDescription || 'Gestión inteligente de proyectos y propiedades');
+  const [agencyPhone, setAgencyPhone] = useState('+51 957 100 984');
+  const [agencyEmail, setAgencyEmail] = useState('contacto@inmobiliaria.com');
+  const [currency, setCurrency] = useState('PEN');
   const [logoPreview, setLogoPreview] = useState<string | null>(appBranding.logoUrl);
   const [faviconPreview, setFaviconPreview] = useState<string | null>(appBranding.faviconUrl);
   
@@ -20,7 +25,6 @@ export const AdminBranding: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Solo para pruebas locales, convertimos a base64
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = event.target?.result as string;
@@ -51,68 +55,114 @@ export const AdminBranding: React.FC = () => {
       <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-            <Palette className="w-4 h-4 text-[#004aad]" />
-            Personalización de Marca
+            <Building2 className="w-4 h-4 text-[#004aad]" />
+            Empresa y Marca
           </h2>
           <p className="text-[11px] text-slate-400 font-normal">
-            Modifica el nombre de la plataforma, logo y favicon para personalizar la experiencia.
+            Personaliza los datos comerciales de tu inmobiliaria, moneda, logotipos y apariencia general.
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Identidad de Marca */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-card p-6 space-y-5">
+        {/* Identidad de la Empresa y Contacto */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-card p-5 space-y-4">
           <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
             <h3 className="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
-              <Globe className="w-4 h-4 text-slate-500" />
-              Identidad de la Aplicación
+              <Globe className="w-4 h-4 text-[#004aad]" />
+              Identidad de la Empresa y Moneda
             </h3>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Nombre de la Plataforma
+                Nombre Comercial / Marca
               </label>
               <input
                 type="text"
                 value={appName}
                 onChange={(e) => setAppName(e.target.value)}
-                placeholder="Ej. ChatPrex"
+                placeholder="Ej. Inmobiliaria Costa Azul"
                 className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-[#004aad] text-slate-900 dark:text-slate-100"
               />
             </div>
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Descripción (Slogan o meta tags)
+                Slogan / Descripción de la Empresa
               </label>
               <input
                 type="text"
                 value={appDescription}
                 onChange={(e) => setAppDescription(e.target.value)}
-                placeholder="Gestión inteligente..."
+                placeholder="Desarrollo de proyectos campestres y urbanos de alta plusvalía"
                 className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-[#004aad] text-slate-900 dark:text-slate-100"
               />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                  <Phone className="w-3 h-3 text-slate-400" />
+                  Teléfono de Atención
+                </label>
+                <input
+                  type="text"
+                  value={agencyPhone}
+                  onChange={(e) => setAgencyPhone(e.target.value)}
+                  placeholder="+51 957 100 984"
+                  className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-[#004aad] text-slate-900 dark:text-slate-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                  <Mail className="w-3 h-3 text-slate-400" />
+                  Correo Electrónico
+                </label>
+                <input
+                  type="email"
+                  value={agencyEmail}
+                  onChange={(e) => setAgencyEmail(e.target.value)}
+                  placeholder="contacto@inmobiliaria.com"
+                  className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-[#004aad] text-slate-900 dark:text-slate-100"
+                />
+              </div>
+            </div>
+
+            <div className="pt-1">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                <DollarSign className="w-3 h-3 text-emerald-500" />
+                Moneda Principal de la Plataforma
+              </label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-[#004aad] text-slate-900 dark:text-slate-100"
+              >
+                <option value="PEN">S/ (Soles peruanos)</option>
+                <option value="USD">USD (Dólares americanos)</option>
+                <option value="EUR">EUR (Euros)</option>
+              </select>
             </div>
           </div>
         </div>
 
-        {/* Imágenes (Logo y Favicon) */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-card p-6 space-y-5">
+        {/* Logotipo e Imágenes */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-card p-5 space-y-4">
           <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
             <h3 className="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
-              <ImageIcon className="w-4 h-4 text-slate-500" />
-              Imágenes de la Plataforma
+              <ImageIcon className="w-4 h-4 text-[#004aad]" />
+              Logotipos e Imagen Corporativa
             </h3>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Logo */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                Logo Principal (Barra lateral)
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Logo Principal (Barra lateral y encabezados)
               </label>
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center bg-slate-50 dark:bg-slate-800 overflow-hidden">
@@ -122,7 +172,7 @@ export const AdminBranding: React.FC = () => {
                     <ImageIcon className="w-6 h-6 text-slate-300" />
                   )}
                 </div>
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-1.5">
                   <input
                     type="file"
                     ref={logoInputRef}
@@ -153,7 +203,7 @@ export const AdminBranding: React.FC = () => {
 
             {/* Favicon */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Favicon (Ícono de pestaña del navegador)
               </label>
               <div className="flex items-center gap-4">
@@ -164,7 +214,7 @@ export const AdminBranding: React.FC = () => {
                     <Globe className="w-5 h-5 text-slate-300" />
                   )}
                 </div>
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-1.5">
                   <input
                     type="file"
                     ref={faviconInputRef}
@@ -196,18 +246,70 @@ export const AdminBranding: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 mt-4">
+      {/* Preferencias del Sistema y Restablecimiento */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Modo Oscuro */}
+        <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-amber-100 text-amber-600'}`}>
+              {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            </div>
+            <div>
+              <div className="font-semibold text-xs text-slate-900 dark:text-white">
+                Tema de la Plataforma (Modo {theme === 'dark' ? 'Oscuro' : 'Claro'})
+              </div>
+              <div className="text-[10px] text-slate-400">Ajusta la apariencia visual de la interfaz</div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+          >
+            Alternar Modo
+          </button>
+        </div>
+
+        {/* Restablecer Datos */}
+        <div className="p-4 bg-rose-50/50 dark:bg-rose-950/20 rounded-xl border border-rose-200/80 dark:border-rose-900/30 flex items-center justify-between">
+          <div>
+            <h4 className="font-semibold text-xs text-rose-900 dark:text-rose-400">
+              Restablecer Datos Iniciales
+            </h4>
+            <p className="text-[10px] text-rose-700/80 dark:text-rose-300/70 mt-0.5">
+              Vuelve a cargar los datos iniciales de prueba (irrevocable).
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('¿Seguro que deseas restablecer todos los datos iniciales? Esta acción no se puede deshacer.')) {
+                resetToDemoData();
+                alert('Datos restablecidos exitosamente.');
+                window.location.reload();
+              }
+            }}
+            className="px-3 py-1.5 text-xs font-bold rounded-lg bg-rose-100 hover:bg-rose-200 dark:bg-rose-900/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 transition-colors flex items-center gap-1.5"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Restablecer
+          </button>
+        </div>
+      </div>
+
+      <div className="flex justify-end items-center gap-3 pt-2">
         {saveSuccess && (
-          <span className="flex items-center gap-1 text-emerald-500 text-[11px] font-semibold animate-fade-in">
-            <Check className="w-4 h-4" /> Guardado exitosamente
+          <span className="flex items-center gap-1 text-emerald-500 text-xs font-semibold animate-fade-in">
+            <Check className="w-4 h-4" /> Configuración guardada exitosamente
           </span>
         )}
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="px-5 py-2 bg-[#004aad] hover:bg-[#003c8b] text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
+          className="px-6 py-2.5 bg-[#004aad] hover:bg-[#003c8b] text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 active:scale-95"
         >
-          {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+          {isSaving ? 'Guardando...' : 'Guardar Configuración'}
         </button>
       </div>
     </div>

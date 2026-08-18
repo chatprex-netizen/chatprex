@@ -17,11 +17,11 @@ import { AdminLeadChannels } from '../components/admin/AdminLeadChannels';
 import { useCRM } from '../context/CRMContext';
 import { AdminBranding } from '../components/admin/AdminBranding';
 
-type AdminTab = 'central' | 'users' | 'projects' | 'pipeline' | 'channels' | 'ai-models' | 'web' | 'branding';
+type AdminTab = 'branding' | 'users' | 'projects' | 'pipeline' | 'channels' | 'ai-models' | 'web';
 
 export const AdministrationPage: React.FC = () => {
   const { aiConfig, updateAIConfig, addNotification } = useCRM();
-  const [activeTab, setActiveTab] = useState<AdminTab>('central');
+  const [activeTab, setActiveTab] = useState<AdminTab>('branding');
 
   return (
     <div className="h-full flex flex-col md:flex-row gap-3 md:gap-4 animate-fade-in">
@@ -40,31 +40,19 @@ export const AdministrationPage: React.FC = () => {
             onClick={() => setActiveTab('branding')}
             className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors shrink-0 ${
               activeTab === 'branding'
-                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/20'
+                ? 'bg-[#004aad] text-white shadow-md shadow-blue-500/20'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
             <Building2 className="w-3.5 h-3.5" />
-            Marca
-          </button>
-
-          <button
-            onClick={() => setActiveTab('central')}
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors shrink-0 ${
-              activeTab === 'central'
-                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Settings className="w-3.5 h-3.5" />
-            Configuración General
+            Empresa y Marca
           </button>
 
           <button
             onClick={() => setActiveTab('users')}
             className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors shrink-0 ${
               activeTab === 'users'
-                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/20'
+                ? 'bg-[#004aad] text-white shadow-md shadow-blue-500/20'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -76,7 +64,7 @@ export const AdministrationPage: React.FC = () => {
             onClick={() => setActiveTab('projects')}
             className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors shrink-0 ${
               activeTab === 'projects'
-                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/20'
+                ? 'bg-[#004aad] text-white shadow-md shadow-blue-500/20'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -88,7 +76,7 @@ export const AdministrationPage: React.FC = () => {
             onClick={() => setActiveTab('pipeline')}
             className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors shrink-0 ${
               activeTab === 'pipeline'
-                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/20'
+                ? 'bg-[#004aad] text-white shadow-md shadow-blue-500/20'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -100,7 +88,7 @@ export const AdministrationPage: React.FC = () => {
             onClick={() => setActiveTab('channels')}
             className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors shrink-0 ${
               activeTab === 'channels'
-                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/20'
+                ? 'bg-[#004aad] text-white shadow-md shadow-blue-500/20'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -124,7 +112,7 @@ export const AdministrationPage: React.FC = () => {
             onClick={() => setActiveTab('web')}
             className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors shrink-0 ${
               activeTab === 'web'
-                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/20'
+                ? 'bg-[#004aad] text-white shadow-md shadow-blue-500/20'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -137,7 +125,6 @@ export const AdministrationPage: React.FC = () => {
       {/* Contenido Principal */}
       <div className="flex-1 min-h-[500px] md:min-h-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5 overflow-y-auto">
         {activeTab === 'branding' && <AdminBranding />}
-        {activeTab === 'central' && <AdminCompanySettings />}
         {activeTab === 'users' && <AdminUsers />}
         {activeTab === 'projects' && <AdminProjects />}
         {activeTab === 'pipeline' && <AdminPipelineStages />}
