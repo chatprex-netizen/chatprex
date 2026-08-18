@@ -190,7 +190,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             </nav>
 
             {/* Sección de Ingreso a la App CasaYa (CRM) con Icono de Candado */}
-            <div className="pt-2 border-t border-[#F1F3F5] dark:border-white/[0.08] space-y-2.5">
+            <div className="pt-2 border-t border-[#F1F3F5] dark:border-white/[0.08]">
               <a
                 href="#/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
@@ -204,19 +204,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                 </div>
                 <span className="text-[#1154FF] dark:text-[#38BDF8] text-xs font-semibold">Acceder →</span>
               </a>
-
-              {/* Botón WhatsApp */}
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onWhatsAppClick('¡Hola! Quiero conocer la disponibilidad de proyectos y propiedades.');
-                }}
-                className="w-full py-3 px-4 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-              >
-                <MessageCircle className="w-4 h-4 fill-white text-[#1154FF]" />
-                <span>Quiero conocer disponibilidad</span>
-              </button>
             </div>
           </div>
         </>
