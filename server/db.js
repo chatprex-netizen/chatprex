@@ -440,14 +440,14 @@ export async function initDb() {
         },
       ]);
       const defaultSocialLinks = JSON.stringify({
-        whatsapp: 'https://wa.me/51957100984?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20proyectos%20y%20propiedades%20en%20CasaYa',
+        whatsapp: 'https://wa.me/51958716850?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20proyectos%20y%20propiedades%20en%20CasaYa',
         facebook: 'https://facebook.com',
         instagram: 'https://instagram.com',
         tiktok: 'https://tiktok.com',
         youtube: 'https://youtube.com',
       });
       const defaultContactInfo = JSON.stringify({
-        phone: '+51 957 100 984',
+        phone: '+51 958 716 850',
         email: 'ventas@casaya.pe',
         city: 'Arequipa, Perú',
       });
@@ -557,6 +557,21 @@ export async function initDb() {
     for (const col of agentMigrationCols) {
       try {
         await client.query(`ALTER TABLE agents ADD COLUMN IF NOT EXISTS ${col.name} ${col.type};`);
+      } catch (err) {
+        // Column may already exist
+      }
+    }
+
+    // Migración: Añadir columnas de proyectos y ventas a properties
+    const propertyMigrationCols = [
+      { name: 'price_max', type: 'NUMERIC(14,2)' },
+      { name: 'area_max', type: 'NUMERIC(10,2)' },
+      { name: 'sold_percentage', type: 'NUMERIC(5,2)' },
+      { name: 'is_project', type: 'BOOLEAN DEFAULT FALSE' },
+    ];
+    for (const col of propertyMigrationCols) {
+      try {
+        await client.query(`ALTER TABLE properties ADD COLUMN IF NOT EXISTS ${col.name} ${col.type};`);
       } catch (err) {
         // Column may already exist
       }

@@ -459,9 +459,9 @@ router.get('/api/crm/properties/:id', async (req, res) => {
 
 router.post('/api/crm/properties', validateData(propertySchema), async (req, res) => {
   try {
-    const { id: reqId, code, title, description, type, operation, price, currency, areaTotal, areaBuilt,
+    const { id: reqId, code, title, description, type, operation, price, priceMax, currency, areaTotal, areaMax, areaBuilt,
       bedrooms, bathrooms, parkingSpots, address, zone, city, features, status, images,
-      agentId, commissionPct, featured, projectName, developer } = req.body;
+      agentId, commissionPct, featured, projectName, developer, soldPercentage, isProject } = req.body;
 
     const id = reqId || `prop-${Date.now()}`;
     const propCode = code && code.trim() ? code.trim() : `PRP-${Date.now().toString().slice(-4)}`;
@@ -470,19 +470,24 @@ router.post('/api/crm/properties', validateData(propertySchema), async (req, res
     const propOperation = operation && operation.trim() ? operation.trim() : 'venta';
 
     await query(`
-      INSERT INTO properties (id, code, title, description, type, operation, price, currency,
-        area_total, area_built, bedrooms, bathrooms, parking_spots, address, zone, city,
-        features, status, images, agent_id, commission_pct, featured, project_name, developer)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
+      INSERT INTO properties (id, code, title, description, type, operation, price, price_max, currency,
+        area_total, area_max, area_built, bedrooms, bathrooms, parking_spots, address, zone, city,
+        features, status, images, agent_id, commission_pct, featured, project_name, developer, sold_percentage, is_project)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)
       ON CONFLICT (id) DO UPDATE SET
         title = EXCLUDED.title,
         price = EXCLUDED.price,
+        price_max = EXCLUDED.price_max,
+        area_total = EXCLUDED.area_total,
+        area_max = EXCLUDED.area_max,
+        sold_percentage = EXCLUDED.sold_percentage,
+        is_project = EXCLUDED.is_project,
         status = EXCLUDED.status
-    `, [id, propCode, propTitle, description || '', propType, propOperation, Number(price) || 0, currency || 'USD',
-      Number(areaTotal) || 0, Number(areaBuilt) || 0, Number(bedrooms) || 0, Number(bathrooms) || 0, Number(parkingSpots) || 0,
-      address || '', zone || '', city || 'Ciudad de México',
+    `, [id, propCode, propTitle, description || '', propType, propOperation, Number(price) || 0, priceMax ? Number(priceMax) : null, currency || 'USD',
+      Number(areaTotal) || 0, areaMax ? Number(areaMax) : null, Number(areaBuilt) || 0, Number(bedrooms) || 0, Number(bathrooms) || 0, Number(parkingSpots) || 0,
+      address || '', zone || '', city || 'Arequipa',
       features || [], status || 'disponible', images || [], agentId || null, Number(commissionPct) || 0,
-      featured || false, projectName || '', developer || '']);
+      featured || false, projectName || '', developer || '', soldPercentage ? Number(soldPercentage) : null, isProject || false]);
 
     res.status(201).json({ id, message: 'Propiedad creada' });
   } catch (err) {

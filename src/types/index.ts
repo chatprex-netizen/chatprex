@@ -81,6 +81,10 @@ export interface Property {
   featured?: boolean;
   projectName?: string;
   developer?: string;
+  priceMax?: number;
+  areaMax?: number;
+  soldPercentage?: number;
+  isProject?: boolean;
   createdAt: string;
 }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Property } from '../../types';
-import { MapPin, Maximize2, Building2, Trees, MessageCircle, ShieldCheck } from 'lucide-react';
+import { MapPin, Maximize2, Building2, Trees, MessageCircle } from 'lucide-react';
 
 interface PropertyCardProps {
   property: Property;
@@ -17,34 +17,59 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 }) => {
   if (!property) return null;
 
-  const rawPrice = Number(property.price) || 0;
+  const rawPriceMin = Number(property.price) || 0;
+  const rawPriceMax = Number(property.priceMax) || 0;
   const propCurrency = property.currency || 'S/';
 
-  const displayPrice = (() => {
+  const formatPrice = (val: number) => {
     if (propCurrency === currency) {
-      return `${currency} ${rawPrice.toLocaleString('en-US')}`;
+      return `${currency} ${val.toLocaleString('en-US')}`;
     }
     if (currency === 'USD' && propCurrency === 'S/') {
-      const converted = Math.round(rawPrice / 3.75);
+      const converted = Math.round(val / 3.75);
       return `USD $${converted.toLocaleString('en-US')}`;
     }
     if (currency === 'S/' && propCurrency === 'USD') {
-      const converted = Math.round(rawPrice * 3.75);
+      const converted = Math.round(val * 3.75);
       return `S/ ${converted.toLocaleString('en-US')}`;
     }
-    return `${currency} ${rawPrice.toLocaleString('en-US')}`;
-  })();
-
-  const monthlyEstimate = (() => {
-    const saldo = rawPrice * 0.70;
-    const cuota = Math.round(saldo / 36);
-    return `${property.currency || currency} ${cuota.toLocaleString('en-US')}`;
-  })();
+    return `${currency} ${val.toLocaleString('en-US')}`;
+  };
 
   const pType = (property.type || '').toLowerCase();
   const pOp = (property.operation || '').toLowerCase();
   const pProj = (property.projectName || '').trim();
-  const isProject = pType === 'proyecto_preventa' || pOp === 'preventa' || pProj.length > 0;
+  const isProject = property.isProject || pType === 'proyecto_preventa' || pOp === 'preventa' || pProj.length > 0;
+
+  const displayPrice = (() => {
+    if (isProject && rawPriceMax > rawPriceMin) {
+      return `Desde ${formatPrice(rawPriceMin)} hasta ${formatPrice(rawPriceMax)}`;
+    }
+    if (isProject) {
+      return `Desde ${formatPrice(rawPriceMin)}`;
+    }
+    return formatPrice(rawPriceMin);
+  })();
+
+  const displayArea = (() => {
+    if (isProject && property.areaMax && property.areaMax > property.areaTotal) {
+      return `Desde ${property.areaTotal} m² hasta ${property.areaMax} m²`;
+    }
+    if (property.areaTotal > 0) {
+      return `${property.areaTotal} m²`;
+    }
+    return '';
+  })();
+
+  const monthlyEstimate = (() => {
+    const saldo = rawPriceMin * 0.70;
+    const cuota = Math.round(saldo / 36);
+    return `${property.currency || currency} ${cuota.toLocaleString('en-US')}`;
+  })();
+
+  const soldPct = property.soldPercentage !== undefined && property.soldPercentage !== null
+    ? property.soldPercentage
+    : (isProject ? 60 : undefined);
   
   const images = Array.isArray(property.images) ? property.images : [];
   const mainImage = images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80';
@@ -62,18 +87,26 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-        {/* Badges superiores sutiles */}
+        {/* Badges superiores */}
         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
           <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-white/95 dark:bg-[#0B0C10]/90 text-[#202020] dark:text-white shadow-sm flex items-center gap-1 backdrop-blur-md border border-black/5 dark:border-white/10">
             {isProject ? <Trees className="w-3 h-3 text-[#1154FF] dark:text-[#38BDF8]" /> : <Building2 className="w-3 h-3 text-[#1154FF] dark:text-[#38BDF8]" />}
             <span className="truncate max-w-[120px]">{isProject ? (property.projectName || 'Proyecto') : 'Propiedad'}</span>
           </span>
 
-          {property.featured && (
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#1154FF] text-white shadow-sm">
-              Destacado
-            </span>
-          )}
+          <div className="flex items-center gap-1">
+            {soldPct !== undefined && soldPct > 0 && (
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white shadow-sm flex items-center gap-1 backdrop-blur-sm">
+                <span>🔥</span>
+                <span>{soldPct}% vendido</span>
+              </span>
+            )}
+            {property.featured && (
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#1154FF] text-white shadow-sm">
+                Destacado
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Ubicación Inferior en la Imagen */}
@@ -98,14 +131,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
           {/* Especificaciones y Características */}
           <div className="space-y-1.5 mt-1">
-            <div className="flex items-center gap-2 text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-400">
-              {property.areaTotal > 0 && (
+            <div className="flex items-center gap-2 text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-400 flex-wrap">
+              {displayArea && (
                 <span className="flex items-center gap-0.5 font-medium text-[#202020] dark:text-slate-200">
                   <Maximize2 className="w-3 h-3 text-slate-400" />
-                  {property.areaTotal} m²
+                  {displayArea}
                 </span>
               )}
-              {property.bedrooms && property.bedrooms > 0 && (
+              {property.bedrooms && property.bedrooms > 0 && !isProject && (
                 <span className="font-medium text-[#202020] dark:text-slate-200">
                   {property.bedrooms} hab.
                 </span>
@@ -133,7 +166,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <div className="flex items-baseline justify-between gap-1">
             <div>
               <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Precio</span>
-              <span className="font-manrope font-extrabold text-[14px] sm:text-[17px] text-[#202020] dark:text-white leading-none">
+              <span className="font-manrope font-extrabold text-[13px] sm:text-[15px] text-[#202020] dark:text-white leading-none">
                 {displayPrice}
               </span>
             </div>

@@ -133,7 +133,7 @@ export const PublicCatalogPage: React.FC = () => {
   };
 
   const handleOpenWhatsApp = (prop?: Property, customMsg?: string) => {
-    const phone = '51957100984';
+    const phone = '51958716850';
     let msg = customMsg;
     if (!msg) {
       if (prop) {

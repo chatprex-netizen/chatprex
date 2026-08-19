@@ -1,19 +1,15 @@
 import React, { useState } from 'react';
-import { Home, Moon, Sun, MessageCircle, Menu, X, ArrowRight, Lock } from 'lucide-react';
+import { Home, Moon, Sun, Menu, X, Lock } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useCRM } from '../../context/CRMContext';
 
 interface LandingHeaderProps {
-  currency: 'S/' | 'USD';
-  onToggleCurrency: () => void;
-  onWhatsAppClick: (msg?: string) => void;
+  currency?: 'S/' | 'USD';
+  onToggleCurrency?: () => void;
+  onWhatsAppClick?: (msg?: string) => void;
 }
 
-export const LandingHeader: React.FC<LandingHeaderProps> = ({
-  currency,
-  onToggleCurrency,
-  onWhatsAppClick,
-}) => {
+export const LandingHeader: React.FC<LandingHeaderProps> = () => {
   const { theme, toggleTheme } = useTheme();
   const { appBranding } = useCRM();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -33,7 +29,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
       return;
     }
     
-    // Si estamos en otra página (ej. catalogo) y hacemos click en una sección del portal
     const currentHash = (window.location.hash || '').toLowerCase();
     if (currentHash.includes('catalog')) {
       window.location.hash = `#/portal`;
@@ -92,7 +87,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             </span>
           </a>
 
-          {/* Navegación Desktop Siempre Visible en PC */}
+          {/* Navegación Desktop */}
           <nav className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) => (
               <a
@@ -106,31 +101,18 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             ))}
           </nav>
 
-          {/* Acciones y Acceso CRM */}
-          <div className="flex items-center gap-2.5">
+          {/* Acciones: Candado CRM + Tema Oscuro + Menú Móvil */}
+          <div className="flex items-center gap-2">
             
-            {/* Acceso CRM en Desktop (candado) */}
+            {/* Acceso CRM en Desktop (solo icono de candado) */}
             <a
               href={typeof window !== 'undefined' && window.location.hostname.includes('casaya.app') ? 'https://crm.casaya.app' : '#/dashboard'}
-              title="Ingreso a App CasaYa (CRM)"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-xs font-bold text-[#202020] dark:text-slate-200 transition-colors cursor-pointer shadow-xs"
+              title="Ingreso a CRM CasaYa"
+              aria-label="Ingreso a CRM"
+              className="w-9 h-9 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-[#202020] dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
             >
-              <Lock className="w-3.5 h-3.5 text-[#1154FF] dark:text-[#38BDF8]" />
-              <span>Ingreso CRM</span>
+              <Lock className="w-4 h-4 text-slate-700 dark:text-slate-300 hover:text-[#1154FF] transition-colors" />
             </a>
-
-            {/* Selector de Moneda S/ | USD */}
-            <button
-              type="button"
-              onClick={onToggleCurrency}
-              aria-label="Cambiar Moneda"
-              className="px-2.5 py-1.5 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-xs font-bold text-[#202020] dark:text-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
-            >
-              <span>{currency}</span>
-              <span className="text-[10px] text-slate-400 font-normal">
-                ({currency === 'S/' ? 'PEN' : 'USD'})
-              </span>
-            </button>
 
             {/* Toggle Modo Oscuro / Claro */}
             <button
@@ -154,16 +136,14 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
         </div>
       </header>
 
-      {/* Menú Móvil Desplegable con Fondo Sólido y Overlay Oscuro */}
+      {/* Menú Móvil Desplegable */}
       {mobileMenuOpen && (
         <>
-          {/* Backdrop que oscurece el fondo para evitar letras montadas */}
           <div 
             className="lg:hidden fixed inset-0 top-[68px] z-40 bg-black/75 backdrop-blur-sm animate-fade-in"
             onClick={() => setMobileMenuOpen(false)}
           />
 
-          {/* Panel del Menú Móvil Sólido */}
           <div className="lg:hidden fixed top-[68px] left-0 right-0 z-50 bg-white dark:bg-[#0D1017] border-b border-[#E5E7EB] dark:border-white/[0.12] shadow-2xl p-5 space-y-4 animate-fade-in">
             <nav className="flex flex-col space-y-1.5">
               {navLinks.map((link) => (
@@ -179,7 +159,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               ))}
             </nav>
 
-            {/* Sección de Ingreso a la App CasaYa (CRM) con Icono de Candado */}
             <div className="pt-2 border-t border-[#F1F3F5] dark:border-white/[0.08]">
               <a
                 href={typeof window !== 'undefined' && window.location.hostname.includes('casaya.app') ? 'https://crm.casaya.app' : '#/dashboard'}

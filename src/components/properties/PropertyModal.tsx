@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Property, PropertyType, PropertyOperation, PropertyStatus } from '../../types';
 import { useCRM } from '../../context/CRMContext';
-import { Check } from 'lucide-react';
+import { Check, Flame, Building2 } from 'lucide-react';
 
 interface PropertyModalProps {
   isOpen: boolean;
@@ -51,8 +51,10 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     type: 'departamento' as PropertyType,
     operation: 'venta' as PropertyOperation,
     price: '' as string | number,
+    priceMax: '' as string | number,
     currency: 'PEN' as 'USD' | 'EUR' | 'MXN' | 'PEN',
     areaTotal: '' as string | number,
+    areaMax: '' as string | number,
     areaBuilt: '' as string | number,
     bedrooms: '' as string | number,
     bathrooms: '' as string | number,
@@ -68,9 +70,12 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     imageUrlInput: '',
     projectName: '',
     developer: '',
+    soldPercentage: '' as string | number,
+    isProject: false,
+    featured: false,
   });
 
-  const isLandOrPresale = formData.type === 'terreno' || formData.type === 'proyecto_preventa';
+  const isLandOrPresale = formData.type === 'terreno' || formData.type === 'proyecto_preventa' || formData.isProject;
 
   const formatNumberWithCommas = (val: string | number) => {
     if (val === '' || val === null || val === undefined) return '';
@@ -89,8 +94,10 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         type: propertyToEdit.type,
         operation: propertyToEdit.operation,
         price: propertyToEdit.price || '',
+        priceMax: propertyToEdit.priceMax || '',
         currency: propertyToEdit.currency || 'PEN',
         areaTotal: propertyToEdit.areaTotal || '',
+        areaMax: propertyToEdit.areaMax || '',
         areaBuilt: propertyToEdit.areaBuilt || '',
         bedrooms: propertyToEdit.bedrooms || '',
         bathrooms: propertyToEdit.bathrooms || '',
@@ -106,6 +113,9 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         imageUrlInput: '',
         projectName: propertyToEdit.projectName || '',
         developer: propertyToEdit.developer || '',
+        soldPercentage: propertyToEdit.soldPercentage !== undefined ? propertyToEdit.soldPercentage : '',
+        isProject: !!propertyToEdit.isProject || propertyToEdit.type === 'proyecto_preventa',
+        featured: !!propertyToEdit.featured,
       });
     } else {
       const codeNumber = Math.floor(100 + Math.random() * 900);
@@ -116,15 +126,17 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         type: 'departamento',
         operation: 'venta',
         price: '',
+        priceMax: '',
         currency: 'PEN',
         areaTotal: '',
+        areaMax: '',
         areaBuilt: '',
         bedrooms: '',
         bathrooms: '',
         parkingSpots: '',
         address: '',
         zone: '',
-        city: 'Lima',
+        city: 'Arequipa',
         features: ['Seguridad 24/7', 'Ascensor Directo'],
         status: 'disponible',
         images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=80'],
@@ -133,6 +145,9 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         imageUrlInput: '',
         projectName: '',
         developer: '',
+        soldPercentage: '',
+        isProject: false,
+        featured: false,
       });
     }
   }, [propertyToEdit, isOpen, agents]);
@@ -173,12 +188,16 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     const payload: Partial<Property> = {
       ...formData,
       price: formData.price === '' ? 0 : Number(formData.price.toString().replace(/,/g, '')),
+      priceMax: formData.priceMax === '' ? undefined : Number(formData.priceMax.toString().replace(/,/g, '')),
       areaTotal: formData.areaTotal === '' ? 0 : Number(formData.areaTotal),
+      areaMax: formData.areaMax === '' ? undefined : Number(formData.areaMax),
       areaBuilt: formData.areaBuilt === '' ? 0 : Number(formData.areaBuilt),
       bedrooms: formData.bedrooms === '' ? 0 : Number(formData.bedrooms),
       bathrooms: formData.bathrooms === '' ? 0 : Number(formData.bathrooms),
       parkingSpots: formData.parkingSpots === '' ? 0 : Number(formData.parkingSpots),
       commissionPct: Number(formData.commissionPct),
+      soldPercentage: formData.soldPercentage === '' ? undefined : Number(formData.soldPercentage),
+      isProject: formData.isProject || formData.type === 'proyecto_preventa',
     };
 
     if (propertyToEdit) {
@@ -193,20 +212,31 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={propertyToEdit ? 'Editar Inmueble' : 'Registrar Nuevo Inmueble'}
-      subtitle="Ingresa la información detallada para el catálogo de la agencia"
+      title={propertyToEdit ? 'Editar Inmueble / Proyecto' : 'Registrar Inmueble o Proyecto'}
+      subtitle="Configura precios desde/hasta, áreas, porcentaje vendido y detalles del catálogo"
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-2.5">
-        {/* Basic Info */}
-        <div>
-          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-            Título del Inmueble *
-          </label>
+        {/* Título & Proyecto Check */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Título del Inmueble o Desarrollo *
+            </label>
+            <label className="flex items-center gap-1.5 text-[11px] font-semibold text-[#004aad] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.isProject}
+                onChange={(e) => setFormData({ ...formData, isProject: e.target.checked })}
+                className="w-3.5 h-3.5 rounded text-[#004aad] cursor-pointer"
+              />
+              <span>¿Es Proyecto / Desarrollo? (Precios desde/hasta)</span>
+            </label>
+          </div>
           <input
             type="text"
             required
-            placeholder="Ej: Departamento Penthouse en Miraflores con vista al mar"
+            placeholder="Ej: Residencial Las Praderas - Lotes y Casas de Campo"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
@@ -221,7 +251,14 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
             </label>
             <select
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value as PropertyType })}
+              onChange={(e) => {
+                const val = e.target.value as PropertyType;
+                setFormData({ 
+                  ...formData, 
+                  type: val,
+                  isProject: val === 'proyecto_preventa' ? true : formData.isProject
+                });
+              }}
               className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 capitalize"
             >
               {PROPERTY_TYPES.map((t) => (
@@ -265,8 +302,8 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
           </div>
         </div>
 
-        {/* Pricing & Commission */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        {/* Pricing (Desde - Hasta) */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
           <div>
             <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
               Moneda
@@ -285,11 +322,11 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-              Precio / Monto
+              {formData.isProject ? 'Precio Desde *' : 'Precio / Monto *'}
             </label>
             <input
               type="text"
-              placeholder="Ej: 350,000"
+              placeholder="Ej: 15,000"
               value={formatNumberWithCommas(formData.price)}
               onChange={(e) => {
                 const raw = e.target.value.replace(/[^0-9.]/g, '');
@@ -301,107 +338,107 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-              Comisión Agencia (%)
+              Precio Hasta (Opcional)
+            </label>
+            <input
+              type="text"
+              placeholder="Ej: 35,000"
+              value={formatNumberWithCommas(formData.priceMax)}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9.]/g, '');
+                setFormData({ ...formData, priceMax: raw });
+              }}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 font-semibold text-emerald-600 dark:text-emerald-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5 flex items-center gap-1">
+              <Flame className="w-3 h-3 text-amber-500" />
+              <span>% Vendido (Foto)</span>
             </label>
             <input
               type="number"
-              step="0.5"
-              placeholder="Ej: 5"
-              value={formData.commissionPct}
-              onChange={(e) => setFormData({ ...formData, commissionPct: e.target.value as any })}
+              min="0"
+              max="100"
+              placeholder="Ej: 60"
+              value={formData.soldPercentage}
+              onChange={(e) => setFormData({ ...formData, soldPercentage: e.target.value })}
               className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
             />
           </div>
         </div>
 
-        {/* Conditionally rendered surfaces and rooms */}
-        {!isLandOrPresale && (
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-                m² Totales
-              </label>
-              <input
-                type="number"
-                placeholder="Ej: 120"
-                value={formData.areaTotal}
-                onChange={(e) => setFormData({ ...formData, areaTotal: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-                m² Construidos
-              </label>
-              <input
-                type="number"
-                placeholder="Ej: 100"
-                value={formData.areaBuilt}
-                onChange={(e) => setFormData({ ...formData, areaBuilt: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-                Dormitorios
-              </label>
-              <input
-                type="number"
-                placeholder="Ej: 3"
-                value={formData.bedrooms}
-                onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-                Baños
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                placeholder="Ej: 2"
-                value={formData.bathrooms}
-                onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
-              />
-            </div>
-
-            <div className="col-span-2 sm:col-span-1">
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-                Cocheras
-              </label>
-              <input
-                type="number"
-                placeholder="Ej: 1"
-                value={formData.parkingSpots}
-                onChange={(e) => setFormData({ ...formData, parkingSpots: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
-              />
-            </div>
+        {/* Surfaces and Rooms */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              {formData.isProject ? 'm² Desde *' : 'm² Totales *'}
+            </label>
+            <input
+              type="number"
+              placeholder="Ej: 90"
+              value={formData.areaTotal}
+              onChange={(e) => setFormData({ ...formData, areaTotal: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            />
           </div>
-        )}
 
-        {isLandOrPresale && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-                m² Totales / Terreno
-              </label>
-              <input
-                type="number"
-                placeholder="Ej: 200"
-                value={formData.areaTotal}
-                onChange={(e) => setFormData({ ...formData, areaTotal: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
-              />
-            </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              m² Hasta (Opcional)
+            </label>
+            <input
+              type="number"
+              placeholder="Ej: 200"
+              value={formData.areaMax}
+              onChange={(e) => setFormData({ ...formData, areaMax: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            />
           </div>
-        )}
 
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Dormitorios
+            </label>
+            <input
+              type="number"
+              placeholder="Ej: 3"
+              value={formData.bedrooms}
+              onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Baños
+            </label>
+            <input
+              type="number"
+              step="0.5"
+              placeholder="Ej: 2"
+              value={formData.bathrooms}
+              onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            />
+          </div>
+
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Cocheras
+            </label>
+            <input
+              type="number"
+              placeholder="Ej: 1"
+              value={formData.parkingSpots}
+              onChange={(e) => setFormData({ ...formData, parkingSpots: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+            />
+          </div>
+        </div>
+
+        {/* Project association & developer */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
             <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
@@ -418,7 +455,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
                   developer: proj ? proj.developer : formData.developer
                 });
               }}
-              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
             >
               <option value="">Ninguno / Inmueble Independiente</option>
               {projects.map(p => (
@@ -434,7 +471,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
               type="text"
               value={formData.developer || ''}
               onChange={(e) => setFormData({ ...formData, developer: e.target.value })}
-              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               placeholder="Ej: Inmobiliaria Constructora"
               disabled={!!projects.find(p => p.name === formData.projectName)}
             />
@@ -463,42 +500,40 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="Ej: Lima"
+              placeholder="Ej: Arequipa"
               value={formData.city}
               onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
             />
           </div>
         </div>
 
-        {/* Amenities Selection (Conditionally rendered) */}
-        {!isLandOrPresale && (
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Amenidades y Características
-            </label>
-            <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto p-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-              {AVAILABLE_FEATURES.map((feat) => {
-                const selected = formData.features.includes(feat);
-                return (
-                  <button
-                    type="button"
-                    key={feat}
-                    onClick={() => toggleFeature(feat)}
-                    className={`px-2 py-0.5 text-[10.5px] rounded-lg font-medium transition-all flex items-center gap-1 ${
-                      selected
-                        ? 'bg-[#004aad] text-white shadow-xs'
-                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    {selected && <Check className="w-2.5 h-2.5" />}
-                    {feat}
-                  </button>
-                );
-              })}
-            </div>
+        {/* Amenities Selection */}
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Amenidades y Características
+          </label>
+          <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto p-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+            {AVAILABLE_FEATURES.map((feat) => {
+              const selected = formData.features.includes(feat);
+              return (
+                <button
+                  type="button"
+                  key={feat}
+                  onClick={() => toggleFeature(feat)}
+                  className={`px-2 py-0.5 text-[10.5px] rounded-lg font-medium transition-all flex items-center gap-1 ${
+                    selected
+                      ? 'bg-[#004aad] text-white shadow-xs'
+                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {selected && <Check className="w-2.5 h-2.5" />}
+                  {feat}
+                </button>
+              );
+            })}
           </div>
-        )}
+        </div>
 
         {/* Description */}
         <div>
@@ -507,7 +542,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
           </label>
           <textarea
             rows={2}
-            placeholder="Describe acabados, vistas, distribución y ventajas del inmueble..."
+            placeholder="Describe acabados, vistas, facilidades de pago o ventajas del inmueble/proyecto..."
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 resize-none leading-relaxed"

@@ -238,7 +238,7 @@ export const DualContactSection: React.FC<DualContactSectionProps> = ({
                   className="w-full py-3.5 px-6 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[14px] flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition-all transform active:scale-98 cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 fill-white text-[#1154FF]" />
-                  <span>Consultar Disponibilidad por WhatsApp</span>
+                  <span>Consultar por WhatsApp</span>
                 </button>
               </div>
             </form>

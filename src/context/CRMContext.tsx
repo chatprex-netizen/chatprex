@@ -52,14 +52,14 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
     },
   ],
   socialLinks: {
-    whatsapp: 'https://wa.me/51957100984?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20proyectos%20y%20propiedades%20en%20CasaYa',
+    whatsapp: 'https://wa.me/51958716850?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20proyectos%20y%20propiedades%20en%20CasaYa',
     facebook: 'https://facebook.com',
     instagram: 'https://instagram.com',
     tiktok: 'https://tiktok.com',
     youtube: 'https://youtube.com',
   },
   contactInfo: {
-    phone: '+51 957 100 984',
+    phone: '+51 958 716 850',
     email: 'ventas@casaya.pe',
     city: 'Arequipa, Perú',
   },

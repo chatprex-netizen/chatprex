@@ -66,13 +66,13 @@ export const AdminPortalWeb: React.FC = () => {
     },
   ]);
 
-  const [socialWhatsApp, setSocialWhatsApp] = useState(portalConfig?.socialLinks?.whatsapp || 'https://wa.me/51957100984?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20proyectos%20y%20propiedades%20en%20CasaYa');
+  const [socialWhatsApp, setSocialWhatsApp] = useState(portalConfig?.socialLinks?.whatsapp || 'https://wa.me/51958716850?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20proyectos%20y%20propiedades%20en%20CasaYa');
   const [socialFacebook, setSocialFacebook] = useState(portalConfig?.socialLinks?.facebook || 'https://facebook.com');
   const [socialInstagram, setSocialInstagram] = useState(portalConfig?.socialLinks?.instagram || 'https://instagram.com');
   const [socialTikTok, setSocialTikTok] = useState(portalConfig?.socialLinks?.tiktok || 'https://tiktok.com');
   const [socialYouTube, setSocialYouTube] = useState(portalConfig?.socialLinks?.youtube || 'https://youtube.com');
 
-  const [contactPhone, setContactPhone] = useState(portalConfig?.contactInfo?.phone || '+51 957 100 984');
+  const [contactPhone, setContactPhone] = useState(portalConfig?.contactInfo?.phone || '+51 958 716 850');
   const [contactEmail, setContactEmail] = useState(portalConfig?.contactInfo?.email || 'ventas@casaya.pe');
   const [contactCity, setContactCity] = useState(portalConfig?.contactInfo?.city || 'Arequipa, Perú');
 
@@ -776,7 +776,7 @@ export const AdminPortalWeb: React.FC = () => {
               type="text"
               value={socialWhatsApp}
               onChange={(e) => setSocialWhatsApp(e.target.value)}
-              placeholder="https://wa.me/51957100984?text=..."
+              placeholder="https://wa.me/51958716850?text=..."
               className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
             />
           </div>
@@ -846,7 +846,7 @@ export const AdminPortalWeb: React.FC = () => {
               type="text"
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
-              placeholder="+51 957 100 984"
+              placeholder="+51 958 716 850"
               className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-[#1E2333] border border-[#E5E7EB] dark:border-white/[0.08] text-slate-900 dark:text-white outline-none focus:border-[#1154FF]"
             />
           </div>

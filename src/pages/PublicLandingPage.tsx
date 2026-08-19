@@ -78,7 +78,7 @@ export const PublicLandingPage: React.FC = () => {
 
   // Helper de contacto WhatsApp
   const handleOpenWhatsApp = (prop?: Property, customMsg?: string) => {
-    const phone = portalConfig?.contactInfo?.phone?.replace(/\D/g, '') || '51957100984';
+    const phone = portalConfig?.contactInfo?.phone?.replace(/\D/g, '') || '51958716850';
     let msg = customMsg;
     if (!msg) {
       if (prop) {

@@ -43,6 +43,10 @@ export const propertySchema = z.object({
   featured: z.boolean().optional(),
   projectName: z.string().optional().or(z.literal('')),
   developer: z.string().optional().or(z.literal('')),
+  priceMax: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
+  areaMax: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
+  soldPercentage: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
+  isProject: z.boolean().optional(),
 });
 
 export const contactSchema = z.object({
