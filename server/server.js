@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { initDb, query } from './db.js';
+import { initDb, query, checkDbConnection } from './db.js';
 import crmRouter from './api-crm.js';
 import { encrypt, decrypt } from './encryption.js';
 import { verifyMetaWebhookSignature } from './webhook-signature.js';
@@ -48,9 +48,19 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// Health check
-app.get(['/health', '/api/health'], (_req, res) => {
-  res.json({ status: 'ok', db: 'postgresql', app: 'CasaYa CRM', timestamp: new Date() });
+// Health check & DB Status
+app.get(['/health', '/api/health', '/api/db-status'], async (_req, res) => {
+  const dbStatus = await checkDbConnection();
+  res.json({
+    status: dbStatus.connected ? 'ok' : 'error',
+    app: 'CasaYa CRM',
+    database: {
+      configured: dbStatus.urlConfigured,
+      connected: dbStatus.connected,
+      error: dbStatus.error || null,
+      timestamp: dbStatus.timestamp || null
+    }
+  });
 });
 
 // Mount CRM API Router

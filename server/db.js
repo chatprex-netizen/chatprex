@@ -7,28 +7,50 @@ dotenv.config();
 const { Pool } = pg;
 
 // Pool de conexión a PostgreSQL
+const rawDbUrl = process.env.DATABASE_URL || '';
+const isConfigured = Boolean(rawDbUrl);
+
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/krayin_crm',
-  ssl: (process.env.DATABASE_URL?.includes('render.com') ||
-        process.env.DATABASE_URL?.includes('neon.tech') ||
-        process.env.DATABASE_URL?.includes('supabase.co') ||
-        process.env.DATABASE_URL?.includes('pooler.supabase.com') ||
-        process.env.DATABASE_URL?.includes('sslmode=require') ||
+  connectionString: rawDbUrl || 'postgres://postgres:postgres@localhost:5432/krayin_crm',
+  ssl: (rawDbUrl.includes('render.com') ||
+        rawDbUrl.includes('neon.tech') ||
+        rawDbUrl.includes('supabase.co') ||
+        rawDbUrl.includes('pooler.supabase.com') ||
+        rawDbUrl.includes('sslmode=require') ||
         process.env.DB_SSL === 'true')
     ? { rejectUnauthorized: false } 
-    : false
+    : false,
+  connectionTimeoutMillis: 5000, // Timeout de 5s para no congelar la petición
 });
+
+export async function checkDbConnection() {
+  try {
+    const res = await pool.query('SELECT NOW() as now');
+    return { connected: true, timestamp: res.rows[0].now, urlConfigured: isConfigured };
+  } catch (err) {
+    return { connected: false, error: err.message, urlConfigured: isConfigured };
+  }
+}
 
 export async function query(text, params) {
   const start = Date.now();
-  const res = await pool.query(text, params);
-  const duration = Date.now() - start;
-  // console.log('Query ejecutada', { text, duration, rows: res.rowCount });
-  return res;
+  try {
+    const res = await pool.query(text, params);
+    return res;
+  } catch (err) {
+    console.error(`❌ [DB Error] Fallo al ejecutar query: "${text.slice(0, 60)}..."`, err.message);
+    if (!isConfigured) {
+      throw new Error(`Base de datos no configurada en el servidor (Falta la variable DATABASE_URL en Coolify). Detalle: ${err.message}`);
+    }
+    throw new Error(`Error de PostgreSQL (${err.message})`);
+  }
 }
 
 export async function initDb() {
   try {
+    if (!isConfigured) {
+      console.warn('⚠️ [DB Warning] No se encontró la variable DATABASE_URL en las variables de entorno de Coolify.');
+    }
     const client = await pool.connect();
     console.log('✅ Conectado a la base de datos PostgreSQL exitosamente.');
 
