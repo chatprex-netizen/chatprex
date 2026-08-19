@@ -7,11 +7,12 @@ dotenv.config();
 const { Pool } = pg;
 
 // Pool de conexión a PostgreSQL
-const rawDbUrl = process.env.DATABASE_URL || '';
-const isConfigured = Boolean(rawDbUrl);
+const defaultDbUrl = 'postgres://postgres:3bY4If0YW24C04Km6qMWmKg3yyIjaGg4W4KOBfKsszvNVai31bOpINZfi1vOvYNb@0u8pfcro0qgtx88dnxt4lvsk:5432/postgres';
+const rawDbUrl = process.env.DATABASE_URL || defaultDbUrl;
+const isConfigured = Boolean(process.env.DATABASE_URL || defaultDbUrl);
 
 export const pool = new Pool({
-  connectionString: rawDbUrl || 'postgres://postgres:postgres@localhost:5432/krayin_crm',
+  connectionString: rawDbUrl,
   ssl: (rawDbUrl.includes('render.com') ||
         rawDbUrl.includes('neon.tech') ||
         rawDbUrl.includes('supabase.co') ||
@@ -20,7 +21,7 @@ export const pool = new Pool({
         process.env.DB_SSL === 'true')
     ? { rejectUnauthorized: false } 
     : false,
-  connectionTimeoutMillis: 5000, // Timeout de 5s para no congelar la petición
+  connectionTimeoutMillis: 8000,
 });
 
 export async function checkDbConnection() {
