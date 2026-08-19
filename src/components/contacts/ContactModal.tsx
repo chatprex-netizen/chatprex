@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from '../common/Modal';
-import { Contact, ContactType, LeadChannel, DealStage, PropertyType, LeadScoreCriteria } from '../../types';
+import { Contact, ContactType, LeadChannel, DealStage, PropertyType, LeadTemperature } from '../../types';
 import { useCRM } from '../../context/CRMContext';
-import { Sparkles, Building, Bot, CheckCircle2, AlertCircle, RefreshCw, Flame, Target, CheckSquare, Square } from 'lucide-react';
-import { generateCopy } from '../../lib/aiService';
-import { evaluateScoreCriteria, TEMPERATURE_CONFIG, SCORE_WEIGHTS } from '../../lib/leadScoring';
+import { Building, Flame, Zap, HelpCircle, MessageSquareText, Home } from 'lucide-react';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -12,12 +10,55 @@ interface ContactModalProps {
   contactToEdit?: Contact | null;
 }
 
+const TEMPERATURE_OPTIONS: { id: LeadTemperature; label: string; desc: string; icon: any; color: string; bg: string; border: string; score: number }[] = [
+  {
+    id: 'muy_caliente',
+    label: 'Muy Caliente / Cierre Inmediato',
+    desc: 'Compra en < 30 días, capacidad o fondos aprobados',
+    icon: Flame,
+    color: 'text-rose-600 dark:text-rose-400',
+    bg: 'bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100/70',
+    border: 'border-rose-200 dark:border-rose-800',
+    score: 90
+  },
+  {
+    id: 'caliente',
+    label: 'Caliente / Alto Interés',
+    desc: 'Proyecto definido y presupuesto compatible',
+    icon: Zap,
+    color: 'text-amber-600 dark:text-amber-400',
+    bg: 'bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100/70',
+    border: 'border-amber-200 dark:border-amber-800',
+    score: 70
+  },
+  {
+    id: 'calificado',
+    label: 'Calificado / Evaluando',
+    desc: 'Interesado, solicitó información o visita',
+    icon: HelpCircle,
+    color: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100/70',
+    border: 'border-blue-200 dark:border-blue-800',
+    score: 45
+  },
+  {
+    id: 'frio',
+    label: 'Informativo / Frío',
+    desc: 'Consulta inicial de catálogo o precios',
+    icon: Home,
+    color: 'text-slate-600 dark:text-slate-400',
+    bg: 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100/70',
+    border: 'border-slate-200 dark:border-slate-700',
+    score: 20
+  }
+];
+
 export const ContactModal: React.FC<ContactModalProps> = ({
   isOpen,
   onClose,
   contactToEdit,
 }) => {
-  const { addContact, updateContact, addDeal, agents, contacts, properties, projects, leadChannels, pipelineStages, aiConfig } = useCRM();
+  const { addContact, updateContact, addDeal, agents, contacts, properties, projects, leadChannels, pipelineStages } = useCRM();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -31,25 +72,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     interestedProperty: '',
     preferredZones: [] as string[],
     preferredTypes: ['departamento'] as PropertyType[],
-    leadScore: 0,
-    leadTemperature: 'frio' as const,
-    scoreCriteria: {
-      budgetCompatible: false,
-      paymentCapacity: false,
-      needDefined: false,
-      urgencyUnder30Days: false,
-      hasInteracted: false,
-      hasVisited: false,
-      hasSelectedProperty: false,
-    } as LeadScoreCriteria,
+    leadScore: 20,
+    leadTemperature: 'frio' as LeadTemperature,
     notes: '',
     assignedAgentId: agents[0]?.id || '',
     avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
   });
 
   const [displayBudget, setDisplayBudget] = useState<string>('');
-  const [isAnalyzingAI, setIsAnalyzingAI] = useState(false);
-  const [aiAnalysisResult, setAiAnalysisResult] = useState<string | null>(null);
 
   // Consolidar lista única de proyectos disponibles
   const projectOptions = useMemo(() => {
@@ -74,23 +104,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     return list;
   }, [projects, properties]);
 
-  // Cálculo en vivo del score y temperatura actual
-  const scoreEvaluation = useMemo(() => {
-    return evaluateScoreCriteria(formData);
-  }, [formData]);
-
   useEffect(() => {
     if (contactToEdit) {
       const budgetVal = contactToEdit.budget || contactToEdit.budgetMax || 0;
-      const initialCriteria = (typeof contactToEdit.scoreCriteria === 'string' 
-        ? JSON.parse(contactToEdit.scoreCriteria || '{}') 
-        : contactToEdit.scoreCriteria) || {};
-
-      const evaluation = evaluateScoreCriteria({
-        ...contactToEdit,
-        scoreCriteria: initialCriteria,
-      });
-
       setFormData({
         name: contactToEdit.name || '',
         email: contactToEdit.email || '',
@@ -102,16 +118,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({
         pipelineStage: contactToEdit.pipelineStage || 'nuevo_prospecto',
         interestedProperty: contactToEdit.interestedProperty || '',
         preferredZones: contactToEdit.preferredZones || [],
-        preferredTypes: contactToEdit.preferredTypes || [],
-        leadScore: evaluation.score,
-        leadTemperature: evaluation.temperature,
-        scoreCriteria: evaluation.criteria,
+        preferredTypes: contactToEdit.preferredTypes || ['departamento'],
+        leadScore: contactToEdit.leadScore ?? 20,
+        leadTemperature: (contactToEdit.leadTemperature as LeadTemperature) || 'frio',
         notes: contactToEdit.notes || '',
         assignedAgentId: contactToEdit.assignedAgentId || agents[0]?.id || '',
         avatar: contactToEdit.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
       });
       setDisplayBudget(budgetVal > 0 ? budgetVal.toLocaleString('en-US') : '');
-      setAiAnalysisResult(null);
     } else {
       setFormData({
         name: '',
@@ -125,23 +139,13 @@ export const ContactModal: React.FC<ContactModalProps> = ({
         interestedProperty: '',
         preferredZones: [],
         preferredTypes: ['departamento'],
-        leadScore: 0,
+        leadScore: 20,
         leadTemperature: 'frio',
-        scoreCriteria: {
-          budgetCompatible: false,
-          paymentCapacity: false,
-          needDefined: false,
-          urgencyUnder30Days: false,
-          hasInteracted: false,
-          hasVisited: false,
-          hasSelectedProperty: false,
-        },
         notes: '',
         assignedAgentId: agents[0]?.id || '',
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
       });
       setDisplayBudget('');
-      setAiAnalysisResult(null);
     }
   }, [contactToEdit, isOpen, agents]);
 
@@ -150,107 +154,20 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     const rawDigits = e.target.value.replace(/[^0-9]/g, '');
     if (!rawDigits) {
       setDisplayBudget('');
-      setFormData(prev => ({ 
-        ...prev, 
-        budget: 0,
-        scoreCriteria: { ...prev.scoreCriteria, budgetCompatible: false }
-      }));
+      setFormData(prev => ({ ...prev, budget: 0 }));
       return;
     }
     const num = parseInt(rawDigits, 10);
     setDisplayBudget(num.toLocaleString('en-US'));
-    setFormData(prev => ({ 
-      ...prev, 
-      budget: num,
-      scoreCriteria: { ...prev.scoreCriteria, budgetCompatible: num > 0 }
+    setFormData(prev => ({ ...prev, budget: num }));
+  };
+
+  const handleSelectTemperature = (opt: typeof TEMPERATURE_OPTIONS[0]) => {
+    setFormData(prev => ({
+      ...prev,
+      leadTemperature: opt.id,
+      leadScore: opt.score
     }));
-  };
-
-  // Alternar criterio de score individual
-  const toggleScoreCriterion = (key: keyof LeadScoreCriteria) => {
-    setFormData(prev => {
-      const nextCriteria = {
-        ...prev.scoreCriteria,
-        [key]: !prev.scoreCriteria[key],
-      };
-      const evalResult = evaluateScoreCriteria({ ...prev, scoreCriteria: nextCriteria });
-      return {
-        ...prev,
-        scoreCriteria: nextCriteria,
-        leadScore: evalResult.score,
-        leadTemperature: evalResult.temperature,
-      };
-    });
-  };
-
-  // Detección inteligente de interés con IA
-  const handleAnalyzeConversationAI = async () => {
-    if (!formData.notes.trim()) {
-      alert('Por favor ingresa o pega primero un extracto de la conversación o los requerimientos del prospecto.');
-      return;
-    }
-
-    setIsAnalyzingAI(true);
-    try {
-      const prompt = `Actúa como un analista experto de CRM inmobiliario. Evalúa la siguiente conversación o notas del prospecto "${formData.name || 'Cliente'}":
-"""
-${formData.notes}
-"""
-
-Evalúa los 7 criterios de Lead Scoring:
-1. Presupuesto compatible (Si/No)
-2. Capacidad de pago o precalificación bancaria (Si/No)
-3. Necesidad/tipo de inmueble definido (Si/No)
-4. Quiere comprar en menos de 30 días / urgencia (Si/No)
-5. Respondió al asesor / interacción activa (Si/No)
-6. Visitó el proyecto / asistió a cita (Si/No)
-7. Eligió un lote o inmueble específico (Si/No)
-
-Resume de forma clara:
-- Nivel de interés y temperatura sugerida
-- Diagnóstico rápido y próximo paso para el asesor`;
-
-      let resultText = '';
-      const lower = formData.notes.toLowerCase();
-
-      // Detección heurística en base al texto
-      const isUrgent = lower.includes('30 días') || lower.includes('un mes') || lower.includes('urgente') || lower.includes('inmediato') || lower.includes('ya');
-      const hasCap = lower.includes('precalificado') || lower.includes('crédito aprobado') || lower.includes('contado') || lower.includes('fondos') || lower.includes('banco');
-      const isNeed = lower.includes('departamento') || lower.includes('casa') || lower.includes('terreno') || lower.includes('lote') || lower.includes('habitacion') || lower.includes('dormitorio');
-      const hasVisit = lower.includes('visita') || lower.includes('fue al proyecto') || lower.includes('conoció el lote');
-      const hasInteract = lower.includes('respondió') || lower.includes('hablé') || lower.includes('whatsapp') || lower.includes('llamé');
-      const hasLot = lower.includes('lote') || lower.includes('mz') || lower.includes('piso') || Boolean(formData.interestedProperty);
-
-      const autoCriteria: LeadScoreCriteria = {
-        budgetCompatible: formData.budget > 0 || lower.includes('presupuesto') || lower.includes('precio'),
-        paymentCapacity: hasCap || formData.scoreCriteria.paymentCapacity,
-        needDefined: isNeed || formData.scoreCriteria.needDefined,
-        urgencyUnder30Days: isUrgent || formData.scoreCriteria.urgencyUnder30Days,
-        hasInteracted: hasInteract || true,
-        hasVisited: hasVisit || formData.scoreCriteria.hasVisited,
-        hasSelectedProperty: hasLot || formData.scoreCriteria.hasSelectedProperty,
-      };
-
-      if (aiConfig?.apiKey) {
-        resultText = await generateCopy(prompt, aiConfig);
-      } else {
-        resultText = `🎯 Análisis IA Completado:\n• Criterios comerciales detectados y actualizados automáticamente en el panel de scoring.\n• Próximo paso: ${isUrgent ? 'Agendar llamada de cierre urgente hoy mismo.' : 'Enviar cotización detallada por WhatsApp.'}`;
-      }
-
-      const evalResult = evaluateScoreCriteria({ ...formData, scoreCriteria: autoCriteria });
-      setFormData(prev => ({
-        ...prev,
-        scoreCriteria: autoCriteria,
-        leadScore: evalResult.score,
-        leadTemperature: evalResult.temperature,
-      }));
-
-      setAiAnalysisResult(resultText);
-    } catch (err: any) {
-      setAiAnalysisResult(`🎯 Análisis IA: Conversación analizada y criterios de calificación sincronizados.`);
-    } finally {
-      setIsAnalyzingAI(false);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -258,18 +175,14 @@ Resume de forma clara:
     if (!formData.name.trim()) return;
 
     const phoneExists = contacts.some(c => c.phone === formData.phone && (!contactToEdit || c.id !== contactToEdit.id));
-    if (phoneExists) {
+    if (phoneExists && formData.phone.trim()) {
       alert('Este número de teléfono ya está registrado para otro cliente.');
       return;
     }
 
     try {
-      const finalEval = evaluateScoreCriteria(formData);
       const payload = {
         ...formData,
-        leadScore: finalEval.score,
-        leadTemperature: finalEval.temperature,
-        scoreCriteria: finalEval.criteria,
       };
 
       if (contactToEdit) {
@@ -284,10 +197,10 @@ Resume de forma clara:
             stage: formData.pipelineStage || 'nuevo_prospecto',
             value: formData.budget || 0,
             currency: formData.currency as any,
-            probability: finalEval.score >= 80 ? 70 : (finalEval.score >= 40 ? 30 : 10),
+            probability: formData.leadTemperature === 'muy_caliente' ? 80 : (formData.leadTemperature === 'caliente' ? 60 : (formData.leadTemperature === 'calificado' ? 35 : 15)),
             expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             agentId: formData.assignedAgentId || agents[0]?.id || 'agent-1',
-            priority: finalEval.score >= 80 ? 'alta' : (finalEval.score >= 40 ? 'media' : 'baja'),
+            priority: (formData.leadTemperature === 'muy_caliente' || formData.leadTemperature === 'caliente') ? 'alta' : 'media',
             notes: formData.notes || ''
           });
         }
@@ -302,11 +215,12 @@ Resume de forma clara:
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={contactToEdit ? 'Editar Contacto / Lead' : 'Nuevo Cliente / Lead'}
-      subtitle="Registra la información del cliente, presupuesto, proyecto y evaluación IA"
+      title={contactToEdit ? 'Editar Contacto / Prospecto' : 'Nuevo Cliente / Prospecto'}
+      subtitle="Registra los datos de contacto, requerimientos, proyecto y nivel de interés"
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* 1. Datos Personales */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -369,6 +283,7 @@ Resume de forma clara:
           </div>
         </div>
 
+        {/* 2. Canal y Etapa */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -402,7 +317,7 @@ Resume de forma clara:
           </div>
         </div>
 
-        {/* Proyecto de Interés y Presupuesto */}
+        {/* 3. Proyecto de Interés y Presupuesto */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
@@ -425,7 +340,7 @@ Resume de forma clara:
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Presupuesto
+              Presupuesto Aproximado
             </label>
             <div className="flex gap-1.5">
               <select
@@ -449,135 +364,99 @@ Resume de forma clara:
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Asesor Responsable
-          </label>
-          <select
-            value={formData.assignedAgentId}
-            onChange={(e) => setFormData({ ...formData, assignedAgentId: e.target.value })}
-            className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
-          >
-            {agents.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Panel de Calificación Comercial / Lead Scoring */}
-        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Target className="w-4 h-4 text-[#004aad]" />
-              <span className="text-xs font-bold text-slate-900 dark:text-white">
-                Lead Scoring y Calificación Comercial
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-extrabold text-slate-900 dark:text-white">
-                {scoreEvaluation.score} / 100 pts
-              </span>
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${TEMPERATURE_CONFIG[scoreEvaluation.temperature].bgLight} ${TEMPERATURE_CONFIG[scoreEvaluation.temperature].color} ${TEMPERATURE_CONFIG[scoreEvaluation.temperature].border}`}>
-                <span>{TEMPERATURE_CONFIG[scoreEvaluation.temperature].emoji}</span>
-                <span>{TEMPERATURE_CONFIG[scoreEvaluation.temperature].label}</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Barra de progreso de score */}
-          <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-            <div 
-              className={`h-full transition-all duration-300 ${
-                scoreEvaluation.score >= 81 ? 'bg-gradient-to-r from-rose-500 to-red-600' :
-                scoreEvaluation.score >= 61 ? 'bg-gradient-to-r from-amber-500 to-orange-600' :
-                scoreEvaluation.score >= 41 ? 'bg-gradient-to-r from-blue-500 to-indigo-600' :
-                scoreEvaluation.score >= 21 ? 'bg-gradient-to-r from-teal-400 to-emerald-500' :
-                'bg-slate-400'
-              }`}
-              style={{ width: `${scoreEvaluation.score}%` }}
-            />
-          </div>
-
-          {/* Grid de los 7 criterios ponderados */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-            {scoreEvaluation.breakdown.map((item) => (
-              <button
-                type="button"
-                key={item.key}
-                onClick={() => toggleScoreCriterion(item.key)}
-                className={`p-2 rounded-xl border text-left text-[11px] font-medium transition-all flex items-center justify-between ${
-                  item.achieved 
-                    ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800 text-blue-900 dark:text-blue-200' 
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80 text-slate-500 hover:border-slate-300'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 truncate">
-                  {item.achieved ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  ) : (
-                    <div className="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 shrink-0" />
-                  )}
-                  <span className="truncate">{item.label}</span>
-                </div>
-                <span className={`text-[10px] font-bold shrink-0 ml-1.5 ${item.achieved ? 'text-blue-700 dark:text-blue-300' : 'text-slate-400'}`}>
-                  +{item.points}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Detección de Interés IA / Conversación Automatizada */}
-        <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#004aad]" />
-              <span>Detección de Interés IA / Conversación Automatizada</span>
+        {/* 4. Asesor Responsable y Tipo de Inmueble */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Tipo de Inmueble Preferido
             </label>
-            <button
-              type="button"
-              onClick={handleAnalyzeConversationAI}
-              disabled={isAnalyzingAI || !formData.notes.trim()}
-              className="px-2.5 py-1 rounded-lg bg-[#004aad] hover:bg-[#003b8a] text-white text-[11px] font-semibold transition-all flex items-center gap-1 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+            <select
+              value={formData.preferredTypes[0] || 'departamento'}
+              onChange={(e) => setFormData({ ...formData, preferredTypes: [e.target.value as PropertyType] })}
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 capitalize"
             >
-              {isAnalyzingAI ? (
-                <>
-                  <RefreshCw className="w-3 h-3 animate-spin" />
-                  <span>Analizando...</span>
-                </>
-              ) : (
-                <>
-                  <Bot className="w-3 h-3" />
-                  <span>Evaluar con IA</span>
-                </>
-              )}
-            </button>
+              <option value="departamento">Departamento</option>
+              <option value="casa">Casa</option>
+              <option value="terreno">Terreno / Lote</option>
+              <option value="oficina">Oficina</option>
+              <option value="local_comercial">Local Comercial</option>
+              <option value="proyecto_preventa">Proyecto Preventa</option>
+            </select>
           </div>
 
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Asesor Responsable
+            </label>
+            <select
+              value={formData.assignedAgentId}
+              onChange={(e) => setFormData({ ...formData, assignedAgentId: e.target.value })}
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
+            >
+              {agents.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* 5. Nivel de Interés Comercial */}
+        <div className="space-y-1.5 pt-1">
+          <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+            Nivel / Grado de Interés del Cliente
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {TEMPERATURE_OPTIONS.map((opt) => {
+              const Icon = opt.icon;
+              const isSelected = formData.leadTemperature === opt.id;
+              return (
+                <button
+                  type="button"
+                  key={opt.id}
+                  onClick={() => handleSelectTemperature(opt)}
+                  className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
+                    isSelected
+                      ? `${opt.bg} ${opt.border} ring-2 ring-[#004aad]/20 shadow-xs`
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80 hover:border-slate-300'
+                  }`}
+                >
+                  <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-white dark:bg-slate-900' : 'bg-slate-100 dark:bg-slate-800'} shrink-0 mt-0.5`}>
+                    <Icon className={`w-4 h-4 ${opt.color}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-bold ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
+                        {opt.label}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                      {opt.desc}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 6. Detalles de la Conversación y Requerimientos */}
+        <div className="space-y-1.5 pt-1">
+          <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+            <MessageSquareText className="w-3.5 h-3.5 text-[#004aad]" />
+            <span>Detalles de la Conversación y Requerimientos Clave</span>
+          </label>
           <textarea
             rows={3}
-            placeholder="Pega aquí la conversación de WhatsApp, notas de llamada o requisitos del cliente para que la IA detecte y evalúe su nivel de interés automáticamente..."
+            placeholder="Anota acuerdos, requerimientos del cliente (ej. 3 dormitorios, piso alto, vista a parque, precalificación bancaria, fecha de visita acordada o detalles conversados por WhatsApp/llamada)..."
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 resize-none"
+            className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 resize-none leading-relaxed"
           />
-
-          {aiAnalysisResult && (
-            <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 text-[11px] text-slate-700 dark:text-slate-300 space-y-1 animate-fade-in whitespace-pre-line">
-              <div className="font-semibold text-[#004aad] flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Resultado de Evaluación IA</span>
-              </div>
-              <p className="leading-relaxed text-slate-600 dark:text-slate-300">
-                {aiAnalysisResult}
-              </p>
-            </div>
-          )}
         </div>
 
+        {/* Botones de acción */}
         <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
           <button
             type="button"
@@ -597,4 +476,3 @@ Resume de forma clara:
     </Modal>
   );
 };
-
