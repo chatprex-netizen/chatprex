@@ -58,13 +58,13 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Modal Header */}
-        <div className="px-5 py-3.5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+        <div className="px-4 py-2.5 sm:px-5 sm:py-3 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+            <h2 className="text-[13px] sm:text-[14px] font-bold text-slate-900 dark:text-white">
               {title}
             </h2>
             {subtitle && (
-              <p className="text-[11px] text-slate-400 font-normal mt-0.5">
+              <p className="text-[10.5px] sm:text-[11px] text-slate-400 font-normal mt-0.5">
                 {subtitle}
               </p>
             )}
@@ -78,7 +78,7 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="px-5 py-4 overflow-y-auto flex-1">
+        <div className="px-4 py-3 sm:px-5 sm:py-3.5 overflow-y-auto flex-1">
           {children}
         </div>
       </div>
