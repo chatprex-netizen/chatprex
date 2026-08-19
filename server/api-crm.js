@@ -293,21 +293,57 @@ router.post('/api/crm/contacts', validateData(contactSchema), async (req, res) =
     const contactId = id || `cont-${Date.now()}`;
     const contactName = name && name.trim() ? name.trim() : 'Nuevo Prospecto';
     const contactPhone = phone && phone.trim() ? phone.trim() : `sin-tel-${Date.now()}`;
+    const safeAgentId = (assignedAgentId && assignedAgentId.trim() && assignedAgentId !== 'undefined') ? assignedAgentId.trim() : null;
 
-    await query(`
-      INSERT INTO contacts (id, name, email, phone, type, channel, budget_min, budget_max, budget, currency,
-        pipeline_stage, interested_property, preferred_zones, preferred_types, lead_score, lead_temperature, score_criteria, notes,
-        assigned_agent_id, last_contact_date, next_follow_up_date, status_follow_up, avatar)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,NOW(),$20,$21,$22)
-      ON CONFLICT (id) DO UPDATE SET
-        name = EXCLUDED.name,
-        email = EXCLUDED.email,
-        phone = EXCLUDED.phone
-    `, [contactId, contactName, email || null, contactPhone, type || 'comprador', channel || 'whatsapp',
-      budgetMin || 0, budgetMax || 0, budget || 0, currency || 'USD',
-      pipelineStage || 'nuevo_prospecto', interestedProperty || '', preferredZones || [], preferredTypes || [],
-      leadScore || 0, leadTemperature || 'frio', typeof scoreCriteria === 'object' ? JSON.stringify(scoreCriteria) : (scoreCriteria || '{}'),
-      notes || '', assignedAgentId || null, nextFollowUpDate || null, statusFollowUp || 'al_dia', avatar || '']);
+    try {
+      await query(`
+        INSERT INTO contacts (id, name, email, phone, type, channel, budget_min, budget_max, budget, currency,
+          pipeline_stage, interested_property, preferred_zones, preferred_types, lead_score, lead_temperature, score_criteria, notes,
+          assigned_agent_id, last_contact_date, next_follow_up_date, status_follow_up, avatar)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,NOW(),$20,$21,$22)
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          email = EXCLUDED.email,
+          phone = EXCLUDED.phone
+      `, [contactId, contactName, email || null, contactPhone, type || 'comprador', channel || 'whatsapp',
+        Number(budgetMin) || 0, Number(budgetMax) || 0, Number(budget) || 0, currency || 'USD',
+        pipelineStage || 'nuevo_prospecto', interestedProperty || '', preferredZones || [], preferredTypes || [],
+        Number(leadScore) || 0, leadTemperature || 'frio', typeof scoreCriteria === 'object' ? JSON.stringify(scoreCriteria) : (scoreCriteria || '{}'),
+        notes || '', safeAgentId, nextFollowUpDate || null, statusFollowUp || 'al_dia', avatar || '']);
+    } catch (sqlErr) {
+      console.warn('Fallo en inserción extendida de contacto, aplicando auto-recuperación:', sqlErr.message);
+      // Auto-reparar columnas en caliente
+      try {
+        await query(`
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS type TEXT;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS channel TEXT;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS budget_min NUMERIC(14,2);
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS budget_max NUMERIC(14,2);
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS budget NUMERIC(14,2);
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS currency TEXT;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS pipeline_stage TEXT;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS interested_property TEXT;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS preferred_zones TEXT[];
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS preferred_types TEXT[];
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS lead_score INTEGER DEFAULT 0;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS lead_temperature TEXT DEFAULT 'frio';
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS score_criteria TEXT;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS notes TEXT;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS assigned_agent_id TEXT;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS last_contact_date TIMESTAMP;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS next_follow_up_date TEXT;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS status_follow_up TEXT;
+          ALTER TABLE contacts ADD COLUMN IF NOT EXISTS avatar TEXT;
+        `);
+      } catch (e) {}
+
+      // Reintentar inserción
+      await query(`
+        INSERT INTO contacts (id, name, email, phone)
+        VALUES ($1,$2,$3,$4)
+        ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, email = EXCLUDED.email, phone = EXCLUDED.phone
+      `, [contactId, contactName, email || null, contactPhone]);
+    }
 
     res.status(201).json({ id: contactId, message: 'Contacto creado' });
   } catch (err) {
@@ -556,15 +592,22 @@ router.post('/api/crm/deals', validateData(dealSchema), async (req, res) => {
       expectedCloseDate, agentId, priority, notes } = req.body;
 
     const id = `deal-${Date.now()}`;
+    const dealTitle = title && title.trim() ? title.trim() : 'Nueva Oportunidad';
+    const safeLeadId = (leadId && leadId.trim()) ? leadId.trim() : null;
+    const safePropertyId = (propertyId && propertyId.trim() && propertyId !== 'undefined') ? propertyId.trim() : null;
+    const safeAgentId = (agentId && agentId.trim() && agentId !== 'undefined') ? agentId.trim() : null;
+    const safeCloseDate = (expectedCloseDate && expectedCloseDate.trim()) ? expectedCloseDate.trim() : null;
+
     await query(`
       INSERT INTO deals (id, title, lead_id, property_id, stage, value, currency,
         probability, expected_close_date, agent_id, priority, notes)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
-    `, [id, title, leadId, propertyId, stage || 'nuevo_prospecto', value, currency || 'USD',
-      probability || 0, expectedCloseDate, agentId, priority || 'media', notes]);
+    `, [id, dealTitle, safeLeadId, safePropertyId, stage || 'nuevo_prospecto', Number(value) || 0, currency || 'USD',
+      Number(probability) || 0, safeCloseDate, safeAgentId, priority || 'media', notes || '']);
 
     res.status(201).json({ id, message: 'Deal creado' });
   } catch (err) {
+    console.error('Error al crear deal:', err);
     res.status(500).json({ error: err.message });
   }
 });

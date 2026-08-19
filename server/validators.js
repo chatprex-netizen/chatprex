@@ -46,9 +46,10 @@ export const propertySchema = z.object({
 });
 
 export const contactSchema = z.object({
+  id: z.string().optional(),
   name: z.string().optional().or(z.literal('')),
-  email: z.string().optional().or(z.literal('')),
-  phone: z.string().optional().or(z.literal('')),
+  email: z.string().optional().or(z.literal('')).nullable(),
+  phone: z.string().optional().or(z.literal('')).nullable(),
   type: z.string().optional(),
   channel: z.string().optional(),
   budgetMin: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
@@ -60,26 +61,29 @@ export const contactSchema = z.object({
   preferredZones: z.array(z.string()).optional(),
   preferredTypes: z.array(z.string()).optional(),
   leadScore: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
+  leadTemperature: z.string().optional(),
+  scoreCriteria: z.any().optional(),
   notes: z.string().optional().or(z.literal('')),
-  assignedAgentId: z.string().optional().or(z.literal('')),
+  assignedAgentId: z.string().optional().or(z.literal('')).nullable(),
   nextFollowUpDate: z.string().optional().nullable(),
   statusFollowUp: z.string().optional(),
   avatar: z.string().optional().or(z.literal('')),
-});
+}).passthrough();
 
 export const dealSchema = z.object({
+  id: z.string().optional(),
   title: z.string().optional().or(z.literal('')),
-  leadId: z.string().optional().or(z.literal('')),
-  propertyId: z.string().optional().or(z.literal('')),
+  leadId: z.string().optional().or(z.literal('')).nullable(),
+  propertyId: z.string().optional().or(z.literal('')).nullable(),
   stage: z.string().optional(),
   value: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
   currency: z.string().optional(),
   probability: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
   expectedCloseDate: z.string().optional().nullable(),
-  agentId: z.string().optional().or(z.literal('')),
+  agentId: z.string().optional().or(z.literal('')).nullable(),
   priority: z.string().optional(),
   notes: z.string().optional().or(z.literal('')),
-});
+}).passthrough();
 
 export const taskSchema = z.object({
   title: z.string().min(3, 'El título es requerido').optional(),
