@@ -33,7 +33,12 @@ app.use(express.json({
     req.rawBody = buf.toString();
   }
 }));
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => callback(null, true),
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}));
 
 process.on('uncaughtException', (err) => {
   console.error('💥 Uncaught Exception:', err.message, err.stack);

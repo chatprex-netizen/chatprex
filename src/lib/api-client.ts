@@ -13,16 +13,14 @@ export class ApiError extends Error {
   }
 }
 
-async function fetchApi<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  
+async function doFetch(url: string, options: FetchOptions = {}) {
   const headers = new Headers(options.headers);
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
 
   // Inyectar token JWT automáticamente
-  const token = localStorage.getItem('prexup_auth_token');
+  const token = localStorage.getItem('casaya_auth_token') || localStorage.getItem('prexup_auth_token');
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
@@ -38,38 +36,54 @@ async function fetchApi<T>(endpoint: string, options: FetchOptions = {}): Promis
     config.body = options.body;
   }
 
-  try {
-    const response = await fetch(url, config);
-    
-    // Si la respuesta no es OK, arrojar error con mensaje del servidor o status
-    if (!response.ok) {
-      let errorMessage = `Error ${response.status}`;
-      try {
-        const errorData = await response.json();
-        if (errorData.details && Array.isArray(errorData.details)) {
-          errorMessage = errorData.details.join(', ');
-        } else {
-          errorMessage = errorData.error || errorData.message || errorMessage;
-        }
-      } catch (e) {
-        // Fallback to plain text if possible
-        const text = await response.text();
-        if (text) errorMessage = text;
-      }
-      throw new ApiError(response.status, errorMessage);
-    }
+  return fetch(url, config);
+}
 
-    // Comprobar si la respuesta está vacía (e.g. DELETE)
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return await response.json();
+async function fetchApi<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+  const primaryUrl = `${API_BASE_URL}${endpoint}`;
+  
+  let response: Response;
+  try {
+    response = await doFetch(primaryUrl, options);
+  } catch (initialErr) {
+    // Si falla el fetch principal hacia api.casaya.pe (ej. DNS pendiente o caída de red),
+    // reintentamos automáticamente hacia el backend local del mismo host si existe
+    if (typeof window !== 'undefined' && API_BASE_URL !== `${window.location.origin}/api/crm`) {
+      try {
+        const fallbackUrl = `${window.location.origin}/api/crm${endpoint}`;
+        response = await doFetch(fallbackUrl, options);
+      } catch {
+        throw new Error(initialErr instanceof Error ? initialErr.message : 'Error de conexión con el servidor de base de datos');
+      }
+    } else {
+      throw new Error(initialErr instanceof Error ? initialErr.message : 'Error de conexión con el servidor de base de datos');
     }
-    
-    return {} as T; // Return empty object for non-json (e.g., 204 No Content)
-  } catch (error) {
-    if (error instanceof ApiError) throw error;
-    throw new Error(error instanceof Error ? error.message : 'Error desconocido de red');
   }
+
+  // Si la respuesta no es OK, arrojar error con mensaje del servidor o status
+  if (!response.ok) {
+    let errorMessage = `Error ${response.status}`;
+    try {
+      const errorData = await response.json();
+      if (errorData.details && Array.isArray(errorData.details)) {
+        errorMessage = errorData.details.join(', ');
+      } else {
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      }
+    } catch {
+      const text = await response.text();
+      if (text) errorMessage = text;
+    }
+    throw new ApiError(response.status, errorMessage);
+  }
+
+  // Comprobar si la respuesta está vacía (e.g. DELETE)
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return await response.json();
+  }
+  
+  return {} as T;
 }
 
 export const apiClient = {
