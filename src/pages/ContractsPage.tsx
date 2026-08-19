@@ -11,12 +11,54 @@ import {
   Trash2, 
   Edit3, 
   LayoutGrid,
-  List
+  List,
+  Building,
+  User,
+  Eye,
+  Scroll
 } from 'lucide-react';
 
 interface ContractsPageProps {
   onOpenNewContractModal?: () => void;
 }
+
+const CONTRACT_STATUS_CONFIG: Record<string, { label: string; color: string; bgLight: string; border: string; dot: string }> = {
+  Firmado: {
+    label: 'Firmado',
+    color: 'text-emerald-700 dark:text-emerald-300',
+    bgLight: 'bg-emerald-50 dark:bg-emerald-950/50',
+    border: 'border-emerald-200 dark:border-emerald-800',
+    dot: 'bg-emerald-500',
+  },
+  Enviado: {
+    label: 'Enviado',
+    color: 'text-blue-700 dark:text-blue-300',
+    bgLight: 'bg-blue-50 dark:bg-blue-950/50',
+    border: 'border-blue-200 dark:border-blue-800',
+    dot: 'bg-blue-500',
+  },
+  Pendiente: {
+    label: 'Pendiente',
+    color: 'text-amber-700 dark:text-amber-300',
+    bgLight: 'bg-amber-50 dark:bg-amber-950/50',
+    border: 'border-amber-200 dark:border-amber-800',
+    dot: 'bg-amber-500',
+  },
+  Borrador: {
+    label: 'Borrador',
+    color: 'text-slate-700 dark:text-slate-300',
+    bgLight: 'bg-slate-100 dark:bg-slate-800',
+    border: 'border-slate-200 dark:border-slate-700',
+    dot: 'bg-slate-400',
+  },
+  Cancelado: {
+    label: 'Cancelado',
+    color: 'text-rose-700 dark:text-rose-300',
+    bgLight: 'bg-rose-50 dark:bg-rose-950/50',
+    border: 'border-rose-200 dark:border-rose-800',
+    dot: 'bg-rose-500',
+  },
+};
 
 export const ContractsPage: React.FC<ContractsPageProps> = () => {
   const { 
@@ -199,7 +241,7 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
       </div>
 
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3">
           {filteredContracts.length === 0 ? (
             <div className="col-span-full p-8 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 text-slate-400">
               <FileText className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-700" />
@@ -208,75 +250,141 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
               </p>
             </div>
           ) : (
-            filteredContracts.map((contract) => (
-              <div
-                key={contract.id}
-                onClick={() => handleView(contract)}
-                className="p-4 sm:p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-card hover:shadow-card-hover transition-all flex flex-col justify-between space-y-2.5 cursor-pointer group"
-              >
-                {/* Top Row: Code + Status Badge */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    {contract.code}
-                  </span>
-                  <Badge variant={contract.status.toLowerCase()} size="sm">
-                    {contract.status}
-                  </Badge>
-                </div>
+            filteredContracts.map((contract) => {
+              const statusConfig = CONTRACT_STATUS_CONFIG[contract.status] || CONTRACT_STATUS_CONFIG.Borrador;
+              const contractUnitFull = (() => {
+                if (contract.propertyId) {
+                  const prop = properties?.find(p => p.id === contract.propertyId);
+                  if (prop && prop.projectName) {
+                    return `${prop.projectName} - ${contract.unit}`;
+                  }
+                }
+                return contract.unit;
+              })();
 
-                {/* Middle Row: Title & Price */}
-                <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-[#004aad] transition-colors">
-                    {contract.type}
-                  </h3>
-                  <div className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                    {contract.currency} {(parseFloat(contract.amount as any) || 0).toLocaleString()}
+              return (
+                <div
+                  key={contract.id}
+                  className="p-3 sm:p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card hover:shadow-card-hover transition-all flex flex-col justify-between space-y-2"
+                >
+                  <div className="space-y-2">
+                    {/* Top Row: Icon + Title + Status Pill */}
+                    <div className="flex items-start justify-between gap-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-50 dark:bg-blue-950/60 text-[#004aad] dark:text-blue-300 flex items-center justify-center ring-1 ring-slate-200 dark:ring-slate-700 shrink-0 font-bold text-[10px]">
+                          <Scroll className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-xs text-slate-900 dark:text-white truncate">
+                            {contract.type}
+                          </h3>
+                          <span className="text-[10px] text-slate-400 font-mono block truncate">
+                            {contract.code}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${statusConfig.bgLight} ${statusConfig.color} ${statusConfig.border}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+                          <span>{contract.status}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Tag / Type Badge */}
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <Badge variant="blue" size="sm">
+                        {contract.type}
+                      </Badge>
+                      <span className="px-1.5 py-0.5 text-[9px] font-medium rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        {contract.currency === 'PEN' ? 'Soles (S/)' : 'Dólares (USD)'}
+                      </span>
+                      {contract.status === 'Pendiente' && (
+                        <span className="px-1.5 py-0.2 text-[9px] font-semibold rounded bg-amber-50 text-amber-600 border border-amber-200">
+                          Por Firmar
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Contract Details */}
+                    <div className="space-y-0.5 text-[11px] text-slate-600 dark:text-slate-300">
+                      {/* Comprador */}
+                      <div className="flex items-center gap-1 truncate">
+                        <User className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className="truncate">
+                          Comprador: <strong className="font-medium text-slate-800 dark:text-slate-200">{contract.client}</strong>
+                        </span>
+                      </div>
+
+                      {/* Monto */}
+                      <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs truncate">
+                        <span className="truncate">
+                          {contract.currency === 'PEN' ? 'S/' : (contract.currency || 'S/')} {(parseFloat(contract.amount as any) || 0).toLocaleString('en-US')}
+                        </span>
+                      </div>
+
+                      {/* Proyecto / Unidad */}
+                      {contractUnitFull && (
+                        <div className="flex items-center gap-1 text-slate-400 truncate" title={contractUnitFull}>
+                          <Building className="w-3 h-3 shrink-0" />
+                          <span className="truncate">
+                            {contractUnitFull}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Bottom Details Row */}
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">
-                  <div className="font-normal truncate" title={contract.unit}>
-                    {(() => {
-                      if (contract.propertyId) {
-                        const prop = properties?.find(p => p.id === contract.propertyId);
-                        if (prop && prop.projectName) {
-                          return `${prop.projectName} - ${contract.unit}`;
-                        }
-                      }
-                      return contract.unit;
-                    })()}
-                  </div>
-                  <div className="flex items-center justify-between text-slate-400">
-                    <span className="truncate">
-                      Comprador: <strong className="text-slate-700 dark:text-slate-300 font-medium">{contract.client}</strong> · Creado {contract.createdDate}
-                    </span>
+                  {/* Actions & Manage Button */}
+                  <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => handleView(contract)}
+                      className="w-full py-1 px-2 rounded-md bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 hover:text-[#004aad] text-slate-600 dark:text-slate-300 text-[10px] font-medium transition-all flex items-center justify-center gap-1"
+                    >
+                      <FileText className="w-3 h-3 text-[#004aad]" />
+                      <span>Gestionar Contrato</span>
+                    </button>
 
-                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => handleEdit(contract)}
-                        className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-                        title="Editar"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
+                    <div className="flex items-center justify-between pt-0.5">
+                      <span className="text-[10px] text-slate-400 truncate max-w-[100px]">
+                        Creado {contract.createdDate}
+                      </span>
 
-                      <button
-                        onClick={() => {
-                          if (window.confirm(`¿Eliminar el contrato ${contract.code}?`)) {
-                            deleteContract(contract.id);
-                          }
-                        }}
-                        className="p-1 rounded text-slate-400 hover:text-rose-600"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleView(contract)}
+                          title="Ver detalle y PDF"
+                          className="p-1 rounded text-slate-400 hover:text-[#004aad] hover:bg-blue-50 transition-colors"
+                        >
+                          <Eye className="w-3 h-3" />
+                        </button>
+
+                        <button
+                          onClick={() => handleEdit(contract)}
+                          title="Editar"
+                          className="p-1 rounded text-slate-400 hover:text-slate-700 transition-colors"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`¿Eliminar el contrato ${contract.code}?`)) {
+                              deleteContract(contract.id);
+                            }
+                          }}
+                          title="Eliminar"
+                          className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       ) : (
@@ -299,23 +407,23 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
                 {filteredContracts.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="py-8 text-center text-slate-400">
-                      No hay contratos registrados con los filtros seleccionados.
+                      No hay contratos que coincidan con la búsqueda.
                     </td>
                   </tr>
                 ) : (
                   filteredContracts.map((contract) => (
-                    <tr
-                      key={contract.id}
+                    <tr 
+                      key={contract.id} 
+                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
                       onClick={() => handleView(contract)}
-                      className="hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors"
                     >
-                      <td className="py-3 px-4 font-mono text-[11px] text-slate-400">
+                      <td className="py-3 px-4 font-mono font-medium text-slate-900 dark:text-white">
                         {contract.code}
                       </td>
-                      <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">
+                      <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">
                         {contract.type}
                       </td>
-                      <td className="py-3 px-4 max-w-[200px] truncate" title={contract.unit}>
+                      <td className="py-3 px-4 text-slate-500 dark:text-slate-400">
                         {(() => {
                           if (contract.propertyId) {
                             const prop = properties?.find(p => p.id === contract.propertyId);
@@ -326,7 +434,7 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
                           return contract.unit;
                         })()}
                       </td>
-                      <td className="py-3 px-4 font-medium">
+                      <td className="py-3 px-4 text-slate-800 dark:text-slate-200 font-medium">
                         {contract.client}
                       </td>
                       <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">
@@ -341,22 +449,33 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
                         </Badge>
                       </td>
                       <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => handleEdit(contract)}
-                          className="text-[#004aad] hover:underline font-medium text-xs mr-3"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`¿Eliminar el contrato ${contract.code}?`)) {
-                              deleteContract(contract.id);
-                            }
-                          }}
-                          className="text-rose-500 hover:underline font-medium text-xs"
-                        >
-                          Eliminar
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => handleView(contract)}
+                            className="p-1 rounded text-slate-400 hover:text-[#004aad]"
+                            title="Ver detalle"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(contract)}
+                            className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                            title="Editar"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`¿Eliminar el contrato ${contract.code}?`)) {
+                                deleteContract(contract.id);
+                              }
+                            }}
+                            className="p-1 rounded text-slate-400 hover:text-rose-600"
+                            title="Eliminar"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -367,7 +486,7 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
         </div>
       )}
 
-      {/* New & Edit Modal */}
+      {/* Modales */}
       <ContractModal
         isOpen={isNewModalOpen || isEditModalOpen}
         onClose={() => {
@@ -378,7 +497,6 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
         contractToEdit={contractToEdit}
       />
 
-      {/* Detail / PDF Preview Modal */}
       <ContractDetailModal
         isOpen={isDetailModalOpen}
         onClose={() => {
@@ -386,10 +504,6 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
           setContractToView(null);
         }}
         contract={contractToView}
-        onEdit={(c) => {
-          setIsDetailModalOpen(false);
-          handleEdit(c);
-        }}
       />
     </div>
   );
