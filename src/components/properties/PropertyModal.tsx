@@ -14,7 +14,7 @@ const PROPERTY_TYPES: { id: PropertyType; label: string }[] = [
   { id: 'departamento', label: 'Departamento' },
   { id: 'casa', label: 'Casa' },
   { id: 'penthouse', label: 'Penthouse' },
-  { id: 'terreno', label: 'Terreno' },
+  { id: 'terreno', label: 'Terreno / Lote' },
   { id: 'oficina', label: 'Oficina' },
   { id: 'local_comercial', label: 'Local Comercial' },
   { id: 'proyecto_preventa', label: 'Preventa / Proyecto' },
@@ -102,14 +102,15 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         status: propertyToEdit.status,
         images: propertyToEdit.images || [],
         agentId: propertyToEdit.agentId,
-        commissionPct: propertyToEdit.commissionPct ?? 5.0,
+        commissionPct: propertyToEdit.commissionPct,
         imageUrlInput: '',
         projectName: propertyToEdit.projectName || '',
         developer: propertyToEdit.developer || '',
       });
     } else {
+      const codeNumber = Math.floor(100 + Math.random() * 900);
       setFormData({
-        code: `INM-00${Math.floor(Math.random() * 900) + 100}`,
+        code: `INM-${new Date().getFullYear()}-${codeNumber}`,
         title: '',
         description: '',
         type: 'departamento',
@@ -123,12 +124,10 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         parkingSpots: '',
         address: '',
         zone: '',
-        city: '',
-        features: [],
+        city: 'Lima',
+        features: ['Seguridad 24/7', 'Ascensor Directo'],
         status: 'disponible',
-        images: [
-          'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80'
-        ],
+        images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=80'],
         agentId: agents[0]?.id || '',
         commissionPct: 5.0,
         imageUrlInput: '',
@@ -164,70 +163,66 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim()) return;
-
-    try {
-      const { imageUrlInput, ...rest } = formData;
-      const payload = {
-        ...rest,
-        price: parseFloat(formData.price.toString().replace(/,/g, '')) || 0,
-        areaTotal: parseFloat(formData.areaTotal.toString()) || 0,
-        areaBuilt: parseFloat(formData.areaBuilt.toString()) || 0,
-        bedrooms: parseInt(formData.bedrooms.toString(), 10) || 0,
-        bathrooms: parseFloat(formData.bathrooms.toString()) || 0,
-        parkingSpots: parseInt(formData.parkingSpots.toString(), 10) || 0,
-        commissionPct: parseFloat(formData.commissionPct.toString()) || 0,
-      };
-
-      if (propertyToEdit) {
-        await updateProperty(propertyToEdit.id, payload as any);
-      } else {
-        await addProperty(payload as any);
-      }
-      onClose();
-    } catch (err: any) {
-      alert('Error al guardar propiedad: ' + (err.message || 'Error del servidor'));
+    if (!formData.title.trim() || !formData.address.trim()) {
+      alert('Por favor completa el título y la dirección del inmueble.');
+      return;
     }
+
+    const payload: Partial<Property> = {
+      ...formData,
+      price: formData.price === '' ? 0 : Number(formData.price.toString().replace(/,/g, '')),
+      areaTotal: formData.areaTotal === '' ? 0 : Number(formData.areaTotal),
+      areaBuilt: formData.areaBuilt === '' ? 0 : Number(formData.areaBuilt),
+      bedrooms: formData.bedrooms === '' ? 0 : Number(formData.bedrooms),
+      bathrooms: formData.bathrooms === '' ? 0 : Number(formData.bathrooms),
+      parkingSpots: formData.parkingSpots === '' ? 0 : Number(formData.parkingSpots),
+      commissionPct: Number(formData.commissionPct),
+    };
+
+    if (propertyToEdit) {
+      updateProperty(propertyToEdit.id, payload);
+    } else {
+      addProperty(payload as Omit<Property, 'id' | 'createdAt'>);
+    }
+    onClose();
   };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={propertyToEdit ? 'Editar Propiedad' : 'Registrar Nuevo Inmueble'}
+      title={propertyToEdit ? 'Editar Inmueble' : 'Registrar Nuevo Inmueble'}
       subtitle="Ingresa la información detallada para el catálogo de la agencia"
       maxWidth="2xl"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-2.5">
         {/* Basic Info */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="sm:col-span-3">
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Título del Inmueble *
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="Ej: Departamento Penthouse en Providencia"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100"
-            />
-          </div>
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+            Título del Inmueble *
+          </label>
+          <input
+            type="text"
+            required
+            placeholder="Ej: Departamento Penthouse en Miraflores con vista al mar"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
+          />
         </div>
 
         {/* Type & Operation & Status */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
               Tipo de Inmueble
             </label>
             <select
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value as PropertyType })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100 capitalize"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 capitalize"
             >
               {PROPERTY_TYPES.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -238,13 +233,13 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
               Operación
             </label>
             <select
               value={formData.operation}
               onChange={(e) => setFormData({ ...formData, operation: e.target.value as PropertyOperation })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100 uppercase font-semibold"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 capitalize font-medium"
             >
               <option value="venta">Venta</option>
               <option value="alquiler">Alquiler</option>
@@ -253,13 +248,13 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
               Estado
             </label>
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value as PropertyStatus })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 capitalize"
             >
               <option value="disponible">Disponible</option>
               <option value="en_negociacion">En Negociación</option>
@@ -271,55 +266,50 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         </div>
 
         {/* Pricing & Commission */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
               Moneda
             </label>
             <select
               value={formData.currency}
               onChange={(e) => setFormData({ ...formData, currency: e.target.value as any })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100 font-semibold"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 font-medium"
             >
               <option value="PEN">S/ (Soles)</option>
-              <option value="USD">USD</option>
+              <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>
               <option value="MXN">MXN</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
               Precio / Monto
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-bold text-xs">
-                {formData.currency === 'PEN' ? 'S/' : formData.currency}
-              </div>
-              <input
-                type="text"
-                placeholder="Ej: 350,000"
-                value={formatNumberWithCommas(formData.price)}
-                onChange={(e) => {
-                  const raw = e.target.value.replace(/[^0-9.]/g, '');
-                  setFormData({ ...formData, price: raw });
-                }}
-                className="w-full pl-10 pr-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100 font-bold"
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="Ej: 350,000"
+              value={formatNumberWithCommas(formData.price)}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9.]/g, '');
+                setFormData({ ...formData, price: raw });
+              }}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 font-semibold text-emerald-600 dark:text-emerald-400"
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
               Comisión Agencia (%)
             </label>
             <input
               type="number"
               step="0.5"
-              placeholder="5"
+              placeholder="Ej: 5"
               value={formData.commissionPct}
               onChange={(e) => setFormData({ ...formData, commissionPct: e.target.value as any })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
             />
           </div>
         </div>
@@ -328,7 +318,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         {!isLandOrPresale && (
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
                 m² Totales
               </label>
               <input
@@ -336,12 +326,12 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
                 placeholder="Ej: 120"
                 value={formData.areaTotal}
                 onChange={(e) => setFormData({ ...formData, areaTotal: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
                 m² Construidos
               </label>
               <input
@@ -349,25 +339,25 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
                 placeholder="Ej: 100"
                 value={formData.areaBuilt}
                 onChange={(e) => setFormData({ ...formData, areaBuilt: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Recámaras
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+                Dormitorios
               </label>
               <input
                 type="number"
                 placeholder="Ej: 3"
                 value={formData.bedrooms}
                 onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
                 Baños
               </label>
               <input
@@ -376,45 +366,45 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
                 placeholder="Ej: 2"
                 value={formData.bathrooms}
                 onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
 
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Estacionamiento
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+                Cocheras
               </label>
               <input
                 type="number"
                 placeholder="Ej: 1"
                 value={formData.parkingSpots}
                 onChange={(e) => setFormData({ ...formData, parkingSpots: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
           </div>
         )}
 
         {isLandOrPresale && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                m² Totales
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+                m² Totales / Terreno
               </label>
               <input
                 type="number"
                 placeholder="Ej: 200"
                 value={formData.areaTotal}
                 onChange={(e) => setFormData({ ...formData, areaTotal: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
               />
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
               Proyecto Asociado
             </label>
             <select
@@ -428,54 +418,55 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
                   developer: proj ? proj.developer : formData.developer
                 });
               }}
-              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
             >
-              <option value="">Ninguno</option>
+              <option value="">Ninguno / Inmueble Independiente</option>
               {projects.map(p => (
                 <option key={p.id} value={p.name}>{p.name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Desarrollador
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Desarrollador / Constructora
             </label>
             <input
               type="text"
               value={formData.developer || ''}
               onChange={(e) => setFormData({ ...formData, developer: e.target.value })}
-              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
-              placeholder="Ej: Inmobiliaria XYZ"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              placeholder="Ej: Inmobiliaria Constructora"
               disabled={!!projects.find(p => p.name === formData.projectName)}
             />
           </div>
         </div>
 
         {/* Location */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div className="sm:col-span-2">
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Ubicación
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Dirección *
             </label>
             <input
               type="text"
-              placeholder="Ej: Av. Las Palmas 1420"
+              required
+              placeholder="Ej: Av. Las Palmeras 1420, Dpto 402"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
               Ciudad
             </label>
             <input
               type="text"
-              placeholder="Ej: Ciudad de México"
+              placeholder="Ej: Lima"
               value={formData.city}
               onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
             />
           </div>
         </div>
@@ -483,10 +474,10 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         {/* Amenities Selection (Conditionally rendered) */}
         {!isLandOrPresale && (
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Amenidades y Características
             </label>
-            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+            <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto p-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
               {AVAILABLE_FEATURES.map((feat) => {
                 const selected = formData.features.includes(feat);
                 return (
@@ -494,9 +485,9 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
                     type="button"
                     key={feat}
                     onClick={() => toggleFeature(feat)}
-                    className={`px-2.5 py-1 text-[11px] rounded-lg font-medium transition-all flex items-center gap-1 ${
+                    className={`px-2 py-0.5 text-[10.5px] rounded-lg font-medium transition-all flex items-center gap-1 ${
                       selected
-                        ? 'bg-emerald-600 text-white shadow-xs'
+                        ? 'bg-[#004aad] text-white shadow-xs'
                         : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
                     }`}
                   >
@@ -509,70 +500,32 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
           </div>
         )}
 
-        {/* Image URLs */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Galería de Fotos (URLs)
-          </label>
-          <div className="flex gap-2 mb-2">
-            <input
-              type="url"
-              placeholder="Pega la URL de una imagen (ej: https://images.unsplash.com/...)"
-              value={formData.imageUrlInput}
-              onChange={(e) => setFormData({ ...formData, imageUrlInput: e.target.value })}
-              className="flex-1 px-3 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
-            />
-            <button
-              type="button"
-              onClick={handleAddImage}
-              className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 transition-colors"
-            >
-              Agregar
-            </button>
-          </div>
-
-          <div className="flex gap-2 overflow-x-auto py-1">
-            {formData.images.map((img, i) => (
-              <div key={i} className="relative group w-16 h-16 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0">
-                <img src={img} alt="preview" className="w-full h-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImage(i)}
-                  className="absolute inset-0 bg-red-600/70 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center text-xs font-bold transition-opacity"
-                >
-                  Quitar
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Description */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
             Descripción Detallada
           </label>
           <textarea
-            rows={3}
-            placeholder="Describe los acabados, orientación solar, vistas y ventajas del inmueble..."
+            rows={2}
+            placeholder="Describe acabados, vistas, distribución y ventajas del inmueble..."
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 outline-none text-slate-900 dark:text-slate-100 resize-none"
+            className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100 resize-none leading-relaxed"
           />
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+        <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="px-3.5 py-1.5 text-xs font-semibold rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="px-5 py-2 text-xs sm:text-sm font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/30 transition-all active:scale-95"
+            className="px-4 py-1.5 text-xs font-bold rounded-xl bg-[#004aad] hover:bg-[#003b8a] text-white shadow-xs transition-all active:scale-95"
           >
             {propertyToEdit ? 'Guardar Cambios' : 'Registrar Inmueble'}
           </button>

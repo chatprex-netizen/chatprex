@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, DollarSign } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
+import { Modal } from '../common/Modal';
 import { FinanceTransaction, FinanceTransactionType, FinanceCategory, FinanceStatus, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../types';
 import { useCRM } from '../../context/CRMContext';
 
@@ -69,8 +70,6 @@ export const FinanceTransactionModal: React.FC<FinanceTransactionModalProps> = (
       setCurrency(deal.currency);
       setDescription(`Comisión por venta - ${deal.title} (${pct}%)`);
     } else if (category === 'Comisión a agente') {
-      // Por defecto, asumamos que el agente gana la mitad de la comisión de la empresa, es decir, el 50% del ingreso,
-      // o un porcentaje directo del valor de la propiedad. Asumiremos un 2.5% por defecto si no hay input.
       const pct = customCommissionPct !== '' ? Number(customCommissionPct) : 2.5;
       setAmount((deal.value * pct) / 100);
       setCurrency(deal.currency);
@@ -101,239 +100,196 @@ export const FinanceTransactionModal: React.FC<FinanceTransactionModalProps> = (
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div 
-        className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-fade-in"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-[#004aad]" />
-            {transaction ? 'Editar Transacción' : 'Nueva Transacción'}
-          </h2>
-          <button 
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={transaction ? 'Editar Transacción' : 'Nueva Transacción Financiera'}
+      subtitle="Registra ingresos por comisión o egresos operativos de la agencia"
+      maxWidth="lg"
+    >
+      <form onSubmit={handleSubmit} className="space-y-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Tipo de Movimiento *
+            </label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as FinanceTransactionType)}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
+              required
+            >
+              <option value="ingreso">Ingreso (+)</option>
+              <option value="egreso">Egreso (-)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Categoría *
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as FinanceCategory)}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
+              required
+            >
+              {type === 'ingreso' ? (
+                INCOME_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)
+              ) : (
+                EXPENSE_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)
+              )}
+            </select>
+          </div>
         </div>
 
-        <div className="p-6 overflow-y-auto">
-          <form id="financeForm" onSubmit={handleSubmit} className="space-y-4">
-            
-            <div className="grid grid-cols-2 gap-4">
+        {(category === 'Comisión por venta' || category === 'Comisión a agente') && (
+          <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/80 space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Tipo
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+                  Negociación / Venta
                 </label>
                 <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value as FinanceTransactionType)}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
-                  required
+                  value={selectedDealId}
+                  onChange={(e) => setSelectedDealId(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
                 >
-                  <option value="ingreso">Ingreso</option>
-                  <option value="egreso">Egreso</option>
+                  <option value="">Selecciona una oportunidad</option>
+                  {deals.filter(d => d.stage === 'ganado' || d.stage === 'reserva' || d.stage === 'negociacion').map(deal => (
+                    <option key={deal.id} value={deal.id}>{deal.title} ({deal.currency} {deal.value.toLocaleString()})</option>
+                  ))}
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Categoría
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as FinanceCategory)}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
-                  required
-                >
-                  {type === 'ingreso' ? (
-                    INCOME_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)
-                  ) : (
-                    EXPENSE_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)
-                  )}
-                </select>
-              </div>
-            </div>
-
-            {(category === 'Comisión por venta' || category === 'Comisión a agente') && (
-              <div className="grid grid-cols-1 gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                      Propiedad Vendida (Deal)
-                    </label>
-                    <select
-                      value={selectedDealId}
-                      onChange={(e) => setSelectedDealId(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
-                    >
-                      <option value="">Selecciona una oportunidad</option>
-                      {deals.filter(d => d.stage === 'ganado' || d.stage === 'reserva' || d.stage === 'negociacion').map(deal => (
-                        <option key={deal.id} value={deal.id}>{deal.title} ({deal.currency} {deal.value.toLocaleString()})</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {category === 'Comisión a agente' ? (
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        Agente / Asesor
-                      </label>
-                      <select
-                        value={selectedAgentId}
-                        onChange={(e) => setSelectedAgentId(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
-                      >
-                        <option value="">Selecciona un agente</option>
-                        {agents.map(agent => (
-                          <option key={agent.id} value={agent.id}>{agent.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  ) : (
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        % de Comisión
-                      </label>
-                      <input
-                        type="number"
-                        value={customCommissionPct}
-                        onChange={(e) => setCustomCommissionPct(e.target.value ? Number(e.target.value) : '')}
-                        placeholder="Ej. 5"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
-                      />
-                    </div>
-                  )}
-
-                  {category === 'Comisión a agente' && (
-                    <div className="col-span-2 sm:col-span-1">
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        % de Comisión (Asesor)
-                      </label>
-                      <input
-                        type="number"
-                        value={customCommissionPct}
-                        onChange={(e) => setCustomCommissionPct(e.target.value ? Number(e.target.value) : '')}
-                        placeholder="Ej. 2.5"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
-                      />
-                    </div>
-                  )}
+              {category === 'Comisión a agente' ? (
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+                    Asesor Inmobiliario
+                  </label>
+                  <select
+                    value={selectedAgentId}
+                    onChange={(e) => setSelectedAgentId(e.target.value)}
+                    className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
+                  >
+                    <option value="">Selecciona un agente</option>
+                    {agents.map(agent => (
+                      <option key={agent.id} value={agent.id}>{agent.name}</option>
+                    ))}
+                  </select>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+                    % de Comisión
+                  </label>
+                  <input
+                    type="number"
+                    value={customCommissionPct}
+                    onChange={(e) => setCustomCommissionPct(e.target.value ? Number(e.target.value) : '')}
+                    placeholder="Ej: 5"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+            Concepto / Descripción *
+          </label>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Ej: Comisión por venta departamento 402 Edificio Miraflores"
+            className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#004aad] outline-none text-slate-900 dark:text-slate-100"
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Monto *
+            </label>
+            <div className="flex gap-1">
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="w-20 px-2 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 font-medium"
+              >
+                <option value="USD">USD</option>
+                <option value="PEN">S/</option>
+                <option value="EUR">EUR</option>
+                <option value="MXN">MXN</option>
+              </select>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : '')}
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                className="flex-1 px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad] font-semibold text-emerald-600 dark:text-emerald-400"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Descripción
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+                Fecha
               </label>
               <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Ej. Comisión por venta de Casa Miraflores"
-                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
                 required
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Monto
-                </label>
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : '')}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Moneda
-                </label>
-                <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
-                  required
-                >
-                  <option value="USD">USD - Dólar Estadounidense</option>
-                  <option value="PEN">PEN - Sol Peruano</option>
-                  <option value="MXN">MXN - Peso Mexicano</option>
-                  <option value="EUR">EUR - Euro</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+                Estado
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as FinanceStatus)}
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 capitalize"
+                required
+              >
+                <option value="pagado">Pagado</option>
+                <option value="pendiente">Pendiente</option>
+              </select>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Fecha
-                </label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Estado
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as FinanceStatus)}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004aad] bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
-                  required
-                >
-                  <option value="pagado">Pagado / Cobrado</option>
-                  <option value="pendiente">Pendiente</option>
-                </select>
-              </div>
-            </div>
-            
-          </form>
+          </div>
         </div>
 
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3 mt-auto">
+        <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            className="px-3.5 py-1.5 text-xs font-semibold rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            form="financeForm"
-            className="px-4 py-2 text-sm font-medium text-white bg-[#004aad] hover:bg-[#003c8b] rounded-lg transition-colors flex items-center gap-2"
+            className="px-4 py-1.5 text-xs font-bold rounded-xl bg-[#004aad] hover:bg-[#003b8a] text-white shadow-xs transition-all active:scale-95"
           >
-            <Save className="w-4 h-4" />
             {transaction ? 'Guardar Cambios' : 'Registrar Transacción'}
           </button>
         </div>
-      </div>
-    </div>
+      </form>
+    </Modal>
   );
 };

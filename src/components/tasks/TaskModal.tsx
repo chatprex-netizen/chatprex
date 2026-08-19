@@ -88,34 +88,34 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={taskToEdit ? 'Editar tarea' : 'Nueva tarea'}
-      subtitle="Programa una actividad con fecha límite"
+      title={taskToEdit ? 'Editar Tarea' : 'Nueva Tarea'}
+      subtitle="Programa una actividad comercial con fecha límite"
       maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-3 text-xs">
+      <form onSubmit={handleSubmit} className="space-y-2.5">
         <div>
-          <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
-            Título de la tarea *
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+            Título de la Tarea *
           </label>
           <input
             type="text"
             required
-            placeholder="Ej: Llamar a cliente para coordinar visita"
+            placeholder="Ej: Llamar a cliente para coordinar visita al proyecto"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
+            className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
-            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
-              Tipo de actividad
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Tipo de Actividad
             </label>
             <select
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value as TaskType })}
-              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
             >
               {TASK_TYPES.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -126,13 +126,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
               Prioridad
             </label>
             <select
               value={formData.priority}
               onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 capitalize"
             >
               <option value="alta">Alta</option>
               <option value="media">Media</option>
@@ -141,42 +141,42 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
-            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
-              Fecha límite
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Fecha Límite
             </label>
             <input
               type="date"
               required
               value={formData.dueDate}
               onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
             />
           </div>
 
           <div>
-            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
-              Hora límite
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Hora Límite
             </label>
             <input
               type="time"
               value={formData.dueTime}
               onChange={(e) => setFormData({ ...formData, dueTime: e.target.value })}
-              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
-            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
-              Cliente asociado
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Cliente Asociado
             </label>
             <select
               value={formData.contactId}
               onChange={(e) => setFormData({ ...formData, contactId: e.target.value })}
-              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
             >
               <option value="">-- Sin cliente --</option>
               {contacts.map((c) => (
@@ -188,13 +188,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
-              Propiedad asociada
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Propiedad Asociada
             </label>
             <select
               value={formData.propertyId}
               onChange={(e) => setFormData({ ...formData, propertyId: e.target.value })}
-              className="w-full px-2.5 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100"
             >
               <option value="">-- Sin propiedad --</option>
               {properties.map((p) => (
@@ -207,31 +207,31 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1">
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
             Descripción / Notas
           </label>
           <textarea
             rows={2}
-            placeholder="Detalles sobre la actividad..."
+            placeholder="Anota acuerdos previos, detalles sobre la llamada o recordatorios importantes..."
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 resize-none"
+            className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 resize-none leading-relaxed"
           />
         </div>
 
-        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+        <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-medium"
+            className="px-3.5 py-1.5 text-xs font-semibold rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="px-4 py-1.5 rounded-lg bg-[#004aad] hover:bg-[#003b8a] text-white font-medium shadow-xs transition-all"
+            className="px-4 py-1.5 text-xs font-bold rounded-xl bg-[#004aad] hover:bg-[#003b8a] text-white shadow-xs transition-all active:scale-95"
           >
-            {taskToEdit ? 'Guardar cambios' : 'Crear tarea'}
+            {taskToEdit ? 'Guardar Cambios' : 'Crear Tarea'}
           </button>
         </div>
       </form>

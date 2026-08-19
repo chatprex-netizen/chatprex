@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Building2, MapPin, Phone, Mail } from 'lucide-react';
+import { Building2, MapPin, Phone, Mail } from 'lucide-react';
+import { Modal } from '../common/Modal';
 import { useCRM } from '../../context/CRMContext';
 import { Project } from '../../types';
 
@@ -42,10 +43,10 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
     }
   }, [projectToEdit, isOpen]);
 
-  if (!isOpen) return null;
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name?.trim()) return;
+
     if (projectToEdit) {
       updateProject(projectToEdit.id, formData as Project);
     } else {
@@ -55,152 +56,127 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-      <div 
-        className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-[#004aad]" />
-            {projectToEdit ? 'Editar Proyecto' : 'Nuevo Proyecto'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={projectToEdit ? 'Editar Proyecto' : 'Nuevo Proyecto Inmobiliario'}
+      subtitle="Registra el proyecto matriz, constructora y datos de contacto"
+      maxWidth="md"
+    >
+      <form onSubmit={handleSubmit} className="space-y-2.5">
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+            Nombre del Proyecto *
+          </label>
+          <input
+            type="text"
+            required
+            placeholder="Ej: Residencial Las Praderas"
+            value={formData.name || ''}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
+          />
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5">
-          <form id="project-form" onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1 text-sm">
-                  Nombre del Proyecto *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Torre Marina"
-                  value={formData.name || ''}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
-                />
-              </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Desarrollador / Constructora *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="Ej: Constructora & Inmobiliaria Viva"
+              value={formData.developer || ''}
+              onChange={(e) => setFormData({ ...formData, developer: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
+            />
+          </div>
 
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1 text-sm">
-                  Desarrollador / Constructora *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Inmobiliaria Costa Azul"
-                  value={formData.developer || ''}
-                  onChange={(e) => setFormData({ ...formData, developer: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1 text-sm">
-                  Dirección
-                </label>
-                <div className="relative">
-                  <MapPin className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Ubicación del proyecto"
-                    value={formData.address || ''}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-              <h3 className="font-semibold text-slate-900 dark:text-white mb-3 text-sm">Datos de Contacto</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1 text-sm">
-                    Persona de Contacto
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Ing. Carlos Robles"
-                    value={formData.contactName || ''}
-                    onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1 text-sm">
-                    Teléfono
-                  </label>
-                  <div className="relative">
-                    <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Teléfono"
-                      value={formData.contactPhone || ''}
-                      onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
-                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1 text-sm">
-                    Correo
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="email"
-                      placeholder="Correo electrónico"
-                      value={formData.contactEmail || ''}
-                      onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1 text-sm">
-                Notas adicionales
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Información extra..."
-                value={formData.notes || ''}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad] resize-none"
-              />
-            </div>
-          </form>
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Dirección / Ubicación
+            </label>
+            <input
+              type="text"
+              placeholder="Ej: Av. Javier Prado Este 2500"
+              value={formData.address || ''}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
+            />
+          </div>
         </div>
 
-        <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-slate-50 dark:bg-slate-800/50">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Persona de Contacto
+            </label>
+            <input
+              type="text"
+              placeholder="Ej: Ing. Carlos Robles"
+              value={formData.contactName || ''}
+              onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Teléfono
+            </label>
+            <input
+              type="text"
+              placeholder="Ej: +51 987 654 321"
+              value={formData.contactPhone || ''}
+              onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+              Correo Electrónico
+            </label>
+            <input
+              type="email"
+              placeholder="contacto@constructora.com"
+              value={formData.contactEmail || ''}
+              onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+              className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad]"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+            Notas Adicionales
+          </label>
+          <textarea
+            rows={2}
+            placeholder="Anota etapas de entrega, comisiones acordadas o especificaciones..."
+            value={formData.notes || ''}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 focus:border-[#004aad] resize-none leading-relaxed"
+          />
+        </div>
+
+        <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            className="px-3.5 py-1.5 text-xs font-semibold rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            form="project-form"
-            className="px-4 py-2 text-sm font-medium text-white bg-[#004aad] hover:bg-[#003b8a] rounded-lg transition-colors shadow-sm"
+            className="px-4 py-1.5 text-xs font-bold rounded-xl bg-[#004aad] hover:bg-[#003b8a] text-white shadow-xs transition-all active:scale-95"
           >
             {projectToEdit ? 'Guardar Cambios' : 'Crear Proyecto'}
           </button>
         </div>
-      </div>
-    </div>
+      </form>
+    </Modal>
   );
 };
