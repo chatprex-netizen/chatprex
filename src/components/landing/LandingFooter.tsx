@@ -48,7 +48,7 @@ export const LandingFooter: React.FC = () => {
   ];
 
   return (
-    <footer className="w-full bg-[#181A20] dark:bg-[#07080B] text-slate-400 text-xs border-t border-[#E5E7EB]/20 dark:border-white/[0.06] pt-12 pb-24 md:pb-12 font-sans transition-colors">
+    <footer className="w-full bg-[#181A20] dark:bg-[#07080B] text-slate-400 text-xs border-t border-[#E5E7EB]/20 dark:border-white/[0.06] pt-12 pb-12 font-sans transition-colors">
       <div className="max-w-6xl mx-auto px-4 space-y-8">
         
         {/* Grid Responsive: 2 columnas centradas en Móvil, 4 en Desktop */}

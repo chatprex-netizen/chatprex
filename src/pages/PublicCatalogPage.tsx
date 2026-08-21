@@ -4,7 +4,6 @@ import { Property } from '../types';
 import { LandingHeader } from '../components/landing/LandingHeader';
 import { PropertyCard } from '../components/landing/PropertyCard';
 import { PropertyDetailModal } from '../components/landing/PropertyDetailModal';
-import { MobileBottomNav } from '../components/landing/MobileBottomNav';
 import { LandingFooter } from '../components/landing/LandingFooter';
 import { 
   Search, SlidersHorizontal, ArrowUpDown, Building2, Trees, MapPin, 
@@ -424,17 +423,7 @@ export const PublicCatalogPage: React.FC = () => {
         onWhatsAppClick={(p, msg) => handleOpenWhatsApp(p, msg)}
       />
 
-      {/* 6. Barra Móvil Fija */}
-      <MobileBottomNav
-        onScrollTo={(sec) => {
-          if (sec === 'contacto') {
-            window.location.hash = '#/portal';
-          }
-        }}
-        onWhatsAppClick={() => handleOpenWhatsApp(undefined, '¡Hola! Deseo más información del catálogo de inmuebles.')}
-      />
-
-      {/* 7. Footer */}
+      {/* 6. Footer */}
       <LandingFooter />
     </div>
   );

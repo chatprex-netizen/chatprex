@@ -7,7 +7,6 @@ import { PropertyCard } from '../components/landing/PropertyCard';
 import { PropertyDetailModal } from '../components/landing/PropertyDetailModal';
 import { FinanceSimulator } from '../components/landing/FinanceSimulator';
 import { DualContactSection } from '../components/landing/DualContactSection';
-import { MobileBottomNav } from '../components/landing/MobileBottomNav';
 import { LandingFooter } from '../components/landing/LandingFooter';
 import { Compass } from 'lucide-react';
 
@@ -321,13 +320,7 @@ export const PublicLandingPage: React.FC = () => {
         onWhatsAppClick={(p, msg) => handleOpenWhatsApp(p, msg)}
       />
 
-      {/* 7. Barra Móvil Fija */}
-      <MobileBottomNav
-        onScrollTo={handleScrollTo}
-        onWhatsAppClick={() => handleOpenWhatsApp(undefined, '¡Hola! Quiero conocer la disponibilidad de proyectos y propiedades.')}
-      />
-
-      {/* 8. Footer */}
+      {/* 7. Footer */}
       <LandingFooter />
     </div>
   );
