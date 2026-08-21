@@ -64,8 +64,7 @@ export const PublicCatalogPage: React.FC = () => {
       // 2. Tipo de Inmueble
       if (selectedType !== 'all') {
         const pType = (p.type || '').toLowerCase();
-        const pOp = (p.operation || '').toLowerCase();
-        const isProject = pType === 'proyecto_preventa' || pOp === 'preventa' || Boolean(p.projectName);
+        const isProject = Boolean(p.isProject === true || pType === 'proyecto_preventa');
         
         if (selectedType === 'proyectos' && !isProject) return false;
         if (selectedType === 'independientes' && isProject) return false;

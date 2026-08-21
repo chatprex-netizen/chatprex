@@ -28,10 +28,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   };
 
   const pType = (property.type || '').toLowerCase();
-  const pOp = (property.operation || '').toLowerCase();
-  const pProj = (property.projectName || '').trim();
-  const isProject = property.isProject || pType === 'proyecto_preventa' || pOp === 'preventa' || pProj.length > 0;
+  
+  // Exclusivo: Solo es Proyecto si está marcado explícitamente como proyecto o tipo proyecto_preventa
+  const isProject = Boolean(property.isProject === true || pType === 'proyecto_preventa');
 
+  // Precios: Rangos "Desde... Hasta" solo para proyectos; precio exacto para individuales
   const displayPrice = (() => {
     if (isProject && rawPriceMax > rawPriceMin) {
       return `Desde ${formatPrice(rawPriceMin)} hasta ${formatPrice(rawPriceMax)}`;
@@ -42,6 +43,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     return formatPrice(rawPriceMin);
   })();
 
+  // Áreas: Rango solo para proyectos; área exacta para individuales
   const displayArea = (() => {
     if (isProject && property.areaMax && property.areaMax > property.areaTotal) {
       return `Desde ${property.areaTotal} m² hasta ${property.areaMax} m²`;
@@ -58,9 +60,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     return `${currSymbol} ${cuota.toLocaleString('en-US')}`;
   })();
 
-  const soldPct = property.soldPercentage !== undefined && property.soldPercentage !== null
-    ? property.soldPercentage
-    : (isProject ? 60 : undefined);
+  // % de ventas: EXCLUSIVO para proyectos (nunca para propiedades individuales)
+  const soldPct = (isProject && property.soldPercentage !== undefined && property.soldPercentage !== null && Number(property.soldPercentage) > 0)
+    ? Number(property.soldPercentage)
+    : undefined;
 
   // Estado del Inmueble (Disponible, Separado, Vendido, etc.)
   const statusConfig = (() => {
@@ -93,7 +96,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-        {/* Badges superiores: Estado a la izquierda (en vez del nombre de proyecto) y Porcentaje/Destacado a la derecha */}
+        {/* Badges superiores: Estado a la izquierda; % vendido (solo proyectos) y Destacado a la derecha */}
         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none gap-1.5">
           {/* Estado del Inmueble */}
           <span className={`px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold ${statusConfig.bg} shadow-sm flex items-center gap-1 backdrop-blur-md`}>
@@ -101,7 +104,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <span>{statusConfig.label}</span>
           </span>
 
-          {/* Badges de Ventas y Destacado */}
+          {/* Badges de Ventas (EXCLUSIVO de Proyectos) y Destacado */}
           <div className="flex items-center gap-1">
             {isProject && soldPct !== undefined && soldPct > 0 && (
               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white shadow-sm flex items-center gap-1 backdrop-blur-sm">
@@ -134,7 +137,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             onClick={() => onSelect(property)}
             className="font-manrope font-bold text-[13px] sm:text-[15px] text-[#202020] dark:text-white group-hover:text-[#1154FF] dark:group-hover:text-[#38BDF8] transition-colors line-clamp-1 cursor-pointer leading-snug"
           >
-            {property.projectName ? `${property.projectName} - ${property.title}` : property.title}
+            {property.projectName && !isProject ? `${property.projectName} - ${property.title}` : property.title}
           </h3>
 
           {/* Especificaciones y Características */}

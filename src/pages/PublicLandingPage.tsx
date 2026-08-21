@@ -43,9 +43,7 @@ export const PublicLandingPage: React.FC = () => {
 
       // 1. Filtro por Categoría
       const pType = (p.type || '').toLowerCase();
-      const pOp = (p.operation || '').toLowerCase();
-      const pProj = (p.projectName || '').trim();
-      const isProject = pType === 'proyecto_preventa' || pOp === 'preventa' || pProj.length > 0;
+      const isProject = Boolean(p.isProject === true || pType === 'proyecto_preventa');
       if (selectedCategory === 'proyectos' && !isProject) return false;
       if (selectedCategory === 'independientes' && isProject) return false;
 

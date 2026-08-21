@@ -39,9 +39,9 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   };
 
   const pType = (property.type || '').toLowerCase();
-  const pOp = (property.operation || '').toLowerCase();
-  const pProj = (property.projectName || '').trim();
-  const isProject = property.isProject || pType === 'proyecto_preventa' || pOp === 'preventa' || pProj.length > 0;
+  
+  // Exclusivo: Solo es Proyecto si está marcado explícitamente como proyecto o tipo proyecto_preventa
+  const isProject = Boolean(property.isProject === true || pType === 'proyecto_preventa');
 
   const displayPrice = (() => {
     if (isProject && rawPriceMax > rawPriceMin) {
@@ -63,9 +63,10 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     return '-';
   })();
 
-  const soldPct = property.soldPercentage !== undefined && property.soldPercentage !== null
-    ? property.soldPercentage
-    : (isProject ? 60 : undefined);
+  // % de ventas: EXCLUSIVO para proyectos (nunca para propiedades individuales)
+  const soldPct = (isProject && property.soldPercentage !== undefined && property.soldPercentage !== null && Number(property.soldPercentage) > 0)
+    ? Number(property.soldPercentage)
+    : undefined;
 
   // Estado del Inmueble
   const statusConfig = (() => {
