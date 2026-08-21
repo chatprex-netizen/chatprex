@@ -20,6 +20,9 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    emptyOutDir: false,
+  },
   preview: {
     port: 3000,
     host: '0.0.0.0',
