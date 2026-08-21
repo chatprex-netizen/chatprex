@@ -29,19 +29,13 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
   const rawPriceMin = Number(property.price) || 0;
   const rawPriceMax = Number(property.priceMax) || 0;
-  const propCurrency = property.currency || 'S/';
+  
+  // Respetar estrictamente la moneda con la que se ingresó la propiedad (Soles o Dólares)
+  const isUSD = (property.currency || '').toUpperCase() === 'USD';
+  const currSymbol = isUSD ? 'USD $' : 'S/';
 
   const formatPrice = (val: number) => {
-    if (propCurrency === currency) {
-      return `${currency} ${val.toLocaleString('en-US')}`;
-    }
-    if (currency === 'USD' && propCurrency === 'S/') {
-      return `USD $${Math.round(val / 3.75).toLocaleString('en-US')}`;
-    }
-    if (currency === 'S/' && propCurrency === 'USD') {
-      return `S/ ${Math.round(val * 3.75).toLocaleString('en-US')}`;
-    }
-    return `${currency} ${val.toLocaleString('en-US')}`;
+    return `${currSymbol} ${val.toLocaleString('en-US')}`;
   };
 
   const pType = (property.type || '').toLowerCase();
@@ -53,7 +47,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     if (isProject && rawPriceMax > rawPriceMin) {
       return `Desde ${formatPrice(rawPriceMin)} hasta ${formatPrice(rawPriceMax)}`;
     }
-    if (isProject) {
+    if (isProject && rawPriceMin > 0) {
       return `Desde ${formatPrice(rawPriceMin)}`;
     }
     return formatPrice(rawPriceMin);
@@ -73,6 +67,21 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     ? property.soldPercentage
     : (isProject ? 60 : undefined);
 
+  // Estado del Inmueble
+  const statusConfig = (() => {
+    const s = (property.status || 'disponible').toLowerCase();
+    if (s === 'vendida' || s === 'vendido') {
+      return { label: 'Vendido', bg: 'bg-rose-500 text-white', dot: 'bg-rose-200' };
+    }
+    if (s === 'en_negociacion' || s === 'reservada' || s === 'separado' || s === 'separada') {
+      return { label: 'Separado', bg: 'bg-amber-500 text-white', dot: 'bg-amber-200' };
+    }
+    if (s === 'alquilada' || s === 'alquilado') {
+      return { label: 'Alquilado', bg: 'bg-indigo-500 text-white', dot: 'bg-indigo-200' };
+    }
+    return { label: 'Disponible', bg: 'bg-emerald-600 text-white', dot: 'bg-emerald-200' };
+  })();
+
   const handleQuickWhatsApp = () => {
     const msg = `¡Hola CasaYa! Vi en la web el inmueble "${property.projectName ? `${property.projectName} - ${property.title}` : property.title}" (${displayPrice}). Deseo coordinar una visita y conocer facilidades de pago.`;
     onWhatsAppClick(property, msg);
@@ -85,14 +94,15 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
         {/* Header Compacto con botón de Cierre */}
         <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-white/95 dark:bg-[#151821]/95 backdrop-blur-md border-b border-[#F1F3F5] dark:border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-[#F1F3F5] dark:bg-[#1E2333] text-[#1154FF] dark:text-[#38BDF8] flex items-center gap-1">
-              {isProject ? <Trees className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
-              <span>{isProject ? (property.projectName || 'Proyecto') : 'Propiedad'}</span>
+            {/* Estado */}
+            <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold ${statusConfig.bg} flex items-center gap-1`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+              <span>{statusConfig.label}</span>
             </span>
 
-            {soldPct !== undefined && soldPct > 0 && (
+            {isProject && soldPct !== undefined && soldPct > 0 && (
               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white shadow-xs">
-                🔥 {soldPct}% vendido
+                🔥 {Math.round(soldPct)}% vendido
               </span>
             )}
 

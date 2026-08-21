@@ -1,17 +1,16 @@
 import React from 'react';
 import { Property } from '../../types';
-import { MapPin, Maximize2, Building2, Trees, MessageCircle } from 'lucide-react';
+import { MapPin, Maximize2, MessageCircle } from 'lucide-react';
 
 interface PropertyCardProps {
   property: Property;
-  currency: 'S/' | 'USD';
+  currency?: 'S/' | 'USD';
   onSelect: (property: Property) => void;
   onWhatsAppClick: (property: Property) => void;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({
   property,
-  currency,
   onSelect,
   onWhatsAppClick,
 }) => {
@@ -19,21 +18,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
   const rawPriceMin = Number(property.price) || 0;
   const rawPriceMax = Number(property.priceMax) || 0;
-  const propCurrency = property.currency || 'S/';
+  
+  // Respetar estrictamente la moneda con la que se ingresó la propiedad (Soles o Dólares)
+  const isUSD = (property.currency || '').toUpperCase() === 'USD';
+  const currSymbol = isUSD ? 'USD $' : 'S/';
 
   const formatPrice = (val: number) => {
-    if (propCurrency === currency) {
-      return `${currency} ${val.toLocaleString('en-US')}`;
-    }
-    if (currency === 'USD' && propCurrency === 'S/') {
-      const converted = Math.round(val / 3.75);
-      return `USD $${converted.toLocaleString('en-US')}`;
-    }
-    if (currency === 'S/' && propCurrency === 'USD') {
-      const converted = Math.round(val * 3.75);
-      return `S/ ${converted.toLocaleString('en-US')}`;
-    }
-    return `${currency} ${val.toLocaleString('en-US')}`;
+    return `${currSymbol} ${val.toLocaleString('en-US')}`;
   };
 
   const pType = (property.type || '').toLowerCase();
@@ -45,7 +36,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     if (isProject && rawPriceMax > rawPriceMin) {
       return `Desde ${formatPrice(rawPriceMin)} hasta ${formatPrice(rawPriceMax)}`;
     }
-    if (isProject) {
+    if (isProject && rawPriceMin > 0) {
       return `Desde ${formatPrice(rawPriceMin)}`;
     }
     return formatPrice(rawPriceMin);
@@ -64,12 +55,27 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const monthlyEstimate = (() => {
     const saldo = rawPriceMin * 0.70;
     const cuota = Math.round(saldo / 36);
-    return `${property.currency || currency} ${cuota.toLocaleString('en-US')}`;
+    return `${currSymbol} ${cuota.toLocaleString('en-US')}`;
   })();
 
   const soldPct = property.soldPercentage !== undefined && property.soldPercentage !== null
     ? property.soldPercentage
     : (isProject ? 60 : undefined);
+
+  // Estado del Inmueble (Disponible, Separado, Vendido, etc.)
+  const statusConfig = (() => {
+    const s = (property.status || 'disponible').toLowerCase();
+    if (s === 'vendida' || s === 'vendido') {
+      return { label: 'Vendido', bg: 'bg-rose-500 text-white', dot: 'bg-rose-200' };
+    }
+    if (s === 'en_negociacion' || s === 'reservada' || s === 'separado' || s === 'separada') {
+      return { label: 'Separado', bg: 'bg-amber-500 text-white', dot: 'bg-amber-200' };
+    }
+    if (s === 'alquilada' || s === 'alquilado') {
+      return { label: 'Alquilado', bg: 'bg-indigo-500 text-white', dot: 'bg-indigo-200' };
+    }
+    return { label: 'Disponible', bg: 'bg-emerald-600 text-white', dot: 'bg-emerald-200' };
+  })();
   
   const images = Array.isArray(property.images) ? property.images : [];
   const mainImage = images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80';
@@ -87,18 +93,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-        {/* Badges superiores */}
-        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
-          <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-white/95 dark:bg-[#0B0C10]/90 text-[#202020] dark:text-white shadow-sm flex items-center gap-1 backdrop-blur-md border border-black/5 dark:border-white/10">
-            {isProject ? <Trees className="w-3 h-3 text-[#1154FF] dark:text-[#38BDF8]" /> : <Building2 className="w-3 h-3 text-[#1154FF] dark:text-[#38BDF8]" />}
-            <span className="truncate max-w-[120px]">{isProject ? (property.projectName || 'Proyecto') : 'Propiedad'}</span>
+        {/* Badges superiores: Estado a la izquierda (en vez del nombre de proyecto) y Porcentaje/Destacado a la derecha */}
+        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none gap-1.5">
+          {/* Estado del Inmueble */}
+          <span className={`px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold ${statusConfig.bg} shadow-sm flex items-center gap-1 backdrop-blur-md`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+            <span>{statusConfig.label}</span>
           </span>
 
+          {/* Badges de Ventas y Destacado */}
           <div className="flex items-center gap-1">
-            {soldPct !== undefined && soldPct > 0 && (
+            {isProject && soldPct !== undefined && soldPct > 0 && (
               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white shadow-sm flex items-center gap-1 backdrop-blur-sm">
                 <span>🔥</span>
-                <span>{soldPct}% vendido</span>
+                <span>{Math.round(soldPct)}% vendido</span>
               </span>
             )}
             {property.featured && (
