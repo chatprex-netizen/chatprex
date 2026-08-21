@@ -32,7 +32,10 @@ export const PublicCatalogPage: React.FC = () => {
     setCurrency(prev => prev === 'S/' ? 'USD' : 'S/');
   };
 
-  const propertyList = Array.isArray(properties) ? properties : [];
+  const propertyList = useMemo(() => {
+    const list = Array.isArray(properties) ? properties : [];
+    return list.filter(p => p && p.isPublic !== false);
+  }, [properties]);
 
   // Lista de zonas disponibles
   const availableZones = useMemo(() => {

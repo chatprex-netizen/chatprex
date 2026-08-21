@@ -73,6 +73,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     soldPercentage: '' as string | number,
     isProject: false,
     featured: false,
+    isPublic: true,
   });
 
   const isLandOrPresale = formData.type === 'terreno' || formData.type === 'proyecto_preventa' || formData.isProject;
@@ -116,6 +117,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         soldPercentage: propertyToEdit.soldPercentage !== undefined ? propertyToEdit.soldPercentage : '',
         isProject: !!propertyToEdit.isProject || propertyToEdit.type === 'proyecto_preventa',
         featured: !!propertyToEdit.featured,
+        isPublic: propertyToEdit.isPublic !== undefined ? propertyToEdit.isPublic : true,
       });
     } else {
       const codeNumber = Math.floor(100 + Math.random() * 900);
@@ -148,6 +150,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         soldPercentage: '',
         isProject: false,
         featured: false,
+        isPublic: true,
       });
     }
   }, [propertyToEdit, isOpen, agents]);
@@ -198,6 +201,8 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
       commissionPct: Number(formData.commissionPct),
       soldPercentage: formData.soldPercentage === '' ? undefined : Number(formData.soldPercentage),
       isProject: formData.isProject || formData.type === 'proyecto_preventa',
+      featured: Boolean(formData.featured),
+      isPublic: formData.isPublic !== false,
     };
 
     if (propertyToEdit) {
@@ -213,26 +218,49 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={propertyToEdit ? 'Editar Inmueble / Proyecto' : 'Registrar Inmueble o Proyecto'}
-      subtitle="Configura precios desde/hasta, áreas, porcentaje vendido y detalles del catálogo"
+      subtitle="Configura precios desde/hasta, áreas, porcentaje vendido y publicación web"
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-2.5">
-        {/* Título & Proyecto Check */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-              Título del Inmueble o Desarrollo *
-            </label>
-            <label className="flex items-center gap-1.5 text-[11px] font-semibold text-[#004aad] cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.isProject}
-                onChange={(e) => setFormData({ ...formData, isProject: e.target.checked })}
-                className="w-3.5 h-3.5 rounded text-[#004aad] cursor-pointer"
-              />
-              <span>¿Es Proyecto / Desarrollo? (Precios desde/hasta)</span>
-            </label>
-          </div>
+        
+        {/* Opciones de Publicación Web, Destacado y Tipo de Proyecto */}
+        <div className="p-2.5 bg-blue-50/70 dark:bg-slate-800/70 rounded-xl border border-blue-100 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <label className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.isPublic !== false}
+              onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
+              className="w-4 h-4 rounded text-[#004aad] cursor-pointer"
+            />
+            <span>🌐 Visible en Catálogo Web / Landing</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!formData.featured}
+              onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+              className="w-4 h-4 rounded text-amber-500 cursor-pointer"
+            />
+            <span>⭐ Destacado en Portada</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 font-semibold text-[#004aad] dark:text-blue-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.isProject}
+              onChange={(e) => setFormData({ ...formData, isProject: e.target.checked })}
+              className="w-4 h-4 rounded text-[#004aad] cursor-pointer"
+            />
+            <span>🏗️ ¿Es Proyecto / Desarrollo?</span>
+          </label>
+        </div>
+
+        {/* Título */}
+        <div className="space-y-1">
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+            Título del Inmueble o Desarrollo *
+          </label>
           <input
             type="text"
             required

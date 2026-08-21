@@ -568,6 +568,7 @@ export async function initDb() {
       { name: 'area_max', type: 'NUMERIC(10,2)' },
       { name: 'sold_percentage', type: 'NUMERIC(5,2)' },
       { name: 'is_project', type: 'BOOLEAN DEFAULT FALSE' },
+      { name: 'is_public', type: 'BOOLEAN DEFAULT TRUE' },
     ];
     for (const col of propertyMigrationCols) {
       try {

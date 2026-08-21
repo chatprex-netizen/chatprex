@@ -79,6 +79,7 @@ export interface Property {
   agentId: string;
   commissionPct: number;
   featured?: boolean;
+  isPublic?: boolean;
   projectName?: string;
   developer?: string;
   priceMax?: number;

@@ -47,6 +47,7 @@ export const propertySchema = z.object({
   areaMax: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
   soldPercentage: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
   isProject: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
 });
 
 export const contactSchema = z.object({
