@@ -1,9 +1,11 @@
 import React from 'react';
-import { Home, Phone, Mail, MapPin } from 'lucide-react';
+import { Home, Phone, Mail, MapPin, Lock, Sun, Moon } from 'lucide-react';
 import { useCRM } from '../../context/CRMContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export const LandingFooter: React.FC = () => {
   const { appBranding, portalConfig } = useCRM();
+  const { theme, toggleTheme } = useTheme();
   const brandName = appBranding?.appName && appBranding.appName !== 'ChatPrex' ? appBranding.appName : 'CasaYa';
 
   const socialLinks = [
@@ -52,7 +54,7 @@ export const LandingFooter: React.FC = () => {
         {/* Grid Responsive: 2 columnas centradas en Móvil, 4 en Desktop */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center md:text-left">
           
-          {/* Col 1: Marca & Misión (2 cols en móvil y desktop) */}
+          {/* Col 1: Marca & Misión */}
           <div className="col-span-2 space-y-3 flex flex-col items-center md:items-start text-center md:text-left">
             <a href="#/portal" className="flex items-center gap-2.5 text-white font-manrope font-extrabold text-lg cursor-pointer">
               <div className="w-8 h-8 rounded-xl bg-[#1154FF] text-white flex items-center justify-center shadow-md shadow-blue-500/25">
@@ -65,7 +67,7 @@ export const LandingFooter: React.FC = () => {
               Plataforma inmobiliaria digital con inteligencia artificial. Especialistas en la comercialización de proyectos en preventa, casas, departamentos y terrenos en el Perú.
             </p>
 
-            {/* Redes Sociales con Color Principal */}
+            {/* Redes Sociales */}
             <div className="pt-2 flex flex-col items-center md:items-start">
               <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-2">
                 Síguenos en Redes Sociales
@@ -87,7 +89,7 @@ export const LandingFooter: React.FC = () => {
             </div>
           </div>
 
-          {/* Col 2: Contacto Directo (1 col en móvil, centrado) */}
+          {/* Col 2: Contacto Directo */}
           <div className="col-span-1 space-y-2.5 flex flex-col items-center md:items-start text-center md:text-left">
             <h4 className="text-white font-manrope font-bold text-xs uppercase tracking-wider">
               Contacto
@@ -95,20 +97,20 @@ export const LandingFooter: React.FC = () => {
             <ul className="space-y-2 text-xs font-normal flex flex-col items-center md:items-start">
               <li className="flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-[#1154FF] dark:text-[#38BDF8] shrink-0" />
-                <span>+51 957 100 984</span>
+                <span>{portalConfig?.contactInfo?.phone || '+51 958 716 850'}</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-[#1154FF] dark:text-[#38BDF8] shrink-0" />
-                <span>ventas@casaya.pe</span>
+                <span>{portalConfig?.contactInfo?.email || 'ventas@casaya.pe'}</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                <span>Arequipa, Perú</span>
+                <span>{portalConfig?.contactInfo?.city || 'Arequipa, Perú'}</span>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Legal & CRM (1 col en móvil, centrado) */}
+          {/* Col 3: Legal & Accesos */}
           <div className="col-span-1 space-y-2.5 flex flex-col items-center md:items-start text-center md:text-left">
             <h4 className="text-white font-manrope font-bold text-xs uppercase tracking-wider">
               Legal
@@ -129,22 +131,46 @@ export const LandingFooter: React.FC = () => {
                   Baja de Datos
                 </a>
               </li>
-              <li className="pt-1">
-                <a href="#/dashboard" className="text-[#1154FF] dark:text-[#38BDF8] hover:underline font-semibold">
-                  Acceso CRM →
-                </a>
-              </li>
             </ul>
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="pt-6 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500 text-center sm:text-left">
+        {/* Barra Inferior con Copyright + Controles (Candado CRM & Modo Día/Noche) */}
+        <div className="pt-6 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500 text-center sm:text-left">
           <div>
             © {new Date().getFullYear()} {brandName}. Todos los derechos reservados.
           </div>
-          <div>
-            <span>Plataforma Inmobiliaria Digital con Inteligencia Artificial</span>
+
+          {/* Acciones de Pie de Página: Ingreso CRM y Selector de Tema Día/Noche */}
+          <div className="flex items-center gap-2">
+            <a
+              href={typeof window !== 'undefined' && window.location.hostname.includes('casaya.app') ? 'https://crm.casaya.app' : '#/dashboard'}
+              title="Ingreso a CRM CasaYa"
+              aria-label="Ingreso a CRM"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all text-xs font-semibold shadow-xs cursor-pointer"
+            >
+              <Lock className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span>Ingreso CRM</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label="Cambiar Tema"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all text-xs font-semibold shadow-xs cursor-pointer"
+            >
+              {theme === 'dark' ? (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Modo Claro</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-slate-300" />
+                  <span>Modo Oscuro</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>

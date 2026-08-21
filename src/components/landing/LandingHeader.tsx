@@ -101,25 +101,25 @@ export const LandingHeader: React.FC<LandingHeaderProps> = () => {
             ))}
           </nav>
 
-          {/* Acciones: Candado CRM + Tema Oscuro + Menú Móvil */}
+          {/* Acciones: Candado CRM + Tema Oscuro (Solo Desktop) + Menú Móvil */}
           <div className="flex items-center gap-2">
             
-            {/* Acceso CRM en Desktop (solo icono de candado) */}
+            {/* Acceso CRM en Desktop (oculto en vista celular) */}
             <a
               href={typeof window !== 'undefined' && window.location.hostname.includes('casaya.app') ? 'https://crm.casaya.app' : '#/dashboard'}
               title="Ingreso a CRM CasaYa"
               aria-label="Ingreso a CRM"
-              className="w-9 h-9 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-[#202020] dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+              className="hidden lg:flex w-9 h-9 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-[#202020] dark:text-slate-200 items-center justify-center transition-colors cursor-pointer shadow-xs"
             >
               <Lock className="w-4 h-4 text-slate-700 dark:text-slate-300 hover:text-[#1154FF] transition-colors" />
             </a>
 
-            {/* Toggle Modo Oscuro / Claro */}
+            {/* Toggle Modo Oscuro / Claro en Desktop (oculto en vista celular) */}
             <button
               type="button"
               onClick={toggleTheme}
               aria-label="Cambiar Tema"
-              className="w-9 h-9 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-[#202020] dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+              className="hidden lg:flex w-9 h-9 rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#151821] hover:bg-[#F1F3F5] dark:hover:bg-[#1C202C] text-[#202020] dark:text-slate-200 items-center justify-center transition-colors cursor-pointer"
             >
               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
             </button>
