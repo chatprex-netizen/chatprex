@@ -565,6 +565,7 @@ export async function initDb() {
     // Migración: Añadir columnas de proyectos y ventas a properties
     const propertyMigrationCols = [
       { name: 'project_id', type: 'TEXT' },
+      { name: 'unit_feature', type: 'TEXT' },
       { name: 'price_max', type: 'NUMERIC(14,2)' },
       { name: 'area_max', type: 'NUMERIC(10,2)' },
       { name: 'sold_percentage', type: 'NUMERIC(5,2)' },

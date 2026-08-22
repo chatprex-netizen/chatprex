@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Property, PropertyType, PropertyOperation, PropertyStatus } from '../../types';
 import { useCRM } from '../../context/CRMContext';
-import { Building2, Home, MapPin, DollarSign, UserCheck } from 'lucide-react';
+import { Building2, Home, MapPin, DollarSign, UserCheck, Sparkles, Tag } from 'lucide-react';
 
 interface PropertyModalProps {
   isOpen: boolean;
@@ -33,6 +33,32 @@ const PROPERTY_STATUSES: { id: PropertyStatus; label: string }[] = [
   { id: 'alquilada', label: 'Alquilada' },
 ];
 
+// Sugerencias rápidas de características según el tipo de inmueble
+const LAND_FEATURE_SUGGESTIONS = [
+  'Frente a Parque',
+  'Esquina',
+  'Frontera Exterior',
+  'Av. Principal',
+  'Cerca al Pórtico',
+  'Frente a Área Verde',
+  'Calle Secundaria',
+  'Cerca al Club House',
+  'Zona Comercial',
+];
+
+const BUILDING_FEATURE_SUGGESTIONS = [
+  'Flat',
+  'Dúplex',
+  'Triplex',
+  'Vista Exterior (Calle)',
+  'Vista Interior',
+  'Piso 1 con Terraza/Patio',
+  'Piso Alto con Balcón',
+  'Frente a Ascensor',
+  'Penthouse con Terraza',
+  'Vista Panorámica',
+];
+
 export const PropertyModal: React.FC<PropertyModalProps> = ({
   isOpen,
   onClose,
@@ -45,6 +71,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     title: '',
     projectId: '',
     projectName: '',
+    unitFeature: '',
     description: '',
     type: 'terreno' as PropertyType,
     operation: 'venta' as PropertyOperation,
@@ -70,6 +97,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         title: propertyToEdit.title || '',
         projectId: propertyToEdit.projectId || '',
         projectName: propertyToEdit.projectName || '',
+        unitFeature: propertyToEdit.unitFeature || (propertyToEdit.features && propertyToEdit.features[0]) || '',
         description: propertyToEdit.description || '',
         type: propertyToEdit.type || 'terreno',
         operation: propertyToEdit.operation || 'venta',
@@ -92,6 +120,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         title: '',
         projectId: projects[0]?.id || '',
         projectName: projects[0]?.name || '',
+        unitFeature: '',
         description: '',
         type: 'terreno',
         operation: 'venta',
@@ -120,7 +149,24 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSelectFeatureChip = (chip: string) => {
+    setFormData(prev => {
+      if (!prev.unitFeature.trim()) {
+        return { ...prev, unitFeature: chip };
+      }
+      if (prev.unitFeature.includes(chip)) {
+        const cleaned = prev.unitFeature
+          .split(',')
+          .map(s => s.trim())
+          .filter(s => s !== chip)
+          .join(', ');
+        return { ...prev, unitFeature: cleaned };
+      }
+      return { ...prev, unitFeature: `${prev.unitFeature}, ${chip}` };
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) {
       alert('Por favor completa el nombre o identificador de la unidad (ej. Lote 14 Mz B).');
@@ -136,15 +182,18 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
       bathrooms: formData.bathrooms === '' ? 0 : Number(formData.bathrooms),
       parkingSpots: formData.parkingSpots === '' ? 0 : Number(formData.parkingSpots),
       commissionPct: Number(formData.commissionPct),
+      features: formData.unitFeature ? formData.unitFeature.split(',').map(s => s.trim()).filter(Boolean) : [],
     };
 
     if (propertyToEdit) {
-      updateProperty(propertyToEdit.id, payload);
+      await updateProperty(propertyToEdit.id, payload);
     } else {
-      addProperty(payload as Omit<Property, 'id' | 'createdAt'>);
+      await addProperty(payload as Omit<Property, 'id' | 'createdAt'>);
     }
     onClose();
   };
+
+  const currentSuggestions = isLand ? LAND_FEATURE_SUGGESTIONS : BUILDING_FEATURE_SUGGESTIONS;
 
   return (
     <Modal
@@ -165,7 +214,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
           <select
             value={formData.projectId}
             onChange={(e) => handleProjectSelect(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#1154FF] outline-none text-slate-900 dark:text-slate-100"
+            className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#1154FF] outline-none text-slate-900 dark:text-slate-100 font-semibold"
           >
             <option value="">(Ninguno - Propiedad Independiente)</option>
             {projects.map((proj) => (
@@ -199,11 +248,58 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
             <input
               type="text"
               required
-              placeholder="Ej. Lote 14 Mz B - 120m² (Frente a Parque)"
+              placeholder="Ej. Lote 08, Mz B"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#1154FF] outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#1154FF] outline-none text-slate-900 dark:text-slate-100 font-semibold"
             />
+          </div>
+        </div>
+
+        {/* Campo de Características / Atributo Clave para Identificación Rápida */}
+        <div className="p-3 rounded-2xl bg-blue-50/60 dark:bg-[#1E2333]/40 border border-blue-100 dark:border-blue-900/30 space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#1154FF] dark:text-[#38BDF8]" />
+              <span>Características & Ubicación Específica de la Unidad</span>
+            </label>
+            <span className="text-[10px] text-slate-400">
+              {isLand ? 'Para Lotes de Proyecto' : 'Para Departamentos / Casas'}
+            </span>
+          </div>
+
+          <input
+            type="text"
+            placeholder={isLand ? 'Ej. Frente a Parque, Esquina, Frontera Exterior...' : 'Ej. Flat, Dúplex, Vista Exterior a Calle, Piso 1 con Jardín...'}
+            value={formData.unitFeature}
+            onChange={(e) => setFormData({ ...formData, unitFeature: e.target.value })}
+            className="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-[#12151E] border border-blue-200 dark:border-blue-800/60 focus:border-[#1154FF] outline-none text-slate-900 dark:text-white"
+          />
+
+          {/* Chips de selección rápida de 1 clic */}
+          <div className="space-y-1">
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+              Selección rápida de 1 clic:
+            </span>
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
+              {currentSuggestions.map((chip, idx) => {
+                const isSelected = formData.unitFeature.includes(chip);
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSelectFeatureChip(chip)}
+                    className={`px-2 py-1 rounded-lg text-[10.5px] font-semibold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#1154FF] text-white shadow-xs scale-102'
+                        : 'bg-white dark:bg-[#12151E] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-[#1154FF]'
+                    }`}
+                  >
+                    {isSelected ? '✓ ' : '+ '}{chip}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -303,7 +399,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
               placeholder="Ej. 120"
               value={formData.areaTotal}
               onChange={(e) => setFormData({ ...formData, areaTotal: e.target.value })}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#1154FF] outline-none text-slate-900 dark:text-slate-100"
+              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#1154FF] outline-none text-slate-900 dark:text-slate-100 font-bold"
             />
           </div>
         </div>
@@ -352,21 +448,21 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
           </div>
         )}
 
-        {/* Asignación de Agente y Comisión */}
+        {/* Asesor Responsable y Comisión */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
               <UserCheck className="w-3.5 h-3.5 text-[#1154FF]" />
-              <span>Agente Asignado</span>
+              <span>Asesor Asignado</span>
             </label>
             <select
               value={formData.agentId}
               onChange={(e) => setFormData({ ...formData, agentId: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#1154FF] outline-none text-slate-900 dark:text-slate-100"
             >
-              {agents.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name} ({a.role})
+              {agents.map((ag) => (
+                <option key={ag.id} value={ag.id}>
+                  {ag.name} ({ag.role})
                 </option>
               ))}
             </select>
@@ -382,7 +478,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
               min={0}
               max={100}
               value={formData.commissionPct}
-              onChange={(e) => setFormData({ ...formData, commissionPct: Number(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, commissionPct: parseFloat(e.target.value) || 0 })}
               className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#1154FF] outline-none text-slate-900 dark:text-slate-100"
             />
           </div>
@@ -391,32 +487,31 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
         {/* Notas Internas */}
         <div>
           <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Notas / Observaciones Internas
+            Notas Internas (CRM)
           </label>
           <textarea
             rows={2}
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            placeholder="Ej. Separado con $500, pendiente firma de contrato el viernes..."
+            placeholder="Información adicional del lote, colindancias, número de partida electrónica..."
             className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-[#1154FF] outline-none text-slate-900 dark:text-slate-100"
           />
         </div>
 
-        {/* Botones del Modal */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+        {/* Footer con Botones */}
+        <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs cursor-pointer"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             Cancelar
           </button>
-
           <button
             type="submit"
-            className="px-6 py-2 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-bold text-xs shadow-md shadow-blue-500/25 transition-all cursor-pointer"
+            className="px-5 py-2 rounded-xl bg-[#1154FF] hover:bg-[#0043D6] text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
           >
-            {propertyToEdit ? 'Guardar Cambios de Unidad' : 'Registrar Unidad'}
+            {propertyToEdit ? 'Guardar Cambios' : 'Registrar Unidad'}
           </button>
         </div>
       </form>

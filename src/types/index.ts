@@ -73,6 +73,8 @@ export interface Property {
   bathrooms?: number;
   parkingSpots?: number;
   status: PropertyStatus;
+  features?: string[];
+  unitFeature?: string;
   images?: string[];
   agentId?: string;
   commissionPct?: number;

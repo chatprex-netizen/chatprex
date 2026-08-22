@@ -46,9 +46,9 @@ export const propertySchema = z.object({
   priceMax: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
   areaMax: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
   soldPercentage: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
-  isProject: z.boolean().optional(),
   isPublic: z.boolean().optional(),
   projectId: z.string().optional().or(z.literal('')).nullable(),
+  unitFeature: z.string().optional().or(z.literal('')).nullable(),
 });
 
 export const projectSchema = z.object({
