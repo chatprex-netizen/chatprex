@@ -3,7 +3,6 @@ import { Deal, DealStage } from '../../types';
 import { Badge } from '../common/Badge';
 import { 
   Building2, 
-  Home,
   User, 
   ChevronRight, 
   ChevronLeft,
@@ -39,36 +38,46 @@ export const DealCard: React.FC<DealCardProps> = ({
   const contact = contacts.find((c) => c.id === deal.leadId);
   const agent = agents.find((a) => a.id === deal.agentId);
 
-  // Resolver si es proyecto/preventa o propiedad individual
-  const interestInfo = useMemo(() => {
+  // Limpiar título para mostrar SOLO el nombre del lead
+  const leadName = useMemo(() => {
+    if (contact?.name && contact.name.trim()) return contact.name.trim();
+    if (deal.title) {
+      return deal.title
+        .replace(/^Negociaci[oó]n con\s+/i, '')
+        .replace(/^Inter[eé]s en\s+/i, '')
+        .trim();
+    }
+    return 'Prospecto';
+  }, [contact?.name, deal.title]);
+
+  // Resolver EXCLUSIVAMENTE el Proyecto de Interés
+  const projectName = useMemo(() => {
     const targetId = deal.propertyId || contact?.interestedProperty;
     if (!targetId) return null;
 
-    // 1. Buscar en properties
-    const prop = properties.find(p => p.id === targetId || (p.projectName && p.projectName.toLowerCase() === targetId.toLowerCase()));
+    // 1. Buscar en projects (prioridad absoluta)
+    const proj = projects.find(p => 
+      p.id === targetId || 
+      (p.name && p.name.toLowerCase() === targetId.toLowerCase())
+    );
+    if (proj) return proj.name;
+
+    // 2. Buscar en properties (extraer el nombre del proyecto si está vinculado)
+    const prop = properties.find(p => 
+      p.id === targetId || 
+      (p.projectName && p.projectName.toLowerCase() === targetId.toLowerCase()) ||
+      (p.title && p.title.toLowerCase() === targetId.toLowerCase())
+    );
     if (prop) {
-      const isProject = prop.type === 'proyecto_preventa' || Boolean(prop.projectName && prop.projectName.trim().length > 0);
-      return {
-        isProject,
-        name: isProject ? (prop.projectName || prop.title) : prop.title,
-      };
+      if (prop.projectName && prop.projectName.trim().length > 0) {
+        return prop.projectName;
+      }
+      return prop.title;
     }
 
-    // 2. Buscar en projects
-    const proj = projects.find(p => p.id === targetId || (p.name && p.name.toLowerCase() === targetId.toLowerCase()));
-    if (proj) {
-      return {
-        isProject: true,
-        name: proj.name,
-      };
-    }
-
-    // 3. Texto directo
-    return {
-      isProject: true,
-      name: targetId,
-    };
-  }, [deal.propertyId, contact?.interestedProperty, properties, projects]);
+    // 3. Fallback directo al texto
+    return targetId;
+  }, [deal.propertyId, contact?.interestedProperty, projects, properties]);
 
   const currentStageIndex = STAGE_ORDER.indexOf(deal.stage);
 
@@ -91,20 +100,29 @@ export const DealCard: React.FC<DealCardProps> = ({
       draggable
       onDragStart={(e) => onDragStart(e, deal.id)}
       onClick={() => onEdit(deal)}
-      className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card hover:shadow-card-hover transition-all duration-150 cursor-grab active:cursor-grabbing group space-y-2"
+      className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card hover:shadow-card-hover transition-all duration-150 cursor-grab active:cursor-grabbing group space-y-2.5"
     >
-      {/* Header: Title & Priority & Temperature Score */}
-      <div className="flex items-start justify-between gap-1.5">
-        <h4 className="font-semibold text-xs text-slate-900 dark:text-white line-clamp-2 group-hover:text-[#004aad] transition-colors">
-          {deal.title}
-        </h4>
+      {/* Header: Lead Name con icono de Usuario + Badges de Score y Prioridad */}
+      <div className="flex items-center justify-between gap-1.5">
+        <div className="flex items-center gap-1.5 min-w-0 pr-1">
+          <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-500 dark:text-slate-400 group-hover:bg-blue-50 group-hover:text-[#1154FF] transition-colors">
+            <User className="w-3 h-3" />
+          </div>
+          <h4 
+            className="font-bold text-xs text-slate-900 dark:text-white truncate group-hover:text-[#1154FF] transition-colors"
+            title={leadName}
+          >
+            {leadName}
+          </h4>
+        </div>
+
         <div className="flex items-center gap-1 shrink-0">
           {contact && (() => {
             const evalData = evaluateScoreCriteria(contact);
             const temp = contact.leadTemperature || evalData.temperature;
             const tempConfig = TEMPERATURE_CONFIG[temp];
             return (
-              <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${tempConfig.bgLight} ${tempConfig.color} ${tempConfig.border}`} title={`Score: ${evalData.score} pts (${tempConfig.label})`}>
+              <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-extrabold border ${tempConfig.bgLight} ${tempConfig.color} ${tempConfig.border}`} title={`Score: ${evalData.score} pts (${tempConfig.label})`}>
                 {tempConfig.emoji} {evalData.score}
               </span>
             );
@@ -115,30 +133,18 @@ export const DealCard: React.FC<DealCardProps> = ({
         </div>
       </div>
 
-      {/* Proyecto de Interés o Inmueble */}
-      {interestInfo && (
-        <div className="flex items-center gap-1 text-[11px] text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/80 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
-          {interestInfo.isProject ? (
-            <Building2 className="w-3.5 h-3.5 text-[#004aad] shrink-0" />
-          ) : (
-            <Home className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-          )}
-          <span className="truncate font-medium" title={interestInfo.name}>
-            {interestInfo.name}
+      {/* Proyecto de Interés con Color Diferenciado y Destacado */}
+      {projectName && (
+        <div className="flex items-center gap-1.5 text-[11px] text-[#004aad] dark:text-[#38BDF8] bg-blue-50/80 dark:bg-blue-950/50 hover:bg-blue-100/70 dark:hover:bg-blue-950/70 p-1.5 px-2.5 rounded-xl border border-blue-200/80 dark:border-blue-800/60 shadow-xs transition-colors">
+          <Building2 className="w-3.5 h-3.5 text-[#1154FF] dark:text-[#38BDF8] shrink-0" />
+          <span className="truncate font-bold tracking-tight" title={projectName}>
+            {projectName}
           </span>
         </div>
       )}
 
-      {/* Client / Lead */}
-      {contact && (
-        <div className="flex items-center gap-1 text-[11px] text-slate-400">
-          <User className="w-3 h-3 text-slate-400 shrink-0" />
-          <span className="truncate">{contact.name}</span>
-        </div>
-      )}
-
-      {/* Value & Probability */}
-      <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      {/* Valor Trato & Probabilidad */}
+      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <div>
           <span className="text-[10px] text-slate-400 font-normal block">Valor trato</span>
           <span className="text-xs font-bold text-slate-900 dark:text-white">
@@ -154,29 +160,29 @@ export const DealCard: React.FC<DealCardProps> = ({
         </div>
       </div>
 
-      {/* Footer: Agent & Quick Stage Jump */}
+      {/* Footer: Asesor & Navegación Rápida de Etapa */}
       <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-1 overflow-hidden">
+        <div className="flex items-center gap-1.5 overflow-hidden">
           {agent && (
             <img
-              src={agent.avatar}
+              src={agent.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
               alt={agent.name}
               className="w-4 h-4 rounded-full object-cover"
               title={agent.name}
             />
           )}
-          <span className="text-[10px] text-slate-400 truncate max-w-[70px]">
-            {agent?.name.split(' ')[0]}
+          <span className="text-[10.5px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-[80px]">
+            {agent?.name.split(' ')[0] || 'Asignado'}
           </span>
         </div>
 
-        {/* Mobile Stage navigation buttons */}
+        {/* Botones de acción rápida */}
         <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
           {currentStageIndex > 0 && (
             <button
               onClick={handleMovePrev}
               title="Etapa anterior"
-              className="p-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 transition-colors"
+              className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-3 h-3" />
             </button>
@@ -186,7 +192,7 @@ export const DealCard: React.FC<DealCardProps> = ({
             <button
               onClick={handleMoveNext}
               title="Avanzar etapa"
-              className="p-1 rounded bg-blue-50 dark:bg-blue-950 text-[#004aad] hover:bg-blue-100 transition-colors"
+              className="p-1 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-950 dark:hover:bg-blue-900 text-[#004aad] dark:text-[#38BDF8] transition-colors cursor-pointer"
             >
               <ChevronRight className="w-3 h-3" />
             </button>
@@ -194,12 +200,12 @@ export const DealCard: React.FC<DealCardProps> = ({
 
           <button
             onClick={() => {
-              if (window.confirm(`¿Eliminar la oportunidad "${deal.title}"?`)) {
+              if (window.confirm(`¿Eliminar la oportunidad de "${leadName}"?`)) {
                 deleteDeal(deal.id);
               }
             }}
             title="Eliminar oportunidad"
-            className="p-1 rounded text-slate-400 hover:text-rose-500 transition-colors"
+            className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
           >
             <Trash2 className="w-3 h-3" />
           </button>

@@ -140,7 +140,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
         const contact = await addContact(payload as any);
         if (contact && contact.id) {
           await addDeal({
-            title: `Negociación con ${formData.name}`,
+            title: formData.name || 'Nuevo Prospecto',
             leadId: contact.id,
             propertyId: formData.interestedProperty || undefined,
             stage: formData.pipelineStage || 'nuevo_prospecto',
