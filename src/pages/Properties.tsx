@@ -449,17 +449,13 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
                       onClick={() => handleEdit(prop)}
                       className="hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
                     >
-                      {/* 1. Unidad / Proyecto (Identificador, Código y Proyecto Matriz) */}
+                      {/* 1. Unidad / Proyecto (Identificador y Proyecto Matriz) */}
                       <td className="py-3 px-4 max-w-[240px]">
-                        <div className="min-w-0 space-y-1">
+                        <div className="min-w-0 space-y-0.5">
                           <span className="font-bold text-slate-900 dark:text-white truncate block text-[12px]">
                             {prop.title || 'Sin identificar'}
                           </span>
                           <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-                            <span className="font-mono text-[10px] text-slate-400 shrink-0">
-                              {prop.code || 'UND-000'}
-                            </span>
-                            <span>•</span>
                             {prop.projectName ? (
                               <span className="font-semibold text-[#004aad] dark:text-[#38BDF8] flex items-center gap-1 truncate">
                                 <Building2 className="w-3 h-3 shrink-0" />

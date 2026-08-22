@@ -303,34 +303,34 @@ export const AdminUsers: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3.5">
-              {/* Vista previa circular con hover para cambiar */}
+            <div className="flex items-center gap-3">
+              {/* Vista previa circular compacta */}
               <div 
                 onClick={handleTriggerUpload}
-                className="relative group w-18 h-18 rounded-full overflow-hidden border-2 border-[#004aad] bg-white dark:bg-slate-900 shadow-sm cursor-pointer shrink-0"
-                title="Haz clic para seleccionar imagen desde tu PC"
+                className="relative group w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-[#004aad] bg-white dark:bg-slate-900 shadow-sm cursor-pointer shrink-0"
+                title="Haz clic para cambiar imagen desde tu PC"
               >
                 {avatar ? (
                   <img
                     src={avatar}
                     alt="Preview"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    className="w-full h-full object-cover object-center rounded-full aspect-square group-hover:scale-105 transition-transform"
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400">
-                    <User className="w-7 h-7" />
+                    <User className="w-6 h-6" />
                   </div>
                 )}
                 
                 {/* Overlay de cámara al pasar el mouse */}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white text-[9px] font-bold transition-opacity backdrop-blur-xs">
-                  <Camera className="w-4 h-4 mb-0.5" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white text-[8.5px] font-bold transition-opacity backdrop-blur-xs">
+                  <Camera className="w-3.5 h-3.5 mb-0.5" />
                   <span>Cambiar</span>
                 </div>
               </div>
 
-              {/* Controles de Subida y Recomendaciones */}
-              <div className="flex-1 space-y-2 text-center sm:text-left">
+              {/* Controles de Subida */}
+              <div className="flex-1 min-w-0 space-y-1.5">
                 {/* Input de archivo invisible */}
                 <input
                   type="file"
@@ -340,36 +340,30 @@ export const AdminUsers: React.FC = () => {
                   className="hidden"
                 />
 
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   <button
                     type="button"
                     onClick={handleTriggerUpload}
-                    className="px-3 py-1.5 text-xs font-bold rounded-xl bg-[#004aad] hover:bg-[#003b8a] text-white shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                    className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-[#004aad] hover:bg-[#003b8a] text-white shadow-xs transition-all flex items-center gap-1 active:scale-95 cursor-pointer"
                   >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Subir desde la PC</span>
+                    <Upload className="w-3 h-3" />
+                    <span>Subir foto PC</span>
                   </button>
 
                   {avatar && (
                     <button
                       type="button"
                       onClick={handleRemoveAvatar}
-                      className="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                      className="px-2 py-1 text-[11px] font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                     >
-                      Quitar foto
+                      Quitar
                     </button>
                   )}
                 </div>
 
-                {/* Recomendaciones de Formatos y Tamaños */}
-                <div className="text-[10.5px] text-slate-500 dark:text-slate-400 leading-tight space-y-0.5">
-                  <p className="flex items-center justify-center sm:justify-start gap-1">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">Formatos:</span> JPG, PNG, WEBP
-                  </p>
-                  <p className="flex items-center justify-center sm:justify-start gap-1">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">Tamaño recomendado:</span> 400×400 px (relación 1:1, máx. 5MB)
-                  </p>
-                </div>
+                <p className="text-[10px] text-slate-400 truncate">
+                  JPG, PNG o WEBP (máx. 5MB)
+                </p>
               </div>
             </div>
 
