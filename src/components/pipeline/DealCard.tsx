@@ -33,7 +33,7 @@ export const DealCard: React.FC<DealCardProps> = ({
   onEdit,
   onDragStart,
 }) => {
-  const { contacts, properties, projects, agents, moveDealStage, deleteDeal } = useCRM();
+  const { contacts, properties, projects, agents, moveDealStage, deleteDeal, addNotification } = useCRM();
 
   const contact = contacts.find((c) => c.id === deal.leadId);
   const agent = agents.find((a) => a.id === deal.agentId);
@@ -81,17 +81,21 @@ export const DealCard: React.FC<DealCardProps> = ({
 
   const currentStageIndex = STAGE_ORDER.indexOf(deal.stage);
 
-  const handleMovePrev = (e: React.MouseEvent) => {
+  const handleMovePrev = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (currentStageIndex > 0) {
-      moveDealStage(deal.id, STAGE_ORDER[currentStageIndex - 1]);
+      const prevStage = STAGE_ORDER[currentStageIndex - 1];
+      await moveDealStage(deal.id, prevStage);
+      addNotification('Etapa Actualizada', `"${leadName}" movido a ${prevStage.replace('_', ' ')}.`, 'info');
     }
   };
 
-  const handleMoveNext = (e: React.MouseEvent) => {
+  const handleMoveNext = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (currentStageIndex < STAGE_ORDER.length - 1) {
-      moveDealStage(deal.id, STAGE_ORDER[currentStageIndex + 1]);
+      const nextStage = STAGE_ORDER[currentStageIndex + 1];
+      await moveDealStage(deal.id, nextStage);
+      addNotification('Etapa Actualizada', `"${leadName}" avanzado a ${nextStage.replace('_', ' ')}.`, 'info');
     }
   };
 
@@ -199,9 +203,14 @@ export const DealCard: React.FC<DealCardProps> = ({
           )}
 
           <button
-            onClick={() => {
+            onClick={async () => {
               if (window.confirm(`¿Eliminar la oportunidad de "${leadName}"?`)) {
-                deleteDeal(deal.id);
+                try {
+                  await deleteDeal(deal.id);
+                  addNotification('Oportunidad Eliminada', `La oportunidad de "${leadName}" ha sido eliminada.`, 'info');
+                } catch (err: any) {
+                  addNotification('Error al eliminar', err.message || 'No se pudo eliminar la oportunidad.', 'error');
+                }
               }
             }}
             title="Eliminar oportunidad"

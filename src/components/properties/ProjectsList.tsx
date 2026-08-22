@@ -5,7 +5,7 @@ import { FolderTree, Building2, MapPin, Mail, Phone, Edit, Trash2 } from 'lucide
 import { ProjectModal } from './ProjectModal';
 
 export const ProjectsList: React.FC = () => {
-  const { projects, deleteProject, searchQuery } = useCRM();
+  const { projects, deleteProject, addNotification, searchQuery } = useCRM();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
 
@@ -35,9 +35,14 @@ export const ProjectsList: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('¿Está seguro que desea eliminar este proyecto?')) {
-      deleteProject(id);
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`¿Está seguro que desea eliminar el proyecto "${name}"?`)) {
+      try {
+        await deleteProject(id);
+        addNotification('Proyecto Eliminado', `El proyecto "${name}" ha sido eliminado.`, 'info');
+      } catch (err: any) {
+        addNotification('Error al eliminar', err.message || 'No se pudo eliminar el proyecto.', 'error');
+      }
     }
   };
 
@@ -63,7 +68,7 @@ export const ProjectsList: React.FC = () => {
                 <button onClick={() => handleEdit(project)} className="p-1.5 text-slate-400 hover:text-[#004aad] transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
                   <Edit className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => handleDelete(project.id)} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
+                <button onClick={() => handleDelete(project.id, project.name)} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800" title="Eliminar proyecto">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>

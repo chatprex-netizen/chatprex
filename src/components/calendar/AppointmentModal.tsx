@@ -14,7 +14,7 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
   onClose,
   appointmentToEdit,
 }) => {
-  const { addAppointment, updateAppointment, properties, contacts, agents } = useCRM();
+  const { addAppointment, updateAppointment, addNotification, properties, contacts, agents } = useCRM();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -25,35 +25,36 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
     time: '11:00',
     durationMinutes: 60,
     status: 'programada' as AppointmentStatus,
-    location: properties[0]?.address || 'En la propiedad',
+    location: '',
     notes: '',
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (appointmentToEdit) {
       setFormData({
         title: appointmentToEdit.title,
-        propertyId: appointmentToEdit.propertyId || properties[0]?.id || '',
+        propertyId: appointmentToEdit.propertyId,
         contactId: appointmentToEdit.contactId,
         agentId: appointmentToEdit.agentId,
         date: appointmentToEdit.date,
         time: appointmentToEdit.time,
         durationMinutes: appointmentToEdit.durationMinutes,
         status: appointmentToEdit.status,
-        location: appointmentToEdit.location || '',
+        location: appointmentToEdit.location,
         notes: appointmentToEdit.notes || '',
       });
     } else {
+      const defaultProp = properties[0];
       setFormData({
         title: '',
-        propertyId: properties[0]?.id || '',
+        propertyId: defaultProp?.id || '',
         contactId: contacts[0]?.id || '',
         agentId: agents[0]?.id || '',
         date: new Date().toISOString().split('T')[0],
         time: '11:00',
         durationMinutes: 60,
         status: 'programada',
-        location: properties[0]?.address || 'En la propiedad',
+        location: defaultProp ? `${defaultProp.address}, ${defaultProp.zone}` : '',
         notes: '',
       });
     }
@@ -68,16 +69,22 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
 
-    if (appointmentToEdit) {
-      updateAppointment(appointmentToEdit.id, formData);
-    } else {
-      addAppointment(formData);
+    try {
+      if (appointmentToEdit) {
+        await updateAppointment(appointmentToEdit.id, formData);
+        addNotification('Cita Actualizada', `Se guardaron los cambios de la cita "${formData.title}".`, 'success');
+      } else {
+        await addAppointment(formData);
+        addNotification('Cita Agendada', `La cita "${formData.title}" fue programada con éxito.`, 'success');
+      }
+      onClose();
+    } catch (err: any) {
+      addNotification('Error al guardar', err.message || 'No se pudo agendar la cita.', 'error');
     }
-    onClose();
   };
 
   return (

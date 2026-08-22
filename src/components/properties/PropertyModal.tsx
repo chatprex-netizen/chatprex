@@ -64,7 +64,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
   onClose,
   propertyToEdit,
 }) => {
-  const { addProperty, updateProperty, agents, projects } = useCRM();
+  const { addProperty, updateProperty, addNotification, agents, projects } = useCRM();
 
   const [formData, setFormData] = useState({
     code: '',
@@ -193,8 +193,10 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
 
       if (propertyToEdit) {
         await updateProperty(propertyToEdit.id, payload);
+        addNotification('Unidad Actualizada', `Se guardaron los cambios de "${payload.title}".`, 'success');
       } else {
         await addProperty(payload as Omit<Property, 'id' | 'createdAt'>);
+        addNotification('Unidad Registrada', `La unidad "${payload.title}" fue registrada con éxito.`, 'success');
       }
       onClose();
     } catch (err: any) {

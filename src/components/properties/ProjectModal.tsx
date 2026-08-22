@@ -234,8 +234,10 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
 
     if (projectToEdit) {
       await updateProject(projectToEdit.id, payload);
+      addNotification('Proyecto Actualizado', `Se guardaron los cambios de "${name}".`, 'success');
     } else {
       await addProject(payload as Omit<Project, 'id' | 'createdAt'>);
+      addNotification('Proyecto Creado', `El proyecto "${name}" se registró con éxito.`, 'success');
     }
     onClose();
   };

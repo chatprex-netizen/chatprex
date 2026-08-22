@@ -15,7 +15,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
   onClose,
   contactToEdit,
 }) => {
-  const { addContact, updateContact, addDeal, agents, contacts, properties, projects, leadChannels, pipelineStages } = useCRM();
+  const { addContact, updateContact, addDeal, addNotification, agents, contacts, properties, projects, leadChannels, pipelineStages } = useCRM();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -136,6 +136,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
 
       if (contactToEdit) {
         await updateContact(contactToEdit.id, payload as Partial<Contact>);
+        addNotification('Contacto Actualizado', `Se guardaron los cambios de "${formData.name}".`, 'success');
       } else {
         const contact = await addContact(payload as any);
         if (contact && contact.id) {
@@ -153,10 +154,11 @@ export const ContactModal: React.FC<ContactModalProps> = ({
             notes: formData.notes || ''
           });
         }
+        addNotification('Contacto Registrado', `El contacto "${formData.name}" fue creado con éxito.`, 'success');
       }
       onClose();
     } catch (err: any) {
-      alert('Error al guardar contacto: ' + (err.message || 'Error del servidor'));
+      addNotification('Error al guardar contacto', err.message || 'Error del servidor', 'error');
     }
   };
 

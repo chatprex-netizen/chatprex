@@ -64,6 +64,7 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
   const { 
     contracts, 
     deleteContract, 
+    addNotification,
     searchQuery, 
     setSearchQuery,
     properties
@@ -369,13 +370,18 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
                         </button>
 
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (window.confirm(`¿Eliminar el contrato ${contract.code}?`)) {
-                              deleteContract(contract.id);
+                              try {
+                                await deleteContract(contract.id);
+                                addNotification('Contrato Eliminado', `El contrato "${contract.code}" ha sido eliminado.`, 'info');
+                              } catch (err: any) {
+                                addNotification('Error al eliminar', err.message || 'No se pudo eliminar el contrato.', 'error');
+                              }
                             }
                           }}
                           title="Eliminar"
-                          className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors"
+                          className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -465,12 +471,17 @@ export const ContractsPage: React.FC<ContractsPageProps> = () => {
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (window.confirm(`¿Eliminar el contrato ${contract.code}?`)) {
-                                deleteContract(contract.id);
+                                try {
+                                  await deleteContract(contract.id);
+                                  addNotification('Contrato Eliminado', `El contrato "${contract.code}" ha sido eliminado.`, 'info');
+                                } catch (err: any) {
+                                  addNotification('Error al eliminar', err.message || 'No se pudo eliminar el contrato.', 'error');
+                                }
                               }
                             }}
-                            className="p-1 rounded text-slate-400 hover:text-rose-600"
+                            className="p-1 rounded text-slate-400 hover:text-rose-600 cursor-pointer"
                             title="Eliminar"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

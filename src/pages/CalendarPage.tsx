@@ -26,6 +26,7 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({
     fetchAppointments,
     updateAppointmentStatus, 
     deleteAppointment, 
+    addNotification,
     properties, 
     contacts, 
     agents 
@@ -210,8 +211,11 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({
 
                     {app.status !== 'realizada' && (
                       <button
-                        onClick={() => updateAppointmentStatus(app.id, 'realizada')}
-                        className="px-2 py-1 text-[11px] font-medium rounded-md bg-blue-50 text-[#004aad] hover:bg-blue-100 transition-colors"
+                        onClick={async () => {
+                          await updateAppointmentStatus(app.id, 'realizada');
+                          addNotification('Cita Realizada', `La cita "${app.title}" fue marcada como realizada.`, 'success');
+                        }}
+                        className="px-2 py-1 text-[11px] font-medium rounded-md bg-blue-50 text-[#004aad] hover:bg-blue-100 transition-colors cursor-pointer"
                       >
                         Realizada
                       </button>
@@ -219,18 +223,23 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({
 
                     <button
                       onClick={() => onEditAppointment && onEditAppointment(app)}
-                      className="p-1 rounded text-slate-400 hover:text-blue-600 transition-colors"
+                      className="p-1 rounded text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
                       title="Editar"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         if (window.confirm(`¿Eliminar la cita "${app.title}"?`)) {
-                          deleteAppointment(app.id);
+                          try {
+                            await deleteAppointment(app.id);
+                            addNotification('Cita Eliminada', `La cita "${app.title}" ha sido eliminada.`, 'info');
+                          } catch (err: any) {
+                            addNotification('Error al eliminar', err.message || 'No se pudo eliminar la cita.', 'error');
+                          }
                         }
                       }}
-                      className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors"
+                      className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                       title="Eliminar"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

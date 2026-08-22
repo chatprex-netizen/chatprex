@@ -7,7 +7,7 @@ import { Agent } from '../../types';
 import { Modal } from '../common/Modal';
 
 export const AdminUsers: React.FC = () => {
-  const { agents, addAgent, updateAgent, deleteAgent } = useCRM();
+  const { agents, addAgent, updateAgent, deleteAgent, addNotification } = useCRM();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
@@ -49,9 +49,14 @@ export const AdminUsers: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('¿Estás seguro de eliminar este usuario/agente?')) {
-      deleteAgent(id);
+  const handleDelete = async (id: string, agentName: string) => {
+    if (window.confirm(`¿Estás seguro de eliminar al usuario/agente "${agentName}"?`)) {
+      try {
+        await deleteAgent(id);
+        addNotification('Usuario Eliminado', `El usuario "${agentName}" fue retirado del equipo.`, 'info');
+      } catch (err: any) {
+        addNotification('Error al eliminar', err.message || 'No se pudo eliminar el usuario.', 'error');
+      }
     }
   };
 
@@ -135,6 +140,7 @@ export const AdminUsers: React.FC = () => {
           avatar: avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
           active
         });
+        addNotification('Usuario Actualizado', `Se guardaron los cambios de "${name}".`, 'success');
       } else {
         await addAgent({ 
           name, 
@@ -147,10 +153,11 @@ export const AdminUsers: React.FC = () => {
           activeDealsCount: 0,
           salesVolume: 0
         });
+        addNotification('Usuario Creado', `El usuario "${name}" fue registrado con éxito.`, 'success');
       }
       setIsModalOpen(false);
     } catch (err: any) {
-      alert('Error al guardar usuario: ' + (err.message || 'Error del servidor'));
+      addNotification('Error al guardar usuario', err.message || 'Error del servidor', 'error');
     }
   };
 
@@ -256,7 +263,7 @@ export const AdminUsers: React.FC = () => {
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => handleDelete(agent.id)}
+                      onClick={() => handleDelete(agent.id, agent.name)}
                       className="p-1.5 text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
                       title="Eliminar Usuario"
                     >

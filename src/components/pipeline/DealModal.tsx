@@ -16,7 +16,7 @@ export const DealModal: React.FC<DealModalProps> = ({
   dealToEdit,
   initialStage = 'nuevo_prospecto',
 }) => {
-  const { addDeal, updateDeal, contacts, properties, pipelineStages, currentAgent } = useCRM();
+  const { addDeal, updateDeal, addNotification, contacts, properties, pipelineStages, currentAgent } = useCRM();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -90,12 +90,15 @@ export const DealModal: React.FC<DealModalProps> = ({
     try {
       if (dealToEdit) {
         await updateDeal(dealToEdit.id, formData);
+        addNotification('Oportunidad Actualizada', `Se guardaron los cambios de "${formData.title}".`, 'success');
       } else {
         await addDeal(formData);
+        addNotification('Oportunidad Creada', `Se registró la oportunidad "${formData.title}".`, 'success');
       }
       onClose();
     } catch (err: any) {
       setErrorMsg(err.message || 'Error al guardar');
+      addNotification('Error al guardar', err.message || 'Error al guardar la oportunidad.', 'error');
     }
   };
 

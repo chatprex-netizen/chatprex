@@ -4,7 +4,7 @@ import { useCRM } from '../../context/CRMContext';
 import { LeadChannelConfig } from '../../types';
 
 export const AdminLeadChannels: React.FC = () => {
-  const { leadChannels, addLeadChannel, updateLeadChannel, deleteLeadChannel } = useCRM();
+  const { leadChannels, addLeadChannel, updateLeadChannel, deleteLeadChannel, addNotification } = useCRM();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<LeadChannelConfig | null>(null);
@@ -32,33 +32,43 @@ export const AdminLeadChannels: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('¿Estás seguro de eliminar esta fuente de origen?')) {
-      deleteLeadChannel(id);
+  const handleDelete = async (id: string, channelName: string) => {
+    if (window.confirm(`¿Estás seguro de eliminar el canal de captación "${channelName}"?`)) {
+      try {
+        await deleteLeadChannel(id);
+        addNotification('Canal Eliminado', `El canal "${channelName}" ha sido eliminado.`, 'info');
+      } catch (err: any) {
+        addNotification('Error al eliminar', err.message || 'No se pudo eliminar el canal.', 'error');
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    if (editingChannel) {
-      updateLeadChannel(editingChannel.id, { 
-        name, 
-        color,
-        details,
-        visible
-      });
-    } else {
-      addLeadChannel({ 
-        name, 
-        color,
-        details,
-        visible
-      });
+    try {
+      if (editingChannel) {
+        await updateLeadChannel(editingChannel.id, { 
+          name, 
+          color,
+          details,
+          visible
+        });
+        addNotification('Canal Actualizado', `Se guardaron los cambios de "${name}".`, 'success');
+      } else {
+        await addLeadChannel({ 
+          name, 
+          color,
+          details,
+          visible
+        });
+        addNotification('Canal Creado', `El canal "${name}" fue registrado con éxito.`, 'success');
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      addNotification('Error al guardar canal', err.message || 'Error del servidor.', 'error');
     }
-    
-    setIsModalOpen(false);
   };
 
   return (
@@ -134,8 +144,8 @@ export const AdminLeadChannels: React.FC = () => {
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => handleDelete(channel.id)}
-                      className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
+                      onClick={() => handleDelete(channel.id, channel.name)}
+                      className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors cursor-pointer"
                       title="Eliminar canal"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

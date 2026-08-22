@@ -24,7 +24,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onClose,
   taskToEdit,
 }) => {
-  const { addTask, updateTask, contacts, properties, currentAgent } = useCRM();
+  const { addTask, updateTask, addNotification, contacts, properties, currentAgent } = useCRM();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -72,16 +72,22 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }
   }, [taskToEdit, isOpen, currentAgent, contacts]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
 
-    if (taskToEdit) {
-      updateTask(taskToEdit.id, formData);
-    } else {
-      addTask(formData);
+    try {
+      if (taskToEdit) {
+        await updateTask(taskToEdit.id, formData);
+        addNotification('Tarea Actualizada', `Se guardaron los cambios de "${formData.title}".`, 'success');
+      } else {
+        await addTask(formData);
+        addNotification('Tarea Creada', `La tarea "${formData.title}" fue programada con éxito.`, 'success');
+      }
+      onClose();
+    } catch (err: any) {
+      addNotification('Error al guardar', err.message || 'No se pudo guardar la tarea.', 'error');
     }
-    onClose();
   };
 
   return (

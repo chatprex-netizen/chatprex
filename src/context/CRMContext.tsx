@@ -185,8 +185,10 @@ interface CRMContextType {
   setActiveConversationId: (id: string | null) => void;
   sendMessage: (conversationId: string, content: string, propertyAttachment?: Property, isPrivateNote?: boolean) => Promise<void>;
   
-  // Notificaciones
-  addNotification: (title: string, message: string, type?: 'info' | 'success' | 'warning') => Promise<void>;
+  // Notificaciones & Toasts
+  toasts: Array<{ id: string; title: string; message: string; type: 'info' | 'success' | 'warning' | 'error' }>;
+  removeToast: (id: string) => void;
+  addNotification: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => Promise<void>;
   markNotificationAsRead: (id: string) => void;
   clearAllNotifications: () => void;
   
@@ -1094,13 +1096,34 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Notificaciones
-  const addNotification = async (title: string, message: string, type: 'info' | 'success' | 'warning' = 'info') => {
+  // Notificaciones & Toasts Flotantes
+  const [toasts, setToasts] = useState<Array<{ id: string; title: string; message: string; type: 'info' | 'success' | 'warning' | 'error' }>>([]);
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  const addNotification = async (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+    const toastId = `toast-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    setToasts(prev => [...prev.slice(-4), { id: toastId, title, message, type }]);
+
+    setTimeout(() => {
+      removeToast(toastId);
+    }, 3800);
+
     try {
-      const newNotif = await apiClient.post<NotificationItem>('/notifications', { title, message, type });
+      const newNotif = await apiClient.post<NotificationItem>('/notifications', { title, message, type: type === 'error' ? 'warning' : type });
       setNotifications(prev => [newNotif, ...prev]);
     } catch (err) {
       console.error('Error adding notification', err);
+      setNotifications(prev => [{
+        id: `notif-${Date.now()}`,
+        title,
+        message,
+        type: type === 'error' ? 'warning' : type,
+        read: false,
+        createdAt: new Date().toISOString()
+      }, ...prev]);
     }
   };
 
@@ -1193,6 +1216,8 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       activeConversationId,
       setActiveConversationId,
       sendMessage,
+      toasts,
+      removeToast,
       addNotification,
       markNotificationAsRead,
       clearAllNotifications,

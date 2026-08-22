@@ -41,6 +41,7 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
     deleteLeadActivity,
     updateLeadNextContact, 
     addTask, 
+    addNotification,
     currentAgent,
     properties,
     projects,
@@ -201,7 +202,10 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
       setSummary('');
       setDescription('');
       setSavedSuccess(true);
+      addNotification('Seguimiento Registrado', `Se registró la actividad con "${contact.name}".`, 'success');
       setTimeout(() => setSavedSuccess(false), 3000);
+    } catch (err: any) {
+      addNotification('Error al registrar seguimiento', err.message || 'Error del servidor.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -209,7 +213,12 @@ export const LeadFollowUpModal: React.FC<LeadFollowUpModalProps> = ({
 
   const handleDeleteActivity = async (activityId: string) => {
     if (window.confirm('¿Deseas eliminar este registro de interacción?')) {
-      await deleteLeadActivity(contact.id, activityId);
+      try {
+        await deleteLeadActivity(contact.id, activityId);
+        addNotification('Interacción Eliminada', 'El registro de actividad ha sido eliminado.', 'info');
+      } catch (err: any) {
+        addNotification('Error al eliminar', err.message || 'No se pudo eliminar el registro.', 'error');
+      }
     }
   };
 

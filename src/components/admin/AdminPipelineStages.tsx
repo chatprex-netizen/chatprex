@@ -4,7 +4,7 @@ import { useCRM } from '../../context/CRMContext';
 import { PipelineStageConfig } from '../../types';
 
 export const AdminPipelineStages: React.FC = () => {
-  const { pipelineStages, addPipelineStage, updatePipelineStage, deletePipelineStage } = useCRM();
+  const { pipelineStages, addPipelineStage, updatePipelineStage, deletePipelineStage, addNotification } = useCRM();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStage, setEditingStage] = useState<PipelineStageConfig | null>(null);
@@ -32,32 +32,42 @@ export const AdminPipelineStages: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('¿Estás seguro de eliminar esta etapa?')) {
-      deletePipelineStage(id);
+  const handleDelete = async (id: string, stageName: string) => {
+    if (window.confirm(`¿Estás seguro de eliminar la etapa "${stageName}"?`)) {
+      try {
+        await deletePipelineStage(id);
+        addNotification('Etapa Eliminada', `La etapa "${stageName}" ha sido eliminada.`, 'info');
+      } catch (err: any) {
+        addNotification('Error al eliminar', err.message || 'No se pudo eliminar la etapa.', 'error');
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    if (editingStage) {
-      updatePipelineStage(editingStage.id, { 
-        name, 
-        color,
-        visible
-      });
-    } else {
-      addPipelineStage({ 
-        name, 
-        color,
-        visible,
-        order: pipelineStages.length + 1
-      });
+    try {
+      if (editingStage) {
+        await updatePipelineStage(editingStage.id, { 
+          name, 
+          color,
+          visible
+        });
+        addNotification('Etapa Actualizada', `Se guardaron los cambios de "${name}".`, 'success');
+      } else {
+        await addPipelineStage({ 
+          name, 
+          color,
+          visible,
+          order: pipelineStages.length + 1
+        });
+        addNotification('Etapa Creada', `La etapa "${name}" fue añadida al embudo.`, 'success');
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      addNotification('Error al guardar etapa', err.message || 'Error del servidor.', 'error');
     }
-    
-    setIsModalOpen(false);
   };
 
   const moveOrder = (index: number, direction: 'up' | 'down') => {
@@ -161,8 +171,8 @@ export const AdminPipelineStages: React.FC = () => {
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => handleDelete(stage.id)}
-                      className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
+                      onClick={() => handleDelete(stage.id, stage.name)}
+                      className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors cursor-pointer"
                       title="Eliminar etapa"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

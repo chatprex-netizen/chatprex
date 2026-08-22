@@ -30,6 +30,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({
     tasks, 
     toggleTaskComplete, 
     deleteTask, 
+    addNotification,
     contacts, 
     properties, 
     agents,
@@ -226,8 +227,11 @@ export const TasksPage: React.FC<TasksPageProps> = ({
               >
                 <div className="flex items-start gap-2.5 min-w-0 flex-1">
                   <button
-                    onClick={() => toggleTaskComplete(task.id)}
-                    className="mt-0.5 text-[#004aad] hover:scale-105 transition-transform shrink-0"
+                    onClick={async () => {
+                      await toggleTaskComplete(task.id);
+                      addNotification('Tarea Actualizada', isCompleted ? `Tarea "${task.title}" marcada como pendiente.` : `Tarea "${task.title}" completada con éxito.`, 'success');
+                    }}
+                    className="mt-0.5 text-[#004aad] hover:scale-105 transition-transform shrink-0 cursor-pointer"
                     title={isCompleted ? 'Marcar pendiente' : 'Marcar completada'}
                   >
                     {isCompleted ? (
@@ -306,12 +310,17 @@ export const TasksPage: React.FC<TasksPageProps> = ({
                     </button>
 
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         if (window.confirm(`¿Eliminar la tarea "${task.title}"?`)) {
-                          deleteTask(task.id);
+                          try {
+                            await deleteTask(task.id);
+                            addNotification('Tarea Eliminada', `La tarea "${task.title}" ha sido eliminada.`, 'info');
+                          } catch (err: any) {
+                            addNotification('Error al eliminar', err.message || 'No se pudo eliminar la tarea.', 'error');
+                          }
                         }
                       }}
-                      className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors"
+                      className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                       title="Eliminar"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

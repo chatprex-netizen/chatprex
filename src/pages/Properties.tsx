@@ -27,6 +27,7 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
     propertiesTotal, 
     fetchProperties, 
     deleteProperty,
+    addNotification,
     projects 
   } = useCRM();
 
@@ -167,7 +168,12 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
   const handleDelete = async (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation();
     if (confirm(`¿Estás seguro de eliminar la unidad "${name}"?`)) {
-      await deleteProperty(id);
+      try {
+        await deleteProperty(id);
+        addNotification('Unidad Eliminada', `La unidad "${name}" ha sido eliminada.`, 'info');
+      } catch (err: any) {
+        addNotification('Error al eliminar', err.message || 'No se pudo eliminar la unidad.', 'error');
+      }
     }
   };
 

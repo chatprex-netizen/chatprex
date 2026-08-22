@@ -14,7 +14,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({
   onClose,
   contractToEdit,
 }) => {
-  const { addContract, updateContract, contacts, properties, projects } = useCRM();
+  const { addContract, updateContract, addNotification, contacts, properties, projects } = useCRM();
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
 
@@ -77,19 +77,25 @@ export const ContractModal: React.FC<ContractModalProps> = ({
     }
   }, [contractToEdit, isOpen, properties, contacts]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.code || !formData.client || !formData.unit) {
       alert('Por favor completa todos los campos requeridos (*)');
       return;
     }
 
-    if (contractToEdit) {
-      updateContract(contractToEdit.id, formData);
-    } else {
-      addContract(formData);
+    try {
+      if (contractToEdit) {
+        await updateContract(contractToEdit.id, formData);
+        addNotification('Contrato Actualizado', `Se guardaron los cambios del contrato "${formData.code}".`, 'success');
+      } else {
+        await addContract(formData);
+        addNotification('Contrato Generado', `Se generó el contrato "${formData.code}" con éxito.`, 'success');
+      }
+      onClose();
+    } catch (err: any) {
+      addNotification('Error al guardar', err.message || 'No se pudo generar el contrato.', 'error');
     }
-    onClose();
   };
 
   return (

@@ -27,6 +27,7 @@ import { DealModal } from './components/pipeline/DealModal';
 import { ContactModal } from './components/contacts/ContactModal';
 import { AppointmentModal } from './components/calendar/AppointmentModal';
 import { TaskModal } from './components/tasks/TaskModal';
+import { ToastContainer } from './components/common/ToastContainer';
 import { useCRM } from './context/CRMContext';
 import { LoginPage } from './pages/LoginPage';
 import { Page, Appointment } from './types';
@@ -382,6 +383,9 @@ export const App: React.FC = () => {
         isOpen={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
       />
+
+      {/* Notificaciones Toasts Flotantes */}
+      <ToastContainer />
     </Layout>
   );
 };

@@ -43,6 +43,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
     contactsTotal,
     fetchContacts,
     deleteContact, 
+    addNotification,
     agents, 
     conversations, 
     searchQuery,
@@ -603,13 +604,18 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                         </button>
 
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (window.confirm(`¿Eliminar al contacto ${contact.name}?`)) {
-                              deleteContact(contact.id);
+                              try {
+                                await deleteContact(contact.id);
+                                addNotification('Contacto Eliminado', `El contacto "${contact.name}" fue eliminado.`, 'info');
+                              } catch (err: any) {
+                                addNotification('Error al eliminar', err.message || 'No se pudo eliminar el contacto.', 'error');
+                              }
                             }
                           }}
                           title="Eliminar"
-                          className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors"
+                          className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -765,12 +771,17 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                           </button>
 
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (window.confirm(`¿Eliminar al contacto ${contact.name}?`)) {
-                                deleteContact(contact.id);
+                                try {
+                                  await deleteContact(contact.id);
+                                  addNotification('Contacto Eliminado', `El contacto "${contact.name}" fue eliminado.`, 'info');
+                                } catch (err: any) {
+                                  addNotification('Error al eliminar', err.message || 'No se pudo eliminar el contacto.', 'error');
+                                }
                               }
                             }}
-                            className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors"
+                            className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                             title="Eliminar"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
