@@ -14,7 +14,7 @@ import {
   Edit2,
   SlidersHorizontal,
   RotateCcw,
-  Tag
+  MapPin
 } from 'lucide-react';
 import { Badge } from '../components/common/Badge';
 import { ProjectsList } from '../components/properties/ProjectsList';
@@ -391,7 +391,7 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
         )}
       </div>
 
-      {/* Contenido: Proyectos o Tabla de Unidades Ordenada */}
+      {/* Contenido: Proyectos o Tabla de Unidades */}
       {activeTab === 'projects' ? (
         <ProjectsList />
       ) : filteredProperties.length === 0 ? (
@@ -426,15 +426,16 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
       ) : (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs min-w-[860px]">
-              {/* ORDEN DE COLUMNAS: 1. Unidad/Proyectos, 2. Area, 3. Moneda y Precio, 4. Estado, 5. Ubicación/Características, 6. Acciones */}
+            <table className="w-full text-left text-xs min-w-[900px]">
+              {/* ORDEN DE COLUMNAS: 1. Unidad/Proyecto, 2. Ubicación, 3. Área, 4. Moneda y Precio, 5. Estado, 6. Características, 7. Acciones */}
               <thead className="bg-slate-50/90 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-semibold text-[11px] border-b border-slate-200 dark:border-slate-700">
                 <tr>
                   <th className="py-3 px-4">Unidad / Proyecto</th>
+                  <th className="py-3 px-4">Ubicación</th>
                   <th className="py-3 px-4">Área (m²)</th>
                   <th className="py-3 px-4">Moneda y Precio</th>
                   <th className="py-3 px-4">Estado</th>
-                  <th className="py-3 px-4">Ubicación / Características</th>
+                  <th className="py-3 px-4">Características</th>
                   <th className="py-3 px-4 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -443,6 +444,18 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
                   const currencyLabel = prop.currency === 'PEN' ? 'S/' : prop.currency || 'USD';
                   const rawFeature = prop.unitFeature || (Array.isArray(prop.features) && prop.features.length > 0 ? prop.features.join(', ') : null);
 
+                  // Resolver Ubicación completa: Dirección, Distrito/Zona, Ciudad juntos
+                  const projectObj = projects.find(p => p.id === prop.projectId || (p.name && p.name.toLowerCase() === (prop.projectName || '').toLowerCase()));
+                  const locationText = (() => {
+                    if (projectObj) {
+                      const parts = [projectObj.address, projectObj.zone, projectObj.city].filter(Boolean);
+                      if (parts.length > 0) return parts.join(', ');
+                    }
+                    const propParts = [prop.address, prop.zone, prop.city].filter(Boolean);
+                    if (propParts.length > 0) return propParts.join(', ');
+                    return 'Arequipa';
+                  })();
+
                   return (
                     <tr
                       key={prop.id}
@@ -450,12 +463,12 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
                       className="hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
                     >
                       {/* 1. Unidad / Proyecto (Identificador y Proyecto Matriz) */}
-                      <td className="py-3 px-4 max-w-[240px]">
+                      <td className="py-3 px-4 max-w-[220px]">
                         <div className="min-w-0 space-y-0.5">
                           <span className="font-bold text-slate-900 dark:text-white truncate block text-[12px]">
                             {prop.title || 'Sin identificar'}
                           </span>
-                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                          <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
                             {prop.projectName ? (
                               <span className="font-semibold text-[#004aad] dark:text-[#38BDF8] flex items-center gap-1 truncate">
                                 <Building2 className="w-3 h-3 shrink-0" />
@@ -468,7 +481,17 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
                         </div>
                       </td>
 
-                      {/* 2. Área (m²) */}
+                      {/* 2. Ubicación: Dirección, Distrito, Ciudad juntos */}
+                      <td className="py-3 px-4 max-w-[220px]">
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-300">
+                          <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                          <span className="truncate" title={locationText}>
+                            {locationText}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* 3. Área (m²) */}
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="inline-flex items-center gap-1 font-bold text-slate-900 dark:text-slate-100">
                           <Maximize2 className="w-3.5 h-3.5 text-slate-400" />
@@ -476,22 +499,22 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
                         </div>
                       </td>
 
-                      {/* 3. Moneda y Precio */}
+                      {/* 4. Moneda y Precio */}
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">
                           {currencyLabel} {(parseFloat(prop.price as any) || 0).toLocaleString('en-US')}
                         </div>
                       </td>
 
-                      {/* 4. Estado */}
+                      {/* 5. Estado */}
                       <td className="py-3 px-4 whitespace-nowrap">
                         <Badge variant={prop.status || 'disponible'} size="sm">
                           {(prop.status || 'disponible').replace('_', ' ')}
                         </Badge>
                       </td>
 
-                      {/* 5. Ubicación / Características */}
-                      <td className="py-3 px-4 max-w-[240px]">
+                      {/* 6. Características / Atributos */}
+                      <td className="py-3 px-4 max-w-[220px]">
                         {rawFeature ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#004aad] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-800/40 text-[11px] font-semibold truncate max-w-full">
                             <Sparkles className="w-3.5 h-3.5 text-[#1154FF] dark:text-[#38BDF8] shrink-0" />
@@ -502,7 +525,7 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
                         )}
                       </td>
 
-                      {/* 6. Acciones */}
+                      {/* 7. Acciones */}
                       <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
                           <button
