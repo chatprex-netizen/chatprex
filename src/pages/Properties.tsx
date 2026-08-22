@@ -14,8 +14,7 @@ import {
   Edit2,
   SlidersHorizontal,
   RotateCcw,
-  CheckCircle2,
-  Filter
+  Tag
 } from 'lucide-react';
 import { Badge } from '../components/common/Badge';
 import { ProjectsList } from '../components/properties/ProjectsList';
@@ -69,7 +68,7 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
     return list.filter((prop) => {
       if (!prop) return false;
 
-      // 1. Búsqueda por texto (identificador, código, proyecto, características, descripción)
+      // 1. Búsqueda por texto
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const titleMatch = (prop.title || '').toLowerCase().includes(q);
@@ -335,7 +334,6 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
 
             {/* Fila 2: Rangos de Precio y Área + Botón Limpiar */}
             <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
-              
               <div className="flex flex-wrap items-center gap-2">
                 {/* Rango de Precios */}
                 <div className="flex items-center gap-1.5 bg-[#F7F8FA] dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -393,7 +391,7 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
         )}
       </div>
 
-      {/* Contenido: Proyectos o Tabla de Unidades */}
+      {/* Contenido: Proyectos o Tabla de Unidades Ordenada */}
       {activeTab === 'projects' ? (
         <ProjectsList />
       ) : filteredProperties.length === 0 ? (
@@ -429,15 +427,14 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs min-w-[860px]">
+              {/* ORDEN DE COLUMNAS: 1. Unidad/Proyectos, 2. Area, 3. Moneda y Precio, 4. Estado, 5. Ubicación/Características, 6. Acciones */}
               <thead className="bg-slate-50/90 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-semibold text-[11px] border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="py-3 px-4">Código / Unidad</th>
-                  <th className="py-3 px-4">Proyecto Matriz</th>
-                  <th className="py-3 px-4">Tipo</th>
+                  <th className="py-3 px-4">Unidad / Proyecto</th>
                   <th className="py-3 px-4">Área (m²)</th>
-                  <th className="py-3 px-4">Características / Ubicación</th>
-                  <th className="py-3 px-4">Precio</th>
+                  <th className="py-3 px-4">Moneda y Precio</th>
                   <th className="py-3 px-4">Estado</th>
+                  <th className="py-3 px-4">Ubicación / Características</th>
                   <th className="py-3 px-4 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -452,48 +449,56 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
                       onClick={() => handleEdit(prop)}
                       className="hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
                     >
-                      {/* Código e Identificador de la Unidad */}
-                      <td className="py-3 px-4 max-w-[220px]">
-                        <div className="min-w-0 space-y-0.5">
+                      {/* 1. Unidad / Proyecto (Identificador, Código y Proyecto Matriz) */}
+                      <td className="py-3 px-4 max-w-[240px]">
+                        <div className="min-w-0 space-y-1">
                           <span className="font-bold text-slate-900 dark:text-white truncate block text-[12px]">
                             {prop.title || 'Sin identificar'}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono tracking-wider">
-                            {prop.code || 'UND-000'}
-                          </span>
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                            <span className="font-mono text-[10px] text-slate-400 shrink-0">
+                              {prop.code || 'UND-000'}
+                            </span>
+                            <span>•</span>
+                            {prop.projectName ? (
+                              <span className="font-semibold text-[#004aad] dark:text-[#38BDF8] flex items-center gap-1 truncate">
+                                <Building2 className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{prop.projectName}</span>
+                              </span>
+                            ) : (
+                              <span className="italic text-slate-400">Independiente</span>
+                            )}
+                          </div>
                         </div>
                       </td>
 
-                      {/* Proyecto Perteneciente */}
-                      <td className="py-3 px-4 max-w-[180px]">
-                        {prop.projectName ? (
-                          <div className="flex items-center gap-1.5 text-slate-800 dark:text-slate-200 font-semibold truncate">
-                            <Building2 className="w-3.5 h-3.5 text-[#004aad] shrink-0" />
-                            <span className="truncate">{prop.projectName}</span>
-                          </div>
-                        ) : (
-                          <span className="text-slate-400 italic text-[11px]">Independiente</span>
-                        )}
-                      </td>
-
-                      {/* Tipo */}
-                      <td className="py-3 px-4 capitalize font-medium text-slate-600 dark:text-slate-300">
-                        {prop.type === 'terreno' ? 'Lote / Terreno' : (prop.type || 'departamento').replace('_', ' ')}
-                      </td>
-
-                      {/* Área (m²) */}
+                      {/* 2. Área (m²) */}
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="inline-flex items-center gap-1 font-bold text-slate-900 dark:text-slate-100">
-                          <Maximize2 className="w-3 h-3 text-slate-400" />
+                          <Maximize2 className="w-3.5 h-3.5 text-slate-400" />
                           <span>{prop.areaTotal ? `${Number(prop.areaTotal).toLocaleString('en-US')} m²` : '-'}</span>
                         </div>
                       </td>
 
-                      {/* Características / Ubicación Específica */}
-                      <td className="py-3 px-4 max-w-[220px]">
+                      {/* 3. Moneda y Precio */}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">
+                          {currencyLabel} {(parseFloat(prop.price as any) || 0).toLocaleString('en-US')}
+                        </div>
+                      </td>
+
+                      {/* 4. Estado */}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <Badge variant={prop.status || 'disponible'} size="sm">
+                          {(prop.status || 'disponible').replace('_', ' ')}
+                        </Badge>
+                      </td>
+
+                      {/* 5. Ubicación / Características */}
+                      <td className="py-3 px-4 max-w-[240px]">
                         {rawFeature ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-[#004aad] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-800/40 text-[11px] font-semibold truncate max-w-full">
-                            <Sparkles className="w-3 h-3 shrink-0" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#004aad] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-800/40 text-[11px] font-semibold truncate max-w-full">
+                            <Sparkles className="w-3.5 h-3.5 text-[#1154FF] dark:text-[#38BDF8] shrink-0" />
                             <span className="truncate">{rawFeature}</span>
                           </span>
                         ) : (
@@ -501,19 +506,7 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
                         )}
                       </td>
 
-                      {/* Precio */}
-                      <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                        {currencyLabel} {(parseFloat(prop.price as any) || 0).toLocaleString('en-US')}
-                      </td>
-
-                      {/* Estado */}
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <Badge variant={prop.status || 'disponible'} size="sm">
-                          {(prop.status || 'disponible').replace('_', ' ')}
-                        </Badge>
-                      </td>
-
-                      {/* Acciones */}
+                      {/* 6. Acciones */}
                       <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
                           <button
