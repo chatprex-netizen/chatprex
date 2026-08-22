@@ -105,9 +105,9 @@ export const DealCard: React.FC<DealCardProps> = ({
       draggable
       onDragStart={(e) => onDragStart(e, deal.id)}
       onClick={() => onEdit(deal)}
-      className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card hover:shadow-card-hover transition-all duration-150 cursor-grab active:cursor-grabbing group space-y-2.5"
+      className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card hover:shadow-card-hover transition-all duration-150 cursor-grab active:cursor-grabbing group space-y-2"
     >
-      {/* Header: Lead Name con icono de Usuario + Badges de Score y Prioridad */}
+      {/* 1. Header: Lead Name con icono de Usuario + Badges de Score y Prioridad */}
       <div className="flex items-center justify-between gap-1.5">
         <div className="flex items-center gap-1.5 min-w-0 pr-1">
           <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-500 dark:text-slate-400 group-hover:bg-blue-50 group-hover:text-[#1154FF] transition-colors">
@@ -138,35 +138,35 @@ export const DealCard: React.FC<DealCardProps> = ({
         </div>
       </div>
 
-      {/* Proyecto de Interés con Color Diferenciado y Destacado */}
-      {projectName && (
-        <div className="flex items-center gap-1.5 text-[11px] text-[#004aad] dark:text-[#38BDF8] bg-blue-50/80 dark:bg-blue-950/50 hover:bg-blue-100/70 dark:hover:bg-blue-950/70 p-1.5 px-2.5 rounded-xl border border-blue-200/80 dark:border-blue-800/60 shadow-xs transition-colors">
-          <Building2 className="w-3.5 h-3.5 text-[#1154FF] dark:text-[#38BDF8] shrink-0" />
-          <span className="truncate font-bold tracking-tight" title={projectName}>
-            {projectName}
-          </span>
-        </div>
-      )}
-
-      {/* Valor Trato & Probabilidad */}
-      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      {/* 2. Valor Trato & Probabilidad */}
+      <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
         <div>
-          <span className="text-[10px] text-slate-400 font-normal block">Valor trato</span>
+          <span className="text-[9.5px] text-slate-400 font-medium block leading-none mb-0.5">Valor trato</span>
           <span className="text-xs font-bold text-slate-900 dark:text-white">
             {deal.currency || 'USD'} {(parseFloat(deal.value as any) || 0).toLocaleString()}
           </span>
         </div>
 
         <div className="text-right">
-          <span className="text-[10px] text-slate-400 font-normal block">Probabilidad</span>
+          <span className="text-[9.5px] text-slate-400 font-medium block leading-none mb-0.5">Probabilidad</span>
           <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
             {deal.probability}%
           </span>
         </div>
       </div>
 
-      {/* Footer: Asesor & Navegación Rápida de Etapa */}
-      <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      {/* 3. Proyecto de Interés: Ubicado DEBAJO de Valor de Trato y ENCIMA del Asesor, sin bordes y compacto */}
+      {projectName && (
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#004aad] dark:text-[#38BDF8] py-0.5 truncate">
+          <Building2 className="w-3.5 h-3.5 text-[#004aad] dark:text-[#38BDF8] shrink-0" />
+          <span className="truncate tracking-tight" title={projectName}>
+            {projectName}
+          </span>
+        </div>
+      )}
+
+      {/* 4. Footer: Asesor & Navegación Rápida de Etapa */}
+      <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
         <div className="flex items-center gap-1.5 overflow-hidden">
           {agent && (
             <img
