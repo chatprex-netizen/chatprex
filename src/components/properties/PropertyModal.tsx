@@ -166,31 +166,43 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
     });
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     if (!formData.title.trim()) {
-      alert('Por favor completa el nombre o identificador de la unidad (ej. Lote 14 Mz B).');
+      setErrorMsg('Por favor completa el nombre o identificador de la unidad (ej. Lote 14 Mz B).');
       return;
     }
 
-    const payload: Partial<Property> = {
-      ...formData,
-      price: formData.price === '' ? 0 : Number(formData.price.toString().replace(/,/g, '')),
-      areaTotal: formData.areaTotal === '' ? 0 : Number(formData.areaTotal),
-      areaBuilt: formData.areaBuilt === '' ? 0 : Number(formData.areaBuilt),
-      bedrooms: formData.bedrooms === '' ? 0 : Number(formData.bedrooms),
-      bathrooms: formData.bathrooms === '' ? 0 : Number(formData.bathrooms),
-      parkingSpots: formData.parkingSpots === '' ? 0 : Number(formData.parkingSpots),
-      commissionPct: Number(formData.commissionPct),
-      features: formData.unitFeature ? formData.unitFeature.split(',').map(s => s.trim()).filter(Boolean) : [],
-    };
+    try {
+      setIsSubmitting(true);
+      const payload: Partial<Property> = {
+        ...formData,
+        price: formData.price === '' ? 0 : Number(formData.price.toString().replace(/,/g, '')),
+        areaTotal: formData.areaTotal === '' ? 0 : Number(formData.areaTotal),
+        areaBuilt: formData.areaBuilt === '' ? 0 : Number(formData.areaBuilt),
+        bedrooms: formData.bedrooms === '' ? 0 : Number(formData.bedrooms),
+        bathrooms: formData.bathrooms === '' ? 0 : Number(formData.bathrooms),
+        parkingSpots: formData.parkingSpots === '' ? 0 : Number(formData.parkingSpots),
+        commissionPct: Number(formData.commissionPct) || 0,
+        features: formData.unitFeature ? formData.unitFeature.split(',').map(s => s.trim()).filter(Boolean) : [],
+      };
 
-    if (propertyToEdit) {
-      await updateProperty(propertyToEdit.id, payload);
-    } else {
-      await addProperty(payload as Omit<Property, 'id' | 'createdAt'>);
+      if (propertyToEdit) {
+        await updateProperty(propertyToEdit.id, payload);
+      } else {
+        await addProperty(payload as Omit<Property, 'id' | 'createdAt'>);
+      }
+      onClose();
+    } catch (err: any) {
+      console.error('Error al guardar unidad:', err);
+      setErrorMsg(err.message || 'Error al guardar los cambios de la unidad');
+    } finally {
+      setIsSubmitting(false);
     }
-    onClose();
   };
 
   const currentSuggestions = isLand ? LAND_FEATURE_SUGGESTIONS : BUILDING_FEATURE_SUGGESTIONS;
@@ -204,6 +216,11 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({
       maxWidth="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-3.5 text-xs font-sans">
+        {errorMsg && (
+          <div className="p-2.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl text-xs border border-rose-200 dark:border-rose-800">
+            {errorMsg}
+          </div>
+        )}
         
         {/* Selector de Proyecto Perteneciente */}
         <div>

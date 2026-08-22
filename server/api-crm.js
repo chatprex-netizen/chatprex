@@ -512,6 +512,14 @@ router.post('/api/crm/properties', validateData(propertySchema), async (req, res
   }
 });
 
+const VALID_PROPERTY_COLS = new Set([
+  'code', 'title', 'description', 'type', 'operation', 'price', 'price_max',
+  'currency', 'area_total', 'area_max', 'area_built', 'bedrooms', 'bathrooms',
+  'parking_spots', 'address', 'zone', 'city', 'features', 'status', 'images',
+  'agent_id', 'commission_pct', 'featured', 'project_name', 'developer',
+  'sold_percentage', 'is_project', 'is_public', 'project_id', 'unit_feature', 'notes'
+]);
+
 router.put('/api/crm/properties/:id', validateData(propertySchema), async (req, res) => {
   try {
     const fields = req.body;
@@ -520,9 +528,22 @@ router.put('/api/crm/properties/:id', validateData(propertySchema), async (req, 
     let idx = 1;
 
     for (const [key, value] of Object.entries(fields)) {
-      if (key === 'id') continue;
-      sets.push(`${toSnake(key)} = $${idx}`);
-      vals.push(value);
+      if (key === 'id' || key === 'createdAt' || key === 'created_at') continue;
+      const snakeKey = toSnake(key);
+      if (!VALID_PROPERTY_COLS.has(snakeKey)) continue;
+
+      sets.push(`${snakeKey} = $${idx}`);
+      if (['price', 'price_max', 'area_total', 'area_max', 'area_built', 'commission_pct', 'sold_percentage'].includes(snakeKey)) {
+        vals.push(value !== undefined && value !== null && value !== '' ? Number(value) : null);
+      } else if (['bedrooms', 'bathrooms', 'parking_spots'].includes(snakeKey)) {
+        vals.push(value !== undefined && value !== null && value !== '' ? parseInt(value) : 0);
+      } else if (['is_project', 'is_public', 'featured'].includes(snakeKey)) {
+        vals.push(Boolean(value));
+      } else if (['features', 'images'].includes(snakeKey)) {
+        vals.push(Array.isArray(value) ? value : []);
+      } else {
+        vals.push(value !== undefined ? value : null);
+      }
       idx++;
     }
 
@@ -532,6 +553,7 @@ router.put('/api/crm/properties/:id', validateData(propertySchema), async (req, 
     await query(`UPDATE properties SET ${sets.join(', ')} WHERE id = $${idx}`, vals);
     res.json({ message: 'Propiedad actualizada' });
   } catch (err) {
+    console.error('Error al actualizar propiedad:', err);
     res.status(500).json({ error: err.message });
   }
 });
