@@ -220,7 +220,7 @@ export const AdminProjects: React.FC = () => {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       alert('Por favor ingresa el nombre del proyecto o desarrollo.');
