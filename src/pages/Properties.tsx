@@ -451,7 +451,7 @@ export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = 
                   const rawFeature = prop.unitFeature || (Array.isArray(prop.features) && prop.features.length > 0 ? prop.features.join(', ') : null);
 
                   // Resolver Ubicación completa: Dirección, Distrito/Zona, Ciudad juntos
-                  const projectObj = projects.find(p => p.id === prop.projectId || (p.name && p.name.toLowerCase() === (prop.projectName || '').toLowerCase()));
+                  const projectObj = (projects || []).find(p => p && (p.id === prop.projectId || (p.name && p.name.toLowerCase() === (prop.projectName || '').toLowerCase())));
                   const locationText = (() => {
                     if (projectObj) {
                       const parts = [projectObj.address, projectObj.zone, projectObj.city].filter(Boolean);

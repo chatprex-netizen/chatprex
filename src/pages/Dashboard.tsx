@@ -29,19 +29,25 @@ export const DashboardPage: React.FC<DashboardProps> = ({
   const { properties, deals, contacts, appointments, pipelineStages, tasks, leadChannels } = useCRM();
 
   // KPIs Generales
-  const openDeals = deals.filter((d) => d.stage !== 'perdido' && d.stage !== 'ganado');
-  const totalOpenValue = openDeals.reduce((sum, d) => sum + d.value, 0);
+  const safeDeals = Array.isArray(deals) ? deals : [];
+  const safeProperties = Array.isArray(properties) ? properties : [];
+  const safeContacts = Array.isArray(contacts) ? contacts : [];
+  const safeStages = Array.isArray(pipelineStages) ? pipelineStages : [];
+  const safeChannels = Array.isArray(leadChannels) ? leadChannels : [];
 
-  const wonDeals = deals.filter((d) => d.stage === 'ganado');
-  const totalWonValue = wonDeals.reduce((sum, d) => sum + d.value, 0);
-  const availablePropertiesCount = properties.filter((p) => p.status === 'disponible').length;
+  const openDeals = safeDeals.filter((d) => d && d.stage !== 'perdido' && d.stage !== 'ganado');
+  const totalOpenValue = openDeals.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+
+  const wonDeals = safeDeals.filter((d) => d && d.stage === 'ganado');
+  const totalWonValue = wonDeals.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+  const availablePropertiesCount = safeProperties.filter((p) => p && p.status === 'disponible').length;
 
   // 1. Embudo por Etapa (Real Data)
   const funnelStages = useMemo(() => {
-    return pipelineStages.filter(s => s.visible).map(stage => {
-      const stageDeals = deals.filter(d => d.stage === stage.id);
+    return safeStages.filter(s => s && s.visible).map(stage => {
+      const stageDeals = safeDeals.filter(d => d && d.stage === stage.id);
       const count = stageDeals.length;
-      const value = stageDeals.reduce((sum, d) => sum + d.value, 0);
+      const value = stageDeals.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
       return {
         id: stage.id,
         label: stage.name,
@@ -50,18 +56,19 @@ export const DashboardPage: React.FC<DashboardProps> = ({
         color: stage.color || '#10b981'
       };
     });
-  }, [pipelineStages, deals]);
+  }, [safeStages, safeDeals]);
 
   // Métricas de Conversión
-  const totalDealsCount = deals.length;
-  const wonDealsCountMetric = deals.filter(d => d.stage === 'ganado').length;
+  const totalDealsCount = safeDeals.length;
+  const wonDealsCountMetric = safeDeals.filter(d => d && d.stage === 'ganado').length;
   const conversionRate = totalDealsCount > 0 ? ((wonDealsCountMetric / totalDealsCount) * 100).toFixed(1) : '0.0';
 
-  const maxStageValue = Math.max(...funnelStages.map(s => s.value), 1);
+  const maxStageValue = Math.max(...funnelStages.map(s => s.value || 0), 1);
 
   // 2. Canales de Captación
   const channelData = useMemo(() => {
-    const counts = contacts.reduce((acc, c) => {
+    const counts = safeContacts.reduce((acc, c) => {
+      if (!c) return acc;
       const channel = c.channel || 'otros';
       acc[channel] = (acc[channel] || 0) + 1;
       return acc;
@@ -69,7 +76,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
 
     return Object.entries(counts)
       .map(([id, value], idx) => {
-        const ch = leadChannels.find(c => c.id === id);
+        const ch = safeChannels.find(c => c && c.id === id);
         const name = ch ? ch.name : (id.charAt(0).toUpperCase() + id.slice(1));
         return {
           name,
@@ -78,70 +85,76 @@ export const DashboardPage: React.FC<DashboardProps> = ({
         };
       })
       .sort((a, b) => b.value - a.value);
-  }, [contacts, leadChannels]);
+  }, [safeContacts, safeChannels]);
 
-  // 3. Actividad reciente (Mezclando Deals, Contacts y Tasks recientes)
+  // 3. Actividad Reciente Unificada
   const recentActivities = useMemo(() => {
     const activities: any[] = [];
-    
-    // Últimos contactos
-    contacts.slice(0, 5).forEach(c => {
+    const safeTasks = Array.isArray(tasks) ? tasks : [];
+
+    safeContacts.slice(-5).forEach(c => {
+      if (!c) return;
       activities.push({
         id: `c-${c.id}`,
-        title: `Nuevo contacto registrado: ${c.name}`,
-        type: 'Contacto',
-        time: new Date(c.createdAt).getTime(),
-        dateStr: new Date(c.createdAt).toLocaleDateString()
+        title: `Nuevo Contacto: ${c.name}`,
+        subtitle: c.phone || c.email || 'Sin datos de contacto',
+        time: new Date(c.createdAt || Date.now()).getTime(),
+        type: 'contact',
+        badge: c.statusFollowUp || 'nuevo'
       });
     });
 
-    // Últimos deals
-    deals.slice(0, 5).forEach(d => {
+    safeDeals.slice(-5).forEach(d => {
+      if (!d) return;
+      const contact = safeContacts.find(c => c && c.id === d.leadId);
       activities.push({
         id: `d-${d.id}`,
-        title: `Oportunidad creada: ${d.title}`,
-        type: 'Pipeline',
-        time: new Date(d.createdAt).getTime(),
-        dateStr: new Date(d.createdAt).toLocaleDateString()
+        title: `Oportunidad: ${d.title}`,
+        subtitle: `${d.currency || 'USD'} ${(Number(d.value) || 0).toLocaleString()} • ${contact?.name || 'Cliente'}`,
+        time: new Date(d.createdAt || Date.now()).getTime(),
+        type: 'deal',
+        badge: d.stage
       });
     });
 
-    // Últimas tareas
-    tasks.slice(0, 5).forEach(t => {
+    safeTasks.slice(-5).forEach(t => {
+      if (!t) return;
       activities.push({
         id: `t-${t.id}`,
         title: `Tarea: ${t.title}`,
-        type: 'Tarea',
-        time: new Date(t.createdAt).getTime(),
-        dateStr: new Date(t.createdAt).toLocaleDateString()
+        subtitle: `Vence: ${t.dueDate || 'Sin fecha'}`,
+        time: new Date(t.dueDate || Date.now()).getTime(),
+        type: 'task',
+        badge: t.priority
       });
     });
 
     return activities.sort((a, b) => b.time - a.time).slice(0, 6);
-  }, [contacts, deals, tasks]);
+  }, [safeContacts, safeDeals, tasks]);
 
   // 4. Campañas / Origen de Oportunidades (Gráfico de barras)
   const dealsByChannel = useMemo(() => {
     const data: Record<string, number> = {};
-    deals.forEach(deal => {
-      const contact = contacts.find(c => c.id === deal.leadId);
+    safeDeals.forEach(deal => {
+      if (!deal) return;
+      const contact = safeContacts.find(c => c && c.id === deal.leadId);
       const channel = contact?.channel || 'otros';
       data[channel] = (data[channel] || 0) + 1;
     });
     return Object.entries(data).map(([id, count]) => {
-      const ch = leadChannels.find(c => c.id === id);
+      const ch = safeChannels.find(c => c && c.id === id);
       const name = ch ? ch.name : (id.charAt(0).toUpperCase() + id.slice(1));
       return {
         name,
         Oportunidades: count
       };
     });
-  }, [deals, contacts, leadChannels]);
+  }, [safeDeals, safeContacts, safeChannels]);
 
   const handleExport = () => {
-    const exportData = deals.map(d => {
-      const contact = contacts.find(c => c.id === d.leadId);
-      const stage = pipelineStages.find(s => s.id === d.stage);
+    const exportData = safeDeals.map(d => {
+      const contact = safeContacts.find(c => c && c.id === d.leadId);
+      const stage = safeStages.find(s => s && s.id === d.stage);
       return {
         'Título': d.title,
         'Valor': d.value,
@@ -150,7 +163,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
         'Probabilidad (%)': d.probability,
         'Contacto': contact?.name || 'Desconocido',
         'Teléfono': contact?.phone || '',
-        'Fecha Creación': new Date(d.createdAt).toLocaleDateString()
+        'Fecha Creación': new Date(d.createdAt || Date.now()).toLocaleDateString()
       };
     });
 

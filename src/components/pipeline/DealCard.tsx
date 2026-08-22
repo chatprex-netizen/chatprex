@@ -35,8 +35,8 @@ export const DealCard: React.FC<DealCardProps> = ({
 }) => {
   const { contacts, properties, projects, agents, moveDealStage, deleteDeal, addNotification } = useCRM();
 
-  const contact = contacts.find((c) => c.id === deal.leadId);
-  const agent = agents.find((a) => a.id === deal.agentId);
+  const contact = (contacts || []).find((c) => c && c.id === deal.leadId);
+  const agent = (agents || []).find((a) => a && a.id === deal.agentId);
 
   // Limpiar título para mostrar SOLO el nombre del lead
   const leadName = useMemo(() => {
@@ -56,17 +56,18 @@ export const DealCard: React.FC<DealCardProps> = ({
     if (!targetId) return null;
 
     // 1. Buscar en projects (prioridad absoluta)
-    const proj = projects.find(p => 
-      p.id === targetId || 
-      (p.name && p.name.toLowerCase() === targetId.toLowerCase())
+    const proj = (projects || []).find(p => 
+      p && (p.id === targetId || (p.name && p.name.toLowerCase() === targetId.toLowerCase()))
     );
     if (proj) return proj.name;
 
     // 2. Buscar en properties (extraer el nombre del proyecto si está vinculado)
-    const prop = properties.find(p => 
-      p.id === targetId || 
-      (p.projectName && p.projectName.toLowerCase() === targetId.toLowerCase()) ||
-      (p.title && p.title.toLowerCase() === targetId.toLowerCase())
+    const prop = (properties || []).find(p => 
+      p && (
+        p.id === targetId || 
+        (p.projectName && p.projectName.toLowerCase() === targetId.toLowerCase()) ||
+        (p.title && p.title.toLowerCase() === targetId.toLowerCase())
+      )
     );
     if (prop) {
       if (prop.projectName && prop.projectName.trim().length > 0) {
