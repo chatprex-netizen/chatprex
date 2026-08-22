@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { query } from './db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { validateData, loginSchema, agentSchema, propertySchema, contactSchema, dealSchema, taskSchema, appointmentSchema } from './validators.js';
+import { validateData, loginSchema, agentSchema, propertySchema, projectSchema, contactSchema, dealSchema, taskSchema, appointmentSchema } from './validators.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
