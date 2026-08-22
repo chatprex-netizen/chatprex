@@ -48,7 +48,36 @@ export const propertySchema = z.object({
   soldPercentage: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
   isProject: z.boolean().optional(),
   isPublic: z.boolean().optional(),
+  projectId: z.string().optional().or(z.literal('')).nullable(),
 });
+
+export const projectSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional().or(z.literal('')),
+  developer: z.string().optional().or(z.literal('')),
+  type: z.string().optional().or(z.literal('')),
+  operation: z.string().optional().or(z.literal('')),
+  currency: z.string().optional(),
+  priceMin: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
+  priceMax: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
+  areaMin: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
+  areaMax: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
+  soldPercentage: z.union([z.number(), z.string().transform(v => Number(v) || 0)]).optional(),
+  status: z.string().optional(),
+  address: z.string().optional().or(z.literal('')),
+  zone: z.string().optional().or(z.literal('')),
+  city: z.string().optional().or(z.literal('')),
+  features: z.array(z.string()).optional(),
+  description: z.string().optional().or(z.literal('')),
+  images: z.array(z.string()).optional(),
+  isPublic: z.boolean().optional(),
+  featured: z.boolean().optional(),
+  isProject: z.boolean().optional(),
+  contactName: z.string().optional().or(z.literal('')),
+  contactEmail: z.string().optional().or(z.literal('')),
+  contactPhone: z.string().optional().or(z.literal('')),
+  notes: z.string().optional().or(z.literal('')),
+}).passthrough();
 
 export const contactSchema = z.object({
   id: z.string().optional(),

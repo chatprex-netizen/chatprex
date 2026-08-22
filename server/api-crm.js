@@ -1088,15 +1088,51 @@ router.get('/api/crm/projects', async (_req, res) => {
   }
 });
 
-router.post('/api/crm/projects', async (req, res) => {
+router.post('/api/crm/projects', validateData(projectSchema), async (req, res) => {
   try {
-    const { name, developer, contactName, contactEmail, contactPhone, address, notes } = req.body;
+    const { id: reqId, name, developer, type, operation, currency, priceMin, priceMax,
+      areaMin, areaMax, soldPercentage, status, address, zone, city, features,
+      description, images, isPublic, featured, isProject, contactName, contactEmail, contactPhone, notes } = req.body;
 
-    const id = `proj-${Date.now()}`;
+    const id = reqId || `proj-${Date.now()}`;
     await query(`
-      INSERT INTO projects (id, name, developer, contact_name, contact_email, contact_phone, address, notes)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-    `, [id, name, developer, contactName, contactEmail, contactPhone, address, notes]);
+      INSERT INTO projects (id, name, developer, type, operation, currency, price_min, price_max,
+        area_min, area_max, sold_percentage, status, address, zone, city, features,
+        description, images, is_public, featured, is_project, contact_name, contact_email, contact_phone, notes)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
+      ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        developer = EXCLUDED.developer,
+        type = EXCLUDED.type,
+        operation = EXCLUDED.operation,
+        currency = EXCLUDED.currency,
+        price_min = EXCLUDED.price_min,
+        price_max = EXCLUDED.price_max,
+        area_min = EXCLUDED.area_min,
+        area_max = EXCLUDED.area_max,
+        sold_percentage = EXCLUDED.sold_percentage,
+        status = EXCLUDED.status,
+        address = EXCLUDED.address,
+        zone = EXCLUDED.zone,
+        city = EXCLUDED.city,
+        features = EXCLUDED.features,
+        description = EXCLUDED.description,
+        images = EXCLUDED.images,
+        is_public = EXCLUDED.is_public,
+        featured = EXCLUDED.featured,
+        is_project = EXCLUDED.is_project,
+        contact_name = EXCLUDED.contact_name,
+        contact_email = EXCLUDED.contact_email,
+        contact_phone = EXCLUDED.contact_phone,
+        notes = EXCLUDED.notes
+    `, [id, name, developer || '', type || 'proyecto_preventa', operation || 'preventa', currency || 'PEN',
+      priceMin ? Number(priceMin) : null, priceMax ? Number(priceMax) : null,
+      areaMin ? Number(areaMin) : null, areaMax ? Number(areaMax) : null,
+      soldPercentage !== undefined && soldPercentage !== null && soldPercentage !== '' ? Number(soldPercentage) : null,
+      status || 'disponible', address || '', zone || '', city || 'Arequipa',
+      features || [], description || '', images || [],
+      isPublic !== false, featured || false, isProject !== false,
+      contactName || '', contactEmail || '', contactPhone || '', notes || '']);
 
     res.status(201).json({ id, message: 'Proyecto creado' });
   } catch (err) {

@@ -60,45 +60,53 @@ export interface Property {
   id: string;
   code: string;
   title: string;
-  description: string;
+  projectId?: string;
+  projectName?: string;
+  description?: string;
   type: PropertyType;
   operation: PropertyOperation;
   price: number;
   currency: 'USD' | 'EUR' | 'MXN' | 'PEN';
   areaTotal: number;
-  areaBuilt: number;
-  bedrooms: number;
-  bathrooms: number;
-  parkingSpots: number;
-  address: string;
-  zone: string;
-  city: string;
-  features: string[];
+  areaBuilt?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  parkingSpots?: number;
   status: PropertyStatus;
-  images: string[];
-  agentId: string;
-  commissionPct: number;
-  featured?: boolean;
-  isPublic?: boolean;
-  projectName?: string;
-  developer?: string;
-  priceMax?: number;
-  areaMax?: number;
-  soldPercentage?: number;
-  isProject?: boolean;
+  images?: string[];
+  agentId?: string;
+  commissionPct?: number;
+  notes?: string;
   createdAt: string;
 }
 
 export interface Project {
   id: string;
   name: string;
-  developer: string;
+  developer?: string;
+  type?: PropertyType | string;
+  operation?: PropertyOperation | string;
+  currency?: 'USD' | 'PEN';
+  priceMin?: number;
+  priceMax?: number;
+  areaMin?: number;
+  areaMax?: number;
+  soldPercentage?: number;
+  status?: PropertyStatus | string;
+  address?: string;
+  zone?: string;
+  city?: string;
+  features?: string[];
+  description?: string;
+  images?: string[];
+  isPublic?: boolean;
+  featured?: boolean;
+  isProject?: boolean;
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
-  address?: string;
   notes?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export type DealStage =

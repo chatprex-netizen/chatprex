@@ -564,6 +564,7 @@ export async function initDb() {
 
     // Migración: Añadir columnas de proyectos y ventas a properties
     const propertyMigrationCols = [
+      { name: 'project_id', type: 'TEXT' },
       { name: 'price_max', type: 'NUMERIC(14,2)' },
       { name: 'area_max', type: 'NUMERIC(10,2)' },
       { name: 'sold_percentage', type: 'NUMERIC(5,2)' },
@@ -573,6 +574,35 @@ export async function initDb() {
     for (const col of propertyMigrationCols) {
       try {
         await client.query(`ALTER TABLE properties ADD COLUMN IF NOT EXISTS ${col.name} ${col.type};`);
+      } catch (err) {
+        // Column may already exist
+      }
+    }
+
+    // Migración: Añadir columnas comerciales completas a projects
+    const projectMigrationCols = [
+      { name: 'type', type: 'TEXT' },
+      { name: 'operation', type: 'TEXT' },
+      { name: 'currency', type: 'TEXT DEFAULT \'PEN\'' },
+      { name: 'price_min', type: 'NUMERIC(14,2)' },
+      { name: 'price_max', type: 'NUMERIC(14,2)' },
+      { name: 'area_min', type: 'NUMERIC(10,2)' },
+      { name: 'area_max', type: 'NUMERIC(10,2)' },
+      { name: 'sold_percentage', type: 'NUMERIC(5,2)' },
+      { name: 'status', type: 'TEXT DEFAULT \'disponible\'' },
+      { name: 'address', type: 'TEXT' },
+      { name: 'zone', type: 'TEXT' },
+      { name: 'city', type: 'TEXT DEFAULT \'Arequipa\'' },
+      { name: 'features', type: 'TEXT[]' },
+      { name: 'description', type: 'TEXT' },
+      { name: 'images', type: 'TEXT[]' },
+      { name: 'is_public', type: 'BOOLEAN DEFAULT TRUE' },
+      { name: 'featured', type: 'BOOLEAN DEFAULT FALSE' },
+      { name: 'is_project', type: 'BOOLEAN DEFAULT TRUE' },
+    ];
+    for (const col of projectMigrationCols) {
+      try {
+        await client.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS ${col.name} ${col.type};`);
       } catch (err) {
         // Column may already exist
       }

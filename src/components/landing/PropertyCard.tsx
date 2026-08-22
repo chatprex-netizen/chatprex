@@ -1,12 +1,12 @@
 import React from 'react';
-import { Property } from '../../types';
+import { Project, Property } from '../../types';
 import { MapPin, Maximize2, MessageCircle } from 'lucide-react';
 
 interface PropertyCardProps {
-  property: Property;
+  property: any;
   currency?: 'S/' | 'USD';
-  onSelect: (property: Property) => void;
-  onWhatsAppClick: (property: Property) => void;
+  onSelect: (item: any) => void;
+  onWhatsAppClick: (item: any) => void;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({
@@ -16,7 +16,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 }) => {
   if (!property) return null;
 
-  const rawPriceMin = Number(property.price) || 0;
+  const title = property.name || property.title || 'Desarrollo Inmobiliario';
+  const rawPriceMin = Number(property.priceMin !== undefined ? property.priceMin : property.price) || 0;
   const rawPriceMax = Number(property.priceMax) || 0;
   
   // Respetar estrictamente la moneda con la que se ingresó la propiedad (Soles o Dólares)
@@ -30,7 +31,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const pType = (property.type || '').toLowerCase();
   
   // Exclusivo: Solo es Proyecto si está marcado explícitamente como proyecto o tipo proyecto_preventa
-  const isProject = Boolean(property.isProject === true || pType === 'proyecto_preventa');
+  const isProject = property.isProject !== false && (property.isProject === true || pType === 'proyecto_preventa');
 
   // Precios: Rangos "Desde... Hasta" solo para proyectos; precio exacto para individuales
   const displayPrice = (() => {
@@ -43,13 +44,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     return formatPrice(rawPriceMin);
   })();
 
+  const rawAreaMin = Number(property.areaMin !== undefined ? property.areaMin : property.areaTotal) || 0;
+  const rawAreaMax = Number(property.areaMax) || 0;
+
   // Áreas: Rango solo para proyectos; área exacta para individuales
   const displayArea = (() => {
-    if (isProject && property.areaMax && property.areaMax > property.areaTotal) {
-      return `Desde ${property.areaTotal} m² hasta ${property.areaMax} m²`;
+    if (isProject && rawAreaMax > rawAreaMin) {
+      return `Desde ${rawAreaMin} m² hasta ${rawAreaMax} m²`;
     }
-    if (property.areaTotal > 0) {
-      return `${property.areaTotal} m²`;
+    if (rawAreaMin > 0) {
+      return `${rawAreaMin} m²`;
     }
     return '';
   })();
@@ -90,7 +94,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       <div className="relative aspect-[16/10] w-full overflow-hidden cursor-pointer" onClick={() => onSelect(property)}>
         <img
           src={mainImage}
-          alt={property.title}
+          alt={title}
           className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500 ease-out"
           loading="lazy"
         />
@@ -124,7 +128,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         <div className="absolute bottom-2 left-2.5 right-2.5 text-white pointer-events-none">
           <div className="flex items-center gap-1 text-[12px] font-medium text-slate-100 drop-shadow-md">
             <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-            <span className="truncate">{property.zone ? `${property.zone}, ${property.city}` : property.city}</span>
+            <span className="truncate">{property.zone ? `${property.zone}, ${property.city}` : property.city || 'Arequipa'}</span>
           </div>
         </div>
       </div>
@@ -137,7 +141,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             onClick={() => onSelect(property)}
             className="font-manrope font-bold text-[13px] sm:text-[15px] text-[#202020] dark:text-white group-hover:text-[#1154FF] dark:group-hover:text-[#38BDF8] transition-colors line-clamp-1 cursor-pointer leading-snug"
           >
-            {property.projectName && !isProject ? `${property.projectName} - ${property.title}` : property.title}
+            {title}
           </h3>
 
           {/* Especificaciones y Características */}
@@ -149,64 +153,48 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                   {displayArea}
                 </span>
               )}
-              {property.bedrooms && property.bedrooms > 0 && !isProject && (
-                <span className="font-medium text-[#202020] dark:text-slate-200">
-                  {property.bedrooms} hab.
-                </span>
-              )}
             </div>
 
             {/* Características de la propiedad */}
             {Array.isArray(property.features) && property.features.length > 0 && (
               <div className="flex flex-wrap gap-1 pt-0.5">
-                {property.features.slice(0, 2).map((feat, idx) => (
+                {property.features.slice(0, 2).map((feat: string, idx: number) => (
                   <span
                     key={idx}
-                    className="px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#F1F3F5] dark:bg-[#1E2333] text-slate-600 dark:text-slate-300 truncate max-w-[120px]"
+                    className="px-2 py-0.5 rounded-md bg-[#F4F5F7] dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 text-[10px] font-medium"
                   >
                     {feat}
                   </span>
                 ))}
+                {property.features.length > 2 && (
+                  <span className="px-1.5 py-0.5 rounded-md bg-[#F4F5F7] dark:bg-white/[0.06] text-slate-400 text-[10px]">
+                    +{property.features.length - 2}
+                  </span>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Bloque de Precio y Financiación */}
-        <div className="pt-2 sm:pt-2.5 border-t border-[#F1F3F5] dark:border-white/[0.08] space-y-2">
-          <div className="flex items-baseline justify-between gap-1">
-            <div>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Precio</span>
-              <span className="font-manrope font-extrabold text-[13px] sm:text-[15px] text-[#202020] dark:text-white leading-none">
-                {displayPrice}
-              </span>
+        {/* Bloque Inferior: Precio + Botón */}
+        <div className="pt-2 sm:pt-3 border-t border-[#F1F3F5] dark:border-white/[0.08] flex items-center justify-between gap-2">
+          <div className="space-y-0.5">
+            <div className="font-manrope font-extrabold text-[13px] sm:text-[15px] text-[#1154FF] dark:text-[#38BDF8] leading-tight">
+              {displayPrice}
             </div>
-
-            {isProject && (
-              <div className="text-right hidden sm:block">
-                <span className="text-[9px] text-slate-400 dark:text-slate-500 block">Cuotas directas</span>
-                <span className="font-manrope font-bold text-[11px] text-[#1154FF] dark:text-[#38BDF8]">
-                  {monthlyEstimate}/m
-                </span>
-              </div>
-            )}
+            <div className="text-[10px] text-slate-400 dark:text-slate-400 font-medium">
+              Cuotas desde {monthlyEstimate}/mes
+            </div>
           </div>
 
-          {/* Botones de Acción */}
-          <div className="grid grid-cols-2 gap-1.5">
-            <button
-              onClick={() => onSelect(property)}
-              className="py-1.5 sm:py-2 px-1.5 sm:px-2.5 rounded-lg sm:rounded-xl border border-[#E5E7EB] dark:border-white/[0.1] hover:bg-[#F7F8FA] dark:bg-[#1E2230]/70 dark:hover:bg-[#1E2230] text-[#202020] dark:text-slate-200 font-semibold text-[11px] sm:text-[12px] flex items-center justify-center gap-1 transition-colors cursor-pointer"
-            >
-              <span>Detalles</span>
-            </button>
-
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => onWhatsAppClick(property)}
-              className="py-1.5 sm:py-2 px-1.5 sm:px-2.5 rounded-lg sm:rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-[11px] sm:text-[12px] flex items-center justify-center gap-1 shadow-sm transition-all cursor-pointer transform active:scale-98"
+              className="p-2 sm:px-3 sm:py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1 shadow-sm transition-all transform active:scale-95 cursor-pointer"
+              title="Consultar por WhatsApp"
             >
-              <MessageCircle className="w-3.5 h-3.5 fill-white text-[#1154FF]" />
-              <span>WhatsApp</span>
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Consultar</span>
             </button>
           </div>
         </div>

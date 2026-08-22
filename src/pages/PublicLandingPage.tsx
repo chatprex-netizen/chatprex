@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useCRM } from '../context/CRMContext';
-import { Property } from '../types';
+import { Project, Property } from '../types';
 import { LandingHeader } from '../components/landing/LandingHeader';
 import { AirbnbSearchBar } from '../components/landing/AirbnbSearchBar';
 import { PropertyCard } from '../components/landing/PropertyCard';
@@ -11,42 +11,46 @@ import { LandingFooter } from '../components/landing/LandingFooter';
 import { Compass } from 'lucide-react';
 
 export const PublicLandingPage: React.FC = () => {
-  const { properties, portalConfig } = useCRM();
+  const { projects, properties, portalConfig } = useCRM();
 
   // Estados de Filtros y Moneda
   const [currency, setCurrency] = useState<'S/' | 'USD'>('S/');
   const [selectedZone, setSelectedZone] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'proyectos' | 'independientes'>('all');
   const [maxBudget, setMaxBudget] = useState(0);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<any>(null);
 
   const toggleCurrency = () => {
     setCurrency(prev => prev === 'S/' ? 'USD' : 'S/');
   };
 
+  // Sourcing directo desde projects (con fallback a properties si no hay proyectos creados)
   const propertyList = useMemo(() => {
+    if (Array.isArray(projects) && projects.length > 0) {
+      return projects.filter(p => p && p.isPublic !== false);
+    }
     const list = Array.isArray(properties) ? properties : [];
     return list.filter(p => p && p.isPublic !== false);
-  }, [properties]);
+  }, [projects, properties]);
 
   // Lista de zonas disponibles
   const availableZones = useMemo(() => {
     const zones = new Set<string>();
-    propertyList.forEach(p => {
+    propertyList.forEach((p: any) => {
       if (p?.zone) zones.add(p.zone);
       if (p?.city) zones.add(p.city);
     });
     return Array.from(zones);
   }, [propertyList]);
 
-  // Filtrado reactivo de propiedades
+  // Filtrado reactivo de proyectos / propiedades
   const filteredProperties = useMemo(() => {
-    return propertyList.filter(p => {
+    return propertyList.filter((p: any) => {
       if (!p) return false;
 
       // 1. Filtro por Categoría
       const pType = (p.type || '').toLowerCase();
-      const isProject = Boolean(p.isProject === true || pType === 'proyecto_preventa');
+      const isProject = p.isProject !== false && (p.isProject === true || pType === 'proyecto_preventa');
       if (selectedCategory === 'proyectos' && !isProject) return false;
       if (selectedCategory === 'independientes' && isProject) return false;
 
@@ -61,7 +65,7 @@ export const PublicLandingPage: React.FC = () => {
 
       // 3. Filtro por Presupuesto
       if (maxBudget > 0) {
-        const rawPrice = Number(p.price) || 0;
+        const rawPrice = Number(p.priceMin !== undefined ? p.priceMin : p.price) || 0;
         let normalizedPrice = rawPrice;
         if (p.currency === 'USD' && currency === 'S/') normalizedPrice = rawPrice * 3.75;
         if (p.currency === 'S/' && currency === 'USD') normalizedPrice = rawPrice / 3.75;
@@ -69,7 +73,7 @@ export const PublicLandingPage: React.FC = () => {
       }
 
       return true;
-    }).sort((a, b) => {
+    }).sort((a: any, b: any) => {
       if (a.featured && !b.featured) return -1;
       if (!a.featured && b.featured) return 1;
       return 0;
@@ -77,12 +81,13 @@ export const PublicLandingPage: React.FC = () => {
   }, [propertyList, selectedCategory, selectedZone, maxBudget, currency]);
 
   // Helper de contacto WhatsApp
-  const handleOpenWhatsApp = (prop?: Property, customMsg?: string) => {
+  const handleOpenWhatsApp = (prop?: any, customMsg?: string) => {
     const phone = portalConfig?.contactInfo?.phone?.replace(/\D/g, '') || '51958716850';
     let msg = customMsg;
     if (!msg) {
       if (prop) {
-        msg = `¡Hola CasaYa! Vi en el portal el inmueble "${prop.projectName ? `${prop.projectName} - ${prop.title}` : prop.title}" y deseo más información sobre el financiamiento y coordinar una visita.`;
+        const title = prop.name || prop.title;
+        msg = `¡Hola CasaYa! Vi en el portal el proyecto "${title}" y deseo más información sobre el financiamiento y coordinar una visita.`;
       } else {
         msg = '¡Hola CasaYa! Deseo conocer la disponibilidad actual de proyectos y propiedades.';
       }
@@ -91,238 +96,208 @@ export const PublicLandingPage: React.FC = () => {
     window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank');
   };
 
-  const handleScrollTo = (sectionId: string) => {
-    const el = document.getElementById(sectionId);
-    if (el) {
-      const yOffset = -74;
-      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    }
-  };
-
-  const [activeHeroImg, setActiveHeroImg] = useState(0);
-
-  const heroImages = Array.isArray(portalConfig?.heroImages) && portalConfig.heroImages.length > 0
+  const heroImages = (portalConfig?.heroImages && portalConfig.heroImages.length > 0)
     ? portalConfig.heroImages
     : [
         {
           id: '1',
           url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&auto=format&fit=crop&q=80',
-          label: 'Residencias & Casas Modernas',
-        },
-        {
-          id: '2',
-          url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&auto=format&fit=crop&q=80',
-          label: 'Lotes Campestres & Vistas Panorámicas',
-        },
-        {
-          id: '3',
-          url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&auto=format&fit=crop&q=80',
-          label: 'Desarrollos & Proyectos en Preventa',
-        },
+          label: 'Residencial Las Praderas - CasaYa'
+        }
       ];
 
-  // Cambio automático cada 5 segundos
+  const [currentHeroIdx, setCurrentHeroIdx] = useState(0);
+
   React.useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveHeroImg((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
-    return () => clearInterval(timer);
+    if (heroImages.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentHeroIdx(prev => (prev + 1) % heroImages.length);
+    }, 6000);
+    return () => clearInterval(interval);
   }, [heroImages.length]);
 
   return (
-    <div className="min-h-screen pt-[68px] bg-[#F7F8FA] dark:bg-[#0B0C10] text-[#202020] dark:text-slate-100 font-sans transition-colors selection:bg-[#1154FF] selection:text-white">
+    <div className="min-h-screen bg-[#FAFAFB] dark:bg-[#0B0D13] text-[#202020] dark:text-slate-100 font-sans selection:bg-[#1154FF] selection:text-white transition-colors">
       
-      {/* 1. Header Minimalista */}
+      {/* 1. Header Global con logo y navegación */}
       <LandingHeader
         currency={currency}
         onToggleCurrency={toggleCurrency}
-        onWhatsAppClick={(msg) => handleOpenWhatsApp(undefined, msg)}
+        onWhatsAppClick={() => handleOpenWhatsApp()}
       />
 
-      {/* 2. Hero Section con 3 Imágenes Animadas (Cambio cada 5s) */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 px-4 border-b border-[#F1F3F5] dark:border-white/[0.08]">
+      {/* 2. Hero Section con Carrusel Automático de Fondo */}
+      <section className="relative min-h-[500px] sm:min-h-[580px] lg:min-h-[640px] flex items-center justify-center pt-24 pb-16 px-4 overflow-hidden">
         
-        {/* Carrusel de Fondo Animado */}
-        <div className="absolute inset-0 z-0 overflow-hidden">
+        {/* Carrusel de Imágenes de Fondo */}
+        <div className="absolute inset-0 z-0">
           {heroImages.map((img, idx) => (
             <div
-              key={img.id || idx}
+              key={img.id}
               className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                activeHeroImg === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                idx === currentHeroIdx ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
               }`}
             >
               <img
                 src={img.url}
                 alt={img.label}
-                className={`w-full h-full object-cover transition-transform duration-[5000ms] ease-out ${
-                  activeHeroImg === idx ? 'scale-105' : 'scale-100'
-                }`}
+                className="w-full h-full object-cover object-center transform transition-transform duration-10000 ease-out"
               />
             </div>
           ))}
-          {/* Overlay suave y translúcido para resaltar la viveza de las imágenes con contraste óptimo */}
-          <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/35 via-black/20 to-black/60" />
+          
+          {/* Capas de degradado para legibilidad del texto */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/55 to-[#FAFAFB] dark:to-[#0B0D13]" />
+          <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/40 to-black/80" />
         </div>
 
         {/* Contenido del Hero */}
-        <div className="relative z-30 max-w-4xl mx-auto text-center space-y-5">
+        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6 animate-fade-in px-2">
           
           {/* Badge Superior */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/20 shadow-md text-xs font-semibold text-white animate-fade-in">
-            <span className="w-2 h-2 rounded-full bg-[#38bdf8] shadow-[0_0_8px_#38bdf8] animate-pulse" />
-            <span>{portalConfig?.heroBadge || 'Proyectos en Preventa & Propiedades Exclusivas'}</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 dark:bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-semibold shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-[#1154FF] animate-pulse" />
+            <span>{portalConfig?.heroBadge || 'Proyectos en Preventa & Terrenos de Campo'}</span>
           </div>
 
-          {/* Titular Principal H1 con Contraste y Sombra de Lectura */}
-          <h1 className="font-manrope font-extrabold text-[34px] sm:text-[44px] md:text-[52px] text-white tracking-tight leading-[1.08] max-w-3xl mx-auto drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+          {/* Título Principal */}
+          <h1 className="font-manrope font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white tracking-tight leading-[1.1] drop-shadow-md">
             {portalConfig?.heroTitle || 'Encuentra tu Próxima'}{' '}
-            <span className="text-[#38bdf8] drop-shadow-[0_2px_16px_rgba(56,189,248,0.5)]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#60A5FA] via-[#93C5FD] to-[#38BDF8]">
               {portalConfig?.heroHighlight || 'Propiedad o Proyecto'}
-            </span>{' '}
-            Inmobiliario
+            </span>
           </h1>
 
-          {/* Subtítulo con Sombra Suave */}
-          <p className="text-[15px] sm:text-[17px] text-slate-100 max-w-2xl mx-auto leading-[1.55] font-medium drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">
-            {portalConfig?.heroSubtitle || 'Casas, departamentos, lotes de campo y desarrollos en preventa con alta plusvalía y facilidades de financiamiento a tu medida.'}
+          {/* Subtítulo */}
+          <p className="max-w-2xl mx-auto text-xs sm:text-sm md:text-base text-slate-200 font-normal leading-relaxed drop-shadow">
+            {portalConfig?.heroSubtitle || 'Lotes de campo, casas residenciales y proyectos en preventa con alta plusvalía y financiamiento directo en Arequipa.'}
           </p>
 
-          {/* Buscador Estilo Airbnb */}
-          <div className="pt-3">
+          {/* 3. Buscador estilo Airbnb flotante */}
+          <div className="pt-2">
             <AirbnbSearchBar
+              availableZones={availableZones}
               selectedZone={selectedZone}
               onSelectZone={setSelectedZone}
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
-              selectedCurrency={currency}
-              onToggleCurrency={toggleCurrency}
               maxBudget={maxBudget}
-              onChangeMaxBudget={setMaxBudget}
-              onSearch={() => handleScrollTo('proyectos')}
-              availableZones={availableZones}
+              onBudgetChange={setMaxBudget}
+              currency={currency}
             />
           </div>
+        </div>
 
-          {/* Indicadores de 3 puntos interactivos */}
-          <div className="flex items-center justify-center gap-2 pt-2">
-            {heroImages.map((img, idx) => (
+        {/* Indicadores de diapositivas del carrusel */}
+        {heroImages.length > 1 && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full">
+            {heroImages.map((_, idx) => (
               <button
                 key={idx}
-                onClick={() => setActiveHeroImg(idx)}
-                aria-label={`Ver foto ${idx + 1}`}
+                onClick={() => setCurrentHeroIdx(idx)}
                 className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                  activeHeroImg === idx
-                    ? 'w-8 bg-[#38bdf8] shadow-[0_0_6px_#38bdf8]'
-                    : 'w-2 bg-white/40 hover:bg-white/70'
+                  idx === currentHeroIdx ? 'w-5 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/75'
                 }`}
+                title={`Ir a imagen ${idx + 1}`}
               />
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Grilla de Proyectos y Propiedades Destacadas (Máximo 8 items) */}
-      <section id="proyectos" className="max-w-7xl mx-auto px-3 sm:px-6 py-10 sm:py-14">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
-          <div>
-            <h2 className="font-manrope font-bold text-[20px] sm:text-[26px] md:text-[30px] text-[#202020] dark:text-white tracking-tight leading-[1.15]">
-              Proyectos y Propiedades Destacadas
-            </h2>
-            <p className="text-[12px] sm:text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">
-              Selección exclusiva de inmuebles con alta plusvalía y disponibilidad inmediata
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 self-start sm:self-auto">
-            {(selectedZone || maxBudget > 0 || selectedCategory !== 'all') && (
-              <button
-                onClick={() => {
-                  setSelectedZone('');
-                  setMaxBudget(0);
-                  setSelectedCategory('all');
-                }}
-                className="text-[12px] sm:text-[13px] font-semibold text-[#1154FF] dark:text-[#38BDF8] hover:underline cursor-pointer"
-              >
-                Restablecer filtros
-              </button>
-            )}
-
-            <a
-              href="#/catalogo"
-              className="text-[12px] sm:text-[13px] font-bold text-[#1154FF] dark:text-[#38BDF8] hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <span>Ver Catálogo Completo</span>
-              <span>→</span>
-            </a>
-          </div>
-        </div>
-
-        {filteredProperties.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-              {filteredProperties.slice(0, 9).map((prop) => (
-                <PropertyCard
-                  key={prop.id}
-                  property={prop}
-                  currency={currency}
-                  onSelect={(p) => setSelectedProperty(p)}
-                  onWhatsAppClick={(p) => handleOpenWhatsApp(p)}
-                />
-              ))}
-            </div>
-
-            {/* Botón Ver Catálogo Completo */}
-            <div className="mt-8 sm:mt-10 text-center">
-              <a
-                href="#/catalogo"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white dark:bg-[#151821] border border-[#E5E7EB] dark:border-white/[0.1] hover:border-[#1154FF] dark:hover:border-[#38BDF8] text-[#202020] dark:text-white font-manrope font-bold text-sm shadow-sm hover:shadow-md transition-all cursor-pointer group"
-              >
-                <span>Explorar Catálogo Completo ({propertyList.length} Inmuebles Disponibles)</span>
-                <span className="text-[#1154FF] dark:text-[#38BDF8] group-hover:translate-x-1 transition-transform">→</span>
-              </a>
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-16 bg-white dark:bg-[#12151E] rounded-2xl border border-[#E5E7EB] dark:border-white/[0.08] p-8 space-y-3 shadow-sm">
-            <Compass className="w-8 h-8 text-slate-400 mx-auto" />
-            <h3 className="font-manrope font-bold text-base text-[#202020] dark:text-white">No encontramos inmuebles con esos filtros</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-              Intenta ampliando el rango de presupuesto o seleccionando otra ubicación.
-            </p>
-            <a
-              href="#/catalogo"
-              className="inline-block px-5 py-2.5 bg-[#1154FF] hover:bg-[#0c43cc] text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/25 cursor-pointer"
-            >
-              Ver Todo el Catálogo Completo
-            </a>
           </div>
         )}
       </section>
 
-      {/* 4. Simulador de Financiamiento */}
+      {/* 4. Sección de Propiedades Destacadas & Catálogo */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        
+        {/* Header de la sección */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#E5E7EB] dark:border-white/[0.08] pb-4">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#1154FF] dark:text-[#38BDF8]">
+              <Compass className="w-3.5 h-3.5" />
+              <span>Inventario Seleccionado</span>
+            </div>
+            <h2 className="font-manrope font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white tracking-tight">
+              Propiedades & Proyectos Destacados
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Explora nuestras oportunidades inmobiliarias con alta plusvalía y financiamiento.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Mostrando <strong>{filteredProperties.length}</strong> inmuebles
+            </span>
+
+            <a
+              href="#/catalogo"
+              className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#1E2333] dark:hover:bg-[#252C40] text-[#1154FF] dark:text-[#38BDF8] font-bold text-xs transition-colors cursor-pointer"
+            >
+              Ver Catálogo Completo →
+            </a>
+          </div>
+        </div>
+
+        {/* Grilla de Propiedades: 3 columnas en desktop y 1 columna en móvil */}
+        {filteredProperties.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredProperties.slice(0, 9).map((prop: any) => (
+              <PropertyCard
+                key={prop.id}
+                property={prop}
+                currency={currency}
+                onSelect={(p) => setSelectedProperty(p)}
+                onWhatsAppClick={(p) => handleOpenWhatsApp(p)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="p-12 text-center bg-white dark:bg-[#12151E] rounded-3xl border border-[#E5E7EB] dark:border-white/[0.08] space-y-3">
+            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+              No se encontraron propiedades con los filtros seleccionados.
+            </p>
+            <button
+              onClick={() => {
+                setSelectedZone('');
+                setSelectedCategory('all');
+                setMaxBudget(0);
+              }}
+              className="px-4 py-2 rounded-xl bg-[#1154FF] text-white font-bold text-xs cursor-pointer"
+            >
+              Limpiar Filtros
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* 5. Simulador de Financiamiento */}
       <FinanceSimulator
         currency={currency}
-        onSendSimulation={(msg) => handleOpenWhatsApp(undefined, msg)}
+        onConsultWhatsApp={(amount, term) => {
+          const msg = `¡Hola CasaYa! Calculé una cuota en el simulador web para un financiamiento de ${currency} ${amount.toLocaleString('en-US')} a ${term} meses. Deseo mayor información y requisitos.`;
+          handleOpenWhatsApp(undefined, msg);
+        }}
       />
 
-      {/* 5. Módulo de Contacto Dual */}
+      {/* 6. Sección de Contacto Doble */}
       <DualContactSection
-        currency={currency}
-        onSendMessage={(msg) => handleOpenWhatsApp(undefined, msg)}
+        contactInfo={portalConfig?.contactInfo}
+        onWhatsAppClick={(msg) => handleOpenWhatsApp(undefined, msg)}
       />
 
-      {/* 6. Modal de Detalle */}
+      {/* 7. Footer Oficial */}
+      <LandingFooter
+        portalConfig={portalConfig}
+        onWhatsAppClick={() => handleOpenWhatsApp()}
+      />
+
+      {/* Modal de Detalle de Inmueble */}
       <PropertyDetailModal
-        isOpen={Boolean(selectedProperty)}
+        isOpen={!!selectedProperty}
         onClose={() => setSelectedProperty(null)}
         property={selectedProperty}
         currency={currency}
-        onWhatsAppClick={(p, msg) => handleOpenWhatsApp(p, msg)}
+        onWhatsAppClick={(prop, customMsg) => handleOpenWhatsApp(prop, customMsg)}
       />
-
-      {/* 7. Footer */}
-      <LandingFooter />
     </div>
   );
 };

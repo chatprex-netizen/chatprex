@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Property } from '../../types';
 import { 
   X, MapPin, MessageCircle, ChevronLeft, ChevronRight, Building2, Trees, ShieldCheck
 } from 'lucide-react';
@@ -7,9 +6,9 @@ import {
 interface PropertyDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  property: Property | null;
+  property: any;
   currency: 'S/' | 'USD';
-  onWhatsAppClick: (property: Property, customMessage?: string) => void;
+  onWhatsAppClick: (property: any, customMessage?: string) => void;
 }
 
 export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
@@ -27,7 +26,8 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     ? property.images 
     : ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80'];
 
-  const rawPriceMin = Number(property.price) || 0;
+  const title = property.name || property.title || 'Desarrollo Inmobiliario';
+  const rawPriceMin = Number(property.priceMin !== undefined ? property.priceMin : property.price) || 0;
   const rawPriceMax = Number(property.priceMax) || 0;
   
   // Respetar estrictamente la moneda con la que se ingresó la propiedad (Soles o Dólares)
@@ -41,7 +41,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const pType = (property.type || '').toLowerCase();
   
   // Exclusivo: Solo es Proyecto si está marcado explícitamente como proyecto o tipo proyecto_preventa
-  const isProject = Boolean(property.isProject === true || pType === 'proyecto_preventa');
+  const isProject = property.isProject !== false && (property.isProject === true || pType === 'proyecto_preventa');
 
   const displayPrice = (() => {
     if (isProject && rawPriceMax > rawPriceMin) {
@@ -53,12 +53,15 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     return formatPrice(rawPriceMin);
   })();
 
+  const rawAreaMin = Number(property.areaMin !== undefined ? property.areaMin : property.areaTotal) || 0;
+  const rawAreaMax = Number(property.areaMax) || 0;
+
   const displayArea = (() => {
-    if (isProject && property.areaMax && property.areaMax > property.areaTotal) {
-      return `${property.areaTotal} - ${property.areaMax} m²`;
+    if (isProject && rawAreaMax > rawAreaMin) {
+      return `${rawAreaMin} - ${rawAreaMax} m²`;
     }
-    if (property.areaTotal > 0) {
-      return `${property.areaTotal} m²`;
+    if (rawAreaMin > 0) {
+      return `${rawAreaMin} m²`;
     }
     return '-';
   })();
@@ -84,7 +87,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   })();
 
   const handleQuickWhatsApp = () => {
-    const msg = `¡Hola CasaYa! Vi en la web el inmueble "${property.projectName ? `${property.projectName} - ${property.title}` : property.title}" (${displayPrice}). Deseo coordinar una visita y conocer facilidades de pago.`;
+    const msg = `¡Hola CasaYa! Vi en la web el inmueble "${title}" (${displayPrice}). Deseo coordinar una visita y conocer facilidades de pago.`;
     onWhatsAppClick(property, msg);
   };
 
@@ -101,147 +104,111 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               <span>{statusConfig.label}</span>
             </span>
 
+            {/* % Vendido (Solo proyectos) */}
             {isProject && soldPct !== undefined && soldPct > 0 && (
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white shadow-xs">
-                🔥 {Math.round(soldPct)}% vendido
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white flex items-center gap-1">
+                <span>🔥</span>
+                <span>{Math.round(soldPct)}% vendido</span>
               </span>
             )}
-
-            <span className="text-[11px] font-medium text-slate-400 font-mono">
-              {property.code || 'INM-001'}
-            </span>
           </div>
 
           <button
             onClick={onClose}
-            aria-label="Cerrar"
-            className="w-7 h-7 rounded-full bg-[#F7F8FA] dark:bg-[#1E2333] hover:bg-[#F1F3F5] dark:hover:bg-[#252B3E] flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-full bg-slate-100 dark:bg-[#1E2333] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Contenido con Scroll */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-          
-          {/* Galería Compacta */}
-          <div className="space-y-1.5">
-            <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-900">
-              <img
-                src={images[activeImageIdx]}
-                alt={property.title}
-                className="w-full h-full object-cover"
-              />
-              
-              {/* Botones de navegación de imágenes */}
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={() => setActiveImageIdx((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-black/80"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setActiveImageIdx((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-black/80"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </>
-              )}
+        {/* Galería Compacta */}
+        <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full bg-slate-900 overflow-hidden shrink-0">
+          <img
+            src={images[activeImageIdx]}
+            alt={`Foto ${activeImageIdx + 1}`}
+            className="w-full h-full object-cover transition-opacity duration-300"
+          />
 
-              {/* Indicador de fotos */}
-              <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/70 text-white text-[10px] font-medium">
-                {activeImageIdx + 1} / {images.length}
-              </div>
-            </div>
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={() => setActiveImageIdx(prev => (prev === 0 ? images.length - 1 : prev - 1))}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setActiveImageIdx(prev => (prev === images.length - 1 ? 0 : prev + 1))}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
 
-            {/* Miniaturas en fila */}
-            {images.length > 1 && (
-              <div className="flex gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
-                {images.map((img, idx) => (
-                  <button
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                {images.map((_: any, idx: number) => (
+                  <span
                     key={idx}
-                    onClick={() => setActiveImageIdx(idx)}
-                    className={`relative w-14 h-10 rounded-lg overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                      activeImageIdx === idx ? 'border-[#1154FF] dark:border-[#38BDF8]' : 'border-transparent opacity-50 hover:opacity-100'
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      idx === activeImageIdx ? 'bg-white scale-125' : 'bg-white/40'
                     }`}
-                  >
-                    <img src={img} alt="thumb" className="w-full h-full object-cover" />
-                  </button>
+                  />
                 ))}
               </div>
-            )}
-          </div>
+            </>
+          )}
+        </div>
 
-          {/* Título, Ubicación y Precio */}
-          <div className="space-y-1.5 border-b border-[#F1F3F5] dark:border-white/[0.08] pb-3">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-              <div className="space-y-1">
-                <h2 className="font-manrope font-bold text-[16px] sm:text-[18px] text-[#202020] dark:text-white leading-tight">
-                  {property.projectName ? `${property.projectName} - ${property.title}` : property.title}
-                </h2>
-                <div className="flex items-center gap-1 text-[12px] text-slate-500 dark:text-slate-400 font-medium">
-                  <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                  <span className="truncate">{property.zone ? `${property.zone}, ${property.city}` : property.city}</span>
-                </div>
-              </div>
-
-              <div className="sm:text-right shrink-0">
-                <span className="text-[10px] text-slate-400 uppercase font-semibold block">Precio</span>
-                <span className="font-manrope font-extrabold text-[16px] sm:text-[19px] text-[#1154FF] dark:text-[#38BDF8] leading-none block">
-                  {displayPrice}
-                </span>
-              </div>
+        {/* Contenido con Scroll Compacto */}
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 flex-1">
+          
+          {/* Título, Proyecto y Precio */}
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#1154FF] dark:text-[#38BDF8]">
+              {property.developer || 'Inmobiliaria CasaYa'}
+            </span>
+            <h2 className="font-manrope font-extrabold text-base sm:text-lg text-slate-900 dark:text-white leading-tight">
+              {title}
+            </h2>
+            <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
+              <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              <span>{property.address ? `${property.address} • ` : ''}{property.zone ? `${property.zone}, ${property.city}` : property.city || 'Arequipa'}</span>
             </div>
           </div>
 
-          {/* Bloque de Especificaciones */}
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-2 text-center">
-            <div className="p-2 bg-[#F7F8FA] dark:bg-[#1E2333] rounded-xl border border-[#F1F3F5] dark:border-white/[0.08]">
-              <span className="text-[9px] text-slate-400 uppercase font-medium block">Área</span>
-              <span className="font-manrope font-bold text-[11.5px] text-[#202020] dark:text-white truncate block">
+          {/* Cuadro de Precio Principal */}
+          <div className="p-3 rounded-2xl bg-blue-50/70 dark:bg-white/[0.04] border border-blue-100 dark:border-white/[0.08] flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                {isProject ? 'Precio de Preventa' : 'Precio de Venta'}
+              </span>
+              <div className="font-manrope font-extrabold text-base sm:text-lg text-[#1154FF] dark:text-[#38BDF8]">
+                {displayPrice}
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span className="text-[10px] text-slate-400 block">Área</span>
+              <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
                 {displayArea}
               </span>
             </div>
-
-            <div className="p-2 bg-[#F7F8FA] dark:bg-[#1E2333] rounded-xl border border-[#F1F3F5] dark:border-white/[0.08]">
-              <span className="text-[9px] text-slate-400 uppercase font-medium block">Hab.</span>
-              <span className="font-manrope font-bold text-[11.5px] text-[#202020] dark:text-white">
-                {property.bedrooms ? `${property.bedrooms}` : '-'}
-              </span>
-            </div>
-
-            <div className="p-2 bg-[#F7F8FA] dark:bg-[#1E2333] rounded-xl border border-[#F1F3F5] dark:border-white/[0.08]">
-              <span className="text-[9px] text-slate-400 uppercase font-medium block">Operación</span>
-              <span className="font-manrope font-bold text-[11.5px] text-[#202020] dark:text-white capitalize truncate block">
-                {property.operation || 'Venta'}
-              </span>
-            </div>
-
-            <div className="p-2 bg-[#F7F8FA] dark:bg-[#1E2333] rounded-xl border border-[#F1F3F5] dark:border-white/[0.08]">
-              <span className="text-[9px] text-slate-400 uppercase font-medium block">Tipo</span>
-              <span className="font-manrope font-bold text-[11.5px] text-[#202020] dark:text-white capitalize truncate block">
-                {property.type || 'Inmueble'}
-              </span>
-            </div>
           </div>
 
-          {/* Características */}
+          {/* Amenidades y Servicios */}
           {Array.isArray(property.features) && property.features.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-xs font-bold text-[#202020] dark:text-white">
-                Características Destacadas
+            <div className="space-y-1.5">
+              <h3 className="font-bold text-xs text-slate-900 dark:text-white">
+                Amenidades & Atributos
               </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {property.features.map((feat, idx) => (
-                  <span
+              <div className="grid grid-cols-2 gap-1.5">
+                {property.features.map((feat: string, idx: number) => (
+                  <div
                     key={idx}
-                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-[#F1F3F5] dark:bg-[#1E2333] text-slate-700 dark:text-slate-200 border border-[#E5E7EB] dark:border-white/[0.06]"
+                    className="flex items-center gap-1.5 p-2 rounded-xl bg-[#F7F8FA] dark:bg-white/[0.04] text-[11px] text-slate-700 dark:text-slate-300"
                   >
-                    {feat}
-                  </span>
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span className="truncate">{feat}</span>
+                  </div>
                 ))}
               </div>
             </div>
@@ -249,40 +216,31 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
           {/* Descripción */}
           {property.description && (
-            <div className="space-y-1.5">
-              <h3 className="text-xs font-bold text-[#202020] dark:text-white">
+            <div className="space-y-1">
+              <h3 className="font-bold text-xs text-slate-900 dark:text-white">
                 Descripción
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+              <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                 {property.description}
               </p>
             </div>
           )}
-
-          {/* Banner de Garantía y Título Sunarp */}
-          <div className="p-3 rounded-2xl bg-blue-50/70 dark:bg-[#182138] border border-blue-100 dark:border-blue-900/40 flex items-start gap-2.5 text-xs text-[#1154FF] dark:text-[#38BDF8]">
-            <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold block">Inmueble Verificado</span>
-              <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
-                Documentación en regla, independización y facilidades de financiamiento directo.
-              </p>
-            </div>
-          </div>
         </div>
 
-        {/* Footer con CTA directo a WhatsApp */}
-        <div className="p-3.5 sm:p-4 bg-white/95 dark:bg-[#151821]/95 border-t border-[#F1F3F5] dark:border-white/[0.08] flex items-center justify-between gap-3">
-          <div>
-            <span className="text-[10px] text-slate-400 block font-medium">Asesoría Directa</span>
-            <span className="text-xs font-bold text-[#202020] dark:text-white">Respuesta Inmediata</span>
+        {/* Footer con Botón WhatsApp */}
+        <div className="p-3.5 sm:p-4 bg-white dark:bg-[#151821] border-t border-[#F1F3F5] dark:border-white/[0.08] flex items-center justify-between gap-3">
+          <div className="hidden sm:block">
+            <span className="text-[10px] text-slate-400 block">Atención Inmediata</span>
+            <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
+              {property.contactPhone || '+51 958 716 850'}
+            </span>
           </div>
 
           <button
             onClick={handleQuickWhatsApp}
-            className="py-2.5 px-5 rounded-xl bg-[#1154FF] hover:bg-[#0c43cc] text-white font-semibold text-xs sm:text-[13px] flex items-center gap-2 shadow-md shadow-blue-500/25 transition-all transform active:scale-98 cursor-pointer"
+            className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 transition-all transform active:scale-98 cursor-pointer"
           >
-            <MessageCircle className="w-4 h-4 fill-white text-[#1154FF]" />
+            <MessageCircle className="w-4 h-4" />
             <span>Consultar por WhatsApp</span>
           </button>
         </div>
