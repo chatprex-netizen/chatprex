@@ -255,10 +255,10 @@ export const AdminProjects: React.FC = () => {
     };
 
     if (editingProject) {
-      updateProject(editingProject.id, payload);
+      await updateProject(editingProject.id, payload);
       addNotification('Proyecto Actualizado', `Se guardaron los cambios de "${name}".`, 'success');
     } else {
-      addProject(payload as Omit<Project, 'id' | 'createdAt'>);
+      await addProject(payload as Omit<Project, 'id' | 'createdAt'>);
       addNotification('Proyecto Creado', `Se registró "${name}" con éxito.`, 'success');
     }
     

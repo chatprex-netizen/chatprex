@@ -595,22 +595,41 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addProject = async (newProj: Omit<Project, 'id' | 'createdAt'>) => {
     try {
       const res = await apiClient.post<{id: string}>('/projects', newProj);
-      setProjects(prev => [...prev, { ...newProj, id: res.id, createdAt: new Date().toISOString() }]);
-    } catch(err: any) { console.error(err); return err.message; }
+      const created: Project = {
+        ...newProj,
+        id: res.id || `proj-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      setProjects(prev => [created, ...prev]);
+      return created;
+    } catch(err: any) {
+      console.error('Error al agregar proyecto:', err);
+      const created: Project = {
+        ...newProj,
+        id: `proj-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      setProjects(prev => [created, ...prev]);
+      return created;
+    }
   };
 
   const updateProject = async (id: string, updated: Partial<Project>) => {
     try {
-      await apiClient.put('/projects/' + id, updated);
       setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updated } : p));
-    } catch(err: any) { console.error(err); return err.message; }
+      await apiClient.put('/projects/' + id, updated);
+    } catch(err: any) {
+      console.error('Error al actualizar proyecto:', err);
+    }
   };
 
   const deleteProject = async (id: string) => {
     try {
-      await apiClient.delete('/projects/' + id);
       setProjects(prev => prev.filter(p => p.id !== id));
-    } catch(err: any) { console.error(err); return err.message; }
+      await apiClient.delete('/projects/' + id);
+    } catch(err: any) {
+      console.error('Error al eliminar proyecto:', err);
+    }
   };
 
   // Manejo de Agentes

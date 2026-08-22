@@ -233,9 +233,9 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
     };
 
     if (projectToEdit) {
-      updateProject(projectToEdit.id, payload);
+      await updateProject(projectToEdit.id, payload);
     } else {
-      addProject(payload as Omit<Project, 'id' | 'createdAt'>);
+      await addProject(payload as Omit<Project, 'id' | 'createdAt'>);
     }
     onClose();
   };

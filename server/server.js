@@ -27,12 +27,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
-// Raw body parser middleware for webhook signature validation
+// Raw body parser middleware for webhook signature validation and large image uploads
 app.use(express.json({
+  limit: '50mb',
   verify: (req, _res, buf) => {
     req.rawBody = buf.toString();
   }
 }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors({
   origin: (origin, callback) => callback(null, true),
   credentials: true,
