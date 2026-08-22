@@ -1,62 +1,164 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCRM } from '../context/CRMContext';
 import { Property } from '../types';
 import { PropertyModal } from '../components/properties/PropertyModal';
 import { 
   Plus, 
   Search, 
-  X,
-  FolderTree,
-  Building2,
-  Sparkles,
-  Maximize2,
-  Trash2,
-  Edit2
+  X, 
+  FolderTree, 
+  Building2, 
+  Sparkles, 
+  Maximize2, 
+  Trash2, 
+  Edit2,
+  SlidersHorizontal,
+  RotateCcw,
+  CheckCircle2,
+  Filter
 } from 'lucide-react';
 import { Badge } from '../components/common/Badge';
 import { ProjectsList } from '../components/properties/ProjectsList';
 
-import { INITIAL_PROPERTIES } from '../data/initialData';
-
-interface PropertiesPageProps {
-  onOpenNewPropertyModal: () => void;
-}
-
-export const PropertiesPage: React.FC<PropertiesPageProps> = ({
+export const PropertiesPage: React.FC<{ onOpenNewPropertyModal: () => void }> = ({
   onOpenNewPropertyModal,
 }) => {
-  const { properties, propertiesTotal, fetchProperties, searchQuery, setSearchQuery, deleteProperty } = useCRM();
+  const { 
+    properties, 
+    propertiesTotal, 
+    fetchProperties, 
+    deleteProperty,
+    projects 
+  } = useCRM();
 
   const [page, setPage] = useState(1);
   const limit = 20;
 
+  // Estados de Filtros
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedOperation, setSelectedOperation] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [minPrice, setMinPrice] = useState<string>('');
+  const [maxPrice, setMaxPrice] = useState<string>('');
+  const [minArea, setMinArea] = useState<string>('');
+  const [maxArea, setMaxArea] = useState<string>('');
+
   const [activeTab, setActiveTab] = useState<'properties' | 'projects'>('properties');
+  const [showFilters, setShowFilters] = useState(false);
 
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  // Fetch from API
-  React.useEffect(() => {
-    fetchProperties(page, searchQuery, (selectedType !== 'all' ? `&type=${selectedType}` : '') + (selectedOperation !== 'all' ? `&operation=${selectedOperation}` : '') + (selectedStatus !== 'all' ? `&status=${selectedStatus}` : ''));
-  }, [page, searchQuery, selectedType, selectedOperation, selectedStatus]);
+  // Sincronización con el servidor cuando cambian los filtros principales
+  useEffect(() => {
+    let filterQuery = '';
+    if (selectedProjectId !== 'all') filterQuery += `&projectId=${encodeURIComponent(selectedProjectId)}`;
+    if (selectedType !== 'all') filterQuery += `&type=${encodeURIComponent(selectedType)}`;
+    if (selectedOperation !== 'all') filterQuery += `&operation=${encodeURIComponent(selectedOperation)}`;
+    if (selectedStatus !== 'all') filterQuery += `&status=${encodeURIComponent(selectedStatus)}`;
 
-  // Use properties from context, but fallback to INITIAL_PROPERTIES if empty
-  const sourceProperties = properties.length > 0 ? properties : INITIAL_PROPERTIES;
-  const listProperties = sourceProperties;
-  const totalPages = Math.ceil((propertiesTotal > 0 ? propertiesTotal : listProperties.length) / limit);
+    fetchProperties(page, searchQuery, filterQuery, limit);
+  }, [page, searchQuery, selectedProjectId, selectedType, selectedOperation, selectedStatus]);
 
-  const [showFilters, setShowFilters] = useState(false);
+  // Filtrado reactivo en el cliente sobre los datos en memoria
+  const filteredProperties = useMemo(() => {
+    const list = Array.isArray(properties) ? properties : [];
+
+    return list.filter((prop) => {
+      if (!prop) return false;
+
+      // 1. Búsqueda por texto (identificador, código, proyecto, características, descripción)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const titleMatch = (prop.title || '').toLowerCase().includes(q);
+        const codeMatch = (prop.code || '').toLowerCase().includes(q);
+        const projectMatch = (prop.projectName || '').toLowerCase().includes(q);
+        const featureMatch = (prop.unitFeature || '').toLowerCase().includes(q) || 
+                             (Array.isArray(prop.features) && prop.features.some(f => f.toLowerCase().includes(q)));
+        const descMatch = (prop.description || '').toLowerCase().includes(q);
+        const addressMatch = (prop.address || '').toLowerCase().includes(q);
+
+        if (!titleMatch && !codeMatch && !projectMatch && !featureMatch && !descMatch && !addressMatch) {
+          return false;
+        }
+      }
+
+      // 2. Filtro por Proyecto Matriz
+      if (selectedProjectId !== 'all') {
+        if (selectedProjectId === 'independent') {
+          if (prop.projectId || (prop.projectName && prop.projectName.trim().length > 0)) {
+            return false;
+          }
+        } else {
+          const matchesId = prop.projectId === selectedProjectId;
+          const matchesName = projects.find(p => p.id === selectedProjectId)?.name?.toLowerCase() === (prop.projectName || '').toLowerCase();
+          if (!matchesId && !matchesName) return false;
+        }
+      }
+
+      // 3. Filtro por Tipo de Inmueble
+      if (selectedType !== 'all') {
+        if ((prop.type || '').toLowerCase() !== selectedType.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 4. Filtro por Operación
+      if (selectedOperation !== 'all') {
+        if ((prop.operation || 'venta').toLowerCase() !== selectedOperation.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 5. Filtro por Estado
+      if (selectedStatus !== 'all') {
+        if ((prop.status || 'disponible').toLowerCase() !== selectedStatus.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 6. Filtro por Rango de Precios
+      const numPrice = Number(prop.price) || 0;
+      if (minPrice && numPrice < Number(minPrice)) return false;
+      if (maxPrice && numPrice > Number(maxPrice)) return false;
+
+      // 7. Filtro por Rango de Área
+      const numArea = Number(prop.areaTotal) || 0;
+      if (minArea && numArea < Number(minArea)) return false;
+      if (maxArea && numArea > Number(maxArea)) return false;
+
+      return true;
+    });
+  }, [properties, searchQuery, selectedProjectId, selectedType, selectedOperation, selectedStatus, minPrice, maxPrice, minArea, maxArea, projects]);
+
+  const totalPages = Math.ceil((filteredProperties.length || propertiesTotal || 1) / limit);
 
   // Contador de filtros activos
   const activeFiltersCount = [
+    selectedProjectId !== 'all',
     selectedType !== 'all',
     selectedOperation !== 'all',
     selectedStatus !== 'all',
-    searchQuery !== ''
+    searchQuery.trim() !== '',
+    minPrice !== '',
+    maxPrice !== '',
+    minArea !== '',
+    maxArea !== ''
   ].filter(Boolean).length;
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedProjectId('all');
+    setSelectedType('all');
+    setSelectedOperation('all');
+    setSelectedStatus('all');
+    setMinPrice('');
+    setMaxPrice('');
+    setMinArea('');
+    setMaxArea('');
+  };
 
   const handleEdit = (prop: Property) => {
     setPropertyToEdit(prop);
@@ -71,10 +173,11 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
   };
 
   return (
-    <div className="space-y-3.5 animate-fade-in text-xs">
-      {/* Header, Search & Filters all grouped in the single top box */}
-      <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card space-y-3">
-        {/* Top Row: Title + Tabs + Action Button */}
+    <div className="space-y-3.5 animate-fade-in text-xs font-sans">
+      {/* Caja Principal: Encabezado, Tabs y Filtros Avanzados */}
+      <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card space-y-3">
+        
+        {/* Fila Superior: Título + Tabs + Botones */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -90,7 +193,7 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
                     : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
               >
-                Unidades / Inmuebles
+                Unidades / Inmuebles ({filteredProperties.length})
               </button>
               <button
                 onClick={() => setActiveTab('projects')}
@@ -101,24 +204,24 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
                 }`}
               >
                 <FolderTree className="w-3.5 h-3.5" />
-                <span>Desarrollos / Proyectos</span>
+                <span>Desarrollos / Proyectos ({projects.length})</span>
               </button>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* Search/Filter Toggle Button */}
+            {/* Botón de Filtros Avanzados */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`p-1.5 rounded-lg border transition-colors flex items-center gap-1.5 px-2.5 cursor-pointer ${
+              className={`p-1.5 rounded-xl border transition-all flex items-center gap-1.5 px-3 cursor-pointer ${
                 showFilters || activeFiltersCount > 0
-                  ? 'bg-blue-50 dark:bg-blue-950/50 text-[#004aad] border-blue-200 dark:border-blue-800'
+                  ? 'bg-blue-50 dark:bg-blue-950/60 text-[#004aad] dark:text-[#38BDF8] border-blue-200 dark:border-blue-800 shadow-xs'
                   : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
               }`}
-              title="Buscar y filtrar"
+              title="Filtros avanzados"
             >
-              <Search className={`w-3.5 h-3.5 ${showFilters || activeFiltersCount > 0 ? 'text-[#004aad]' : 'text-slate-500'}`} />
-              <span className="text-[11px] font-medium hidden sm:inline">Buscar</span>
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span className="text-[11px] font-semibold">Filtros</span>
               {activeFiltersCount > 0 && (
                 <span className="w-4 h-4 rounded-full bg-[#004aad] text-white text-[9px] font-bold flex items-center justify-center">
                   {activeFiltersCount}
@@ -126,9 +229,10 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
               )}
             </button>
 
+            {/* Botón Nuevo */}
             <button
               onClick={activeTab === 'properties' ? onOpenNewPropertyModal : () => document.dispatchEvent(new CustomEvent('open-new-project-modal'))}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#004aad] hover:bg-[#003b8a] text-white text-xs font-semibold shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#004aad] hover:bg-[#003b8a] text-white text-xs font-semibold shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{activeTab === 'properties' ? 'Nueva unidad' : 'Nuevo proyecto'}</span>
@@ -136,91 +240,196 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
           </div>
         </div>
 
-        {/* Bottom Row: Search Box & Filter Selectors (Hidden by default) */}
+        {/* Panel de Filtros Avanzados Desplegable */}
         {showFilters && (
-          <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2 items-center animate-fade-in">
-            <div className="relative w-full sm:w-[40%] min-w-[200px]">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Buscar por identificador, código, proyecto o característica..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
-                className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-[#004aad]"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 animate-fade-in">
+            
+            {/* Fila 1: Buscador + Selector de Proyecto + Tipo + Operación + Estado */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+              
+              {/* Buscador de Texto */}
+              <div className="relative sm:col-span-2 lg:col-span-1">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar por lote, código, característica..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                  className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-[#004aad] transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+
+              {/* Filtro por Proyecto Matriz */}
+              <div>
+                <select
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-800 dark:text-slate-200 font-semibold focus:border-[#004aad] cursor-pointer"
                 >
-                  <X className="w-3 h-3" />
+                  <option value="all">🏢 Todos los Proyectos</option>
+                  <option value="independent">🏠 Solo Independientes</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por Tipo */}
+              <div>
+                <select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-700 dark:text-slate-300 focus:border-[#004aad] cursor-pointer"
+                >
+                  <option value="all">Tipos: Todos</option>
+                  <option value="terreno">Lote / Terreno</option>
+                  <option value="departamento">Departamento</option>
+                  <option value="casa">Casa</option>
+                  <option value="penthouse">Penthouse</option>
+                  <option value="oficina">Oficina</option>
+                  <option value="local_comercial">Local Comercial</option>
+                </select>
+              </div>
+
+              {/* Filtro por Operación */}
+              <div>
+                <select
+                  value={selectedOperation}
+                  onChange={(e) => setSelectedOperation(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-700 dark:text-slate-300 focus:border-[#004aad] cursor-pointer"
+                >
+                  <option value="all">Operación: Todas</option>
+                  <option value="venta">Venta</option>
+                  <option value="preventa">Preventa</option>
+                  <option value="alquiler">Alquiler</option>
+                </select>
+              </div>
+
+              {/* Filtro por Estado */}
+              <div>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-[#F7F8FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-700 dark:text-slate-300 focus:border-[#004aad] cursor-pointer"
+                >
+                  <option value="all">Estado: Todos</option>
+                  <option value="disponible">🟢 Disponible</option>
+                  <option value="en_negociacion">🟡 En negociación</option>
+                  <option value="reservada">🟠 Reservada</option>
+                  <option value="vendida">🔴 Vendida</option>
+                  <option value="alquilada">🟣 Alquilada</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Fila 2: Rangos de Precio y Área + Botón Limpiar */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+              
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Rango de Precios */}
+                <div className="flex items-center gap-1.5 bg-[#F7F8FA] dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <span className="text-[10.5px] font-semibold text-slate-500">Precio:</span>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    className="w-16 bg-transparent outline-none text-xs text-slate-900 dark:text-white"
+                  />
+                  <span className="text-slate-400">-</span>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    className="w-16 bg-transparent outline-none text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                {/* Rango de Área */}
+                <div className="flex items-center gap-1.5 bg-[#F7F8FA] dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <span className="text-[10.5px] font-semibold text-slate-500">Área (m²):</span>
+                  <input
+                    type="number"
+                    placeholder="Min m²"
+                    value={minArea}
+                    onChange={(e) => setMinArea(e.target.value)}
+                    className="w-16 bg-transparent outline-none text-xs text-slate-900 dark:text-white"
+                  />
+                  <span className="text-slate-400">-</span>
+                  <input
+                    type="number"
+                    placeholder="Max m²"
+                    value={maxArea}
+                    onChange={(e) => setMaxArea(e.target.value)}
+                    className="w-16 bg-transparent outline-none text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Botón Restablecer / Limpiar Filtros */}
+              {activeFiltersCount > 0 && (
+                <button
+                  onClick={handleResetFilters}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors flex items-center gap-1.5 cursor-pointer ml-auto"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Limpiar Filtros ({activeFiltersCount})</span>
                 </button>
               )}
             </div>
-
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="px-2.5 py-1.5 text-xs rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-700 dark:text-slate-300 cursor-pointer"
-            >
-              <option value="all">Todos los tipos</option>
-              <option value="terreno">Lote / Terreno</option>
-              <option value="departamento">Departamento</option>
-              <option value="casa">Casa</option>
-              <option value="penthouse">Penthouse</option>
-              <option value="oficina">Oficina</option>
-            </select>
-
-            <select
-              value={selectedOperation}
-              onChange={(e) => setSelectedOperation(e.target.value)}
-              className="px-2.5 py-1.5 text-xs rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-700 dark:text-slate-300 cursor-pointer"
-            >
-              <option value="all">Operación</option>
-              <option value="venta">Venta</option>
-              <option value="alquiler">Alquiler</option>
-              <option value="preventa">Preventa</option>
-            </select>
-
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-2.5 py-1.5 text-xs rounded-lg bg-[#f1f1f1] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-700 dark:text-slate-300 cursor-pointer"
-            >
-              <option value="all">Estado</option>
-              <option value="disponible">Disponible</option>
-              <option value="en_negociacion">En negociación</option>
-              <option value="reservada">Reservada</option>
-              <option value="vendida">Vendida</option>
-            </select>
           </div>
         )}
       </div>
 
-      {/* Content Area */}
+      {/* Contenido: Proyectos o Tabla de Unidades */}
       {activeTab === 'projects' ? (
         <ProjectsList />
-      ) : listProperties.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card p-12 text-center space-y-3">
+      ) : filteredProperties.length === 0 ? (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card p-12 text-center space-y-3">
           <Building2 className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
-          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">No hay unidades registradas</h3>
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            {activeFiltersCount > 0 ? 'No se encontraron unidades con los filtros seleccionados' : 'No hay unidades registradas'}
+          </h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            No se encontraron unidades o inmuebles con los filtros seleccionados. Puedes registrar una nueva unidad haciendo clic en el botón superior.
+            {activeFiltersCount > 0 
+              ? 'Prueba modificando o limpiando los filtros para ver más resultados.'
+              : 'Puedes registrar una nueva unidad haciendo clic en el botón superior.'}
           </p>
-          <button
-            onClick={onOpenNewPropertyModal}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#004aad] text-white text-xs font-medium hover:bg-[#003b8a] transition-all shadow-xs cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Registrar unidad</span>
-          </button>
+          {activeFiltersCount > 0 ? (
+            <button
+              onClick={handleResetFilters}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Restablecer Filtros</span>
+            </button>
+          ) : (
+            <button
+              onClick={onOpenNewPropertyModal}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#004aad] text-white text-xs font-semibold hover:bg-[#003b8a] transition-all shadow-xs cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Registrar unidad</span>
+            </button>
+          )}
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-card overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs min-w-[860px]">
-              <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-semibold text-[11px] border-b border-slate-200 dark:border-slate-700">
+              <thead className="bg-slate-50/90 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-semibold text-[11px] border-b border-slate-200 dark:border-slate-700">
                 <tr>
                   <th className="py-3 px-4">Código / Unidad</th>
                   <th className="py-3 px-4">Proyecto Matriz</th>
@@ -233,7 +442,7 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-normal">
-                {listProperties.map((prop) => {
+                {filteredProperties.map((prop) => {
                   const currencyLabel = prop.currency === 'PEN' ? 'S/' : prop.currency || 'USD';
                   const rawFeature = prop.unitFeature || (Array.isArray(prop.features) && prop.features.length > 0 ? prop.features.join(', ') : null);
 
@@ -332,24 +541,24 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
         </div>
       )}
 
-      {/* Pagination Controls */}
+      {/* Paginación */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-2 pb-4">
           <span className="text-slate-500 text-xs">
-            Mostrando {(page - 1) * limit + 1} a {Math.min(page * limit, propertiesTotal || listProperties.length)} de {propertiesTotal || listProperties.length}
+            Mostrando {filteredProperties.length} unidades
           </span>
           <div className="flex gap-2">
             <button 
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               Anterior
             </button>
             <button 
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               Siguiente
             </button>
@@ -357,7 +566,7 @@ export const PropertiesPage: React.FC<PropertiesPageProps> = ({
         </div>
       )}
 
-      {/* Edit & Detail Modal */}
+      {/* Modal de Edición de Propiedad / Unidad */}
       <PropertyModal
         isOpen={isEditModalOpen}
         onClose={() => {

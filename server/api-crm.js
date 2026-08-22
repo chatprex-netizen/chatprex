@@ -399,15 +399,26 @@ router.get('/api/crm/properties', async (req, res) => {
     const type = req.query.type || '';
     const operation = req.query.operation || '';
     const status = req.query.status || '';
+    const projectId = req.query.projectId || req.query.project_id || '';
     
     let whereClauses = [];
     const params = [];
     let idx = 1;
 
     if (search) {
-      whereClauses.push(`(title ILIKE $${idx} OR description ILIKE $${idx} OR code ILIKE $${idx} OR address ILIKE $${idx})`);
+      whereClauses.push(`(title ILIKE $${idx} OR description ILIKE $${idx} OR code ILIKE $${idx} OR address ILIKE $${idx} OR project_name ILIKE $${idx} OR unit_feature ILIKE $${idx})`);
       params.push(`%${search}%`);
       idx++;
+    }
+
+    if (projectId && projectId !== 'all') {
+      if (projectId === 'independent') {
+        whereClauses.push(`(project_id IS NULL OR project_id = '' OR project_name IS NULL OR project_name = '')`);
+      } else {
+        whereClauses.push(`(project_id = $${idx} OR project_name ILIKE $${idx})`);
+        params.push(projectId);
+        idx++;
+      }
     }
     
     if (type && type !== 'all') {
